@@ -5,5 +5,12 @@ Data/
 VTK/
 VTK-Build/
 
+# ITK
+ITK/
+ITK-Build/
+
+# Slicer
+Slicer/
+
 # Any build directory (in particular the VTK-Examples)
 build/
