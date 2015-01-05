@@ -1,1 +1,0 @@
-/home/sam/cs4/final-year-project/VTK-Examples/CornerAnnotation/CMakeFiles/CornerAnnotation.dir
