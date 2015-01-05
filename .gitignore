@@ -1,0 +1,9 @@
+# MRI Datasets
+Data/
+
+# VTK
+VTK/
+VTK-Build/
+
+# Any build directory (in particular the VTK-Examples)
+build/
