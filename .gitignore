@@ -9,6 +9,10 @@ VTK-Build/
 ITK/
 ITK-Build/
 
+# MITK
+MITK/
+MITK-superbuild/
+
 # Slicer
 Slicer/
 
@@ -17,3 +21,8 @@ build/
 
 # CMake
 CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+ImageToVTKImageFilter
