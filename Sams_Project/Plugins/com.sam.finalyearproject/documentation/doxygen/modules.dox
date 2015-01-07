@@ -1,0 +1,16 @@
+/**
+  \defgroup com_sam_finalyearproject com.sam.finalyearproject
+  \ingroup MITKPlugins
+
+  \brief Describe your plugin here.
+  
+*/
+
+/**
+  \defgroup com_sam_finalyearproject_internal Internal
+  \ingroup com_sam_finalyearproject
+
+  \brief This subcategory includes the internal classes of the com.sam.finalyearproject plugin. Other
+  plugins must not rely on these classes. They contain implementation details and their interface
+  may change at any time. We mean it.
+*/

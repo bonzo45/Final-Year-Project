@@ -1,20 +1,11 @@
 # MRI Datasets
 Data/
 
-# VTK
-VTK/
-VTK-Build/
-
-# ITK
-ITK/
-ITK-Build/
-
-# MITK
-MITK/
-MITK-superbuild/
-
 # Slicer
 Slicer/
+
+# Sam's Project
+Sams_Project-build/
 
 # Any build directory (in particular the VTK-Examples)
 build/
@@ -25,4 +16,6 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
+# Probably don't need this but it's here.
 ImageToVTKImageFilter
+

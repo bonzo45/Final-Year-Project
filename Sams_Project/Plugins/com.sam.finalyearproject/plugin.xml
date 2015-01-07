@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  
+  <extension point="org.blueberry.ui.views">
+    <view id="org.mitk.views.sams_view"
+          name="Sams_View"
+          class="Sams_View"
+          icon="resources/icon.xpm" />
+  </extension>
+
+</plugin>
