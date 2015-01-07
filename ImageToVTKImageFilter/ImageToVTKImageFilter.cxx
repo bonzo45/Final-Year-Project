@@ -12,48 +12,60 @@
 #include "vtkRenderer.h"
 #include "itkRGBPixel.h"
 
+//  Definitely needed... probably
+#include <vtkSmartVolumeMapper.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkRenderWindow.h>
+#include <vtkVolumeProperty.h>
+#include <vtkMatrix4x4.h>
+#include <vtkAxesActor.h>
+
 int main(int argc, char *argv[]) {
     // Print Usage if no Image supplied.
     if (argc < 2) {
         std::cerr << "Usage: " << std::endl;
-        std::cerr << argv[0] << " inputImageFile" << std::endl;
+        std::cerr << argv[0] << " inputFile" << std::endl;
         return EXIT_FAILURE;
     }
 
-    // Define Types
-    typedef itk::Image<itk::RGBPixel<unsigned char>, 2> ImageType;
-    typedef itk::ImageFileReader<ImageType>             ReaderType;
-    typedef itk::ImageToVTKImageFilter<ImageType>       ConnectorType;
+    // ITK
 
-    // Create a 'Reader' for the Image. (ITK)
-    // Create a 'Connector'. (ITK -> VTK)
+    // Types
+    typedef itk::Image<unsigned char, 3> VisualizingImageType;
+    typedef itk::ImageFileReader<VisualizingImageType> ReaderType;
+
+    // Set up File Reader
     ReaderType::Pointer reader = ReaderType::New();
-    ConnectorType::Pointer connector = ConnectorType::New();
     reader->SetFileName(argv[1]);
-    connector->SetInput(reader->GetOutput());
-  
-    // Create an 'actor' to represent the image.
-    // Actors are things that can be rendered.
-    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
-    connector->Update();
-    actor->GetMapper()->SetInputData(connector->GetOutput());
-    
-    // Create a renderer and add that actor.
-    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(actor);
-    renderer->ResetCamera();
+    reader->Update();
 
-    // Create a render window.
-    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-    renderWindow->AddRenderer(renderer);
+    // Read file
+    VisualizingImageType::Pointer image = reader->GetOutput();
 
-    // Create an interactor.
-    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-    renderWindowInteractor->SetInteractorStyle(style);
-    renderWindowInteractor->SetRenderWindow(renderWindow);
-    renderWindowInteractor->Initialize();
-    renderWindowInteractor->Start();
+    // VTK
+
+    // Create Render Window & Renderer
+    vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
+    vtkSmartPointer<vtkRenderer> ren1 = vtkSmartPointer<vtkRenderer>::New();
+    ren1->SetBackground(0.5f,0.5f,1.0f);
+    renWin->AddRenderer(ren1);
+    renWin->SetSize(1280,720);
+
+    // Create the Interactor
+    vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    iren->SetRenderWindow(renWin);
+    renWin->Render();
+
+    // ITK -> VTK
+    typedef itk::ImageToVTKImageFilter<VisualizingImageType> itkVtkConverter;
+    itkVtkConverter::Pointer conv = itkVtkConverter::New();
+    conv->SetInput(image);
+
+    // Create a volume mapper (to map the image we load to pixel values)
+    vtkSmartPointer<vtkSmartVolumeMapper> volumeMapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();    
+    // conv->Update();
+    // volumeMapper->SetInputData(conv->GetOutput());
   
     return EXIT_SUCCESS;
 }
