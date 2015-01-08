@@ -15,7 +15,3 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
-
-# Probably don't need this but it's here.
-ImageToVTKImageFilter
-
