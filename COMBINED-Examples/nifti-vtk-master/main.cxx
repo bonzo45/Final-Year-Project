@@ -13,8 +13,14 @@
 #include <vtkMatrix4x4.h>
 #include <vtkAxesActor.h>
 
+const float BACKGROUND_R = 0.5f;
+const float BACKGROUND_G = 0.5f;
+const float BACKGROUND_B = 1.0f;
+
 int main(int argc, char *argv[]) {
+    // --------------------
     // ITK: Read the Image.
+    // --------------------
     typedef itk::Image<unsigned char, 3> VisualizingImageType;
     typedef itk::ImageFileReader<VisualizingImageType> ReaderType;
     ReaderType::Pointer reader = ReaderType::New();
@@ -22,23 +28,17 @@ int main(int argc, char *argv[]) {
     reader->Update();
     VisualizingImageType::Pointer image=reader->GetOutput();
 
-    // VTK: Create RenderWindow and Renderer.
-    vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
-    vtkSmartPointer<vtkRenderer> ren1 = vtkSmartPointer<vtkRenderer>::New();
-    ren1->SetBackground(0.5f,0.5f,1.0f);
-    renWin->AddRenderer(ren1);
-    renWin->SetSize(1280,1024);
-    vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    iren->SetRenderWindow(renWin);
-    renWin->Render(); // make sure we have an OpenGL context.
-
+    // --------------------
     // ItkVtkGlue: ITK to VTK image conversion.
+    // --------------------
     typedef itk::ImageToVTKImageFilter<VisualizingImageType> itkVtkConverter;
     itkVtkConverter::Pointer conv = itkVtkConverter::New();
     conv->SetInput(image);
     conv->Update();
 
+    // --------------------
     // VTK: Create a VolumeMapper that uses input image.
+    // --------------------
     vtkSmartPointer<vtkGPUVolumeRayCastMapper> volumeMapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
     volumeMapper->SetInputData(conv->GetOutput());
 
@@ -60,18 +60,71 @@ int main(int argc, char *argv[]) {
     volume->SetMapper(volumeMapper);
     volume->SetProperty(volumeProperty);
 
-    // VTK: Adding Axis, for a reference position.
+    // --------------------
+    // VTK: Create RenderWindow and Renderer(s).
+    // --------------------
+    vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
+
+    double axialViewport[4] = {0.0, 0.5, 0.5, 1.0};
+    double threeDViewport[4] = {0.5, 0.5, 1.0, 1.0};
+    double sagittalViewport[4] = {0.0, 0.0, 0.5, 0.5};
+    double coronalViewport[4] = {0.5, 0.0, 1.0, 0.5};
+
+    // Axial
+    vtkSmartPointer<vtkRenderer> axialRenderer = vtkSmartPointer<vtkRenderer>::New();
+    axialRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    renWin->AddRenderer(axialRenderer);
+    axialRenderer->SetViewport(axialViewport);
+
+    // 3D
+    vtkSmartPointer<vtkRenderer> threeDRenderer = vtkSmartPointer<vtkRenderer>::New();
+    threeDRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    renWin->AddRenderer(threeDRenderer);
+    threeDRenderer->SetViewport(threeDViewport);
+
+    // Sagittal
+    vtkSmartPointer<vtkRenderer> sagittalRenderer = vtkSmartPointer<vtkRenderer>::New();
+    sagittalRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    renWin->AddRenderer(sagittalRenderer);
+    sagittalRenderer->SetViewport(sagittalViewport);
+
+    // Coronal
+    vtkSmartPointer<vtkRenderer> coronalRenderer = vtkSmartPointer<vtkRenderer>::New();
+    coronalRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    renWin->AddRenderer(coronalRenderer);
+    coronalRenderer->SetViewport(coronalViewport);
+    
+    // Window Interactor
+    vtkSmartPointer<vtkRenderWindowInteractor> windowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    windowInteractor->SetRenderWindow(renWin);
+    
+    renWin->SetSize(1280,720);
+    renWin->Render(); // (call render to ensure we have  an OpenGL context)
+
+    // --------------------
+    // VTK: Add Axis to 3D View.
+    // --------------------
     vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
     axes->SetTotalLength(250,250,250);
     axes->SetShaftTypeToCylinder();
     axes->SetCylinderRadius(0.01);
-    ren1->AddActor(axes);
+    threeDRenderer->AddActor(axes);
 
+    // --------------------
     // VTK: Go!
-    ren1->AddVolume(volume);
-    ren1->ResetCamera();
+    // --------------------
+    axialRenderer->AddVolume(volume);
+    threeDRenderer->AddVolume(volume);
+    sagittalRenderer->AddVolume(volume);
+    coronalRenderer->AddVolume(volume);
+
+    axialRenderer->ResetCamera();
+    threeDRenderer->ResetCamera();
+    sagittalRenderer->ResetCamera();
+    coronalRenderer->ResetCamera();
+
     renWin->Render();
-    iren->Start();
+    windowInteractor->Start();
 
     return EXIT_SUCCESS;
 }
