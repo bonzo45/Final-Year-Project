@@ -13,6 +13,11 @@
 #include <vtkMatrix4x4.h>
 #include <vtkAxesActor.h>
 
+#include <vtkImageSlice.h>
+#include <vtkImageProperty.h>
+#include <vtkImageResliceMapper.h>
+#include <vtkInteractorStyleImage.h>
+
 const float BACKGROUND_R = 0.5f;
 const float BACKGROUND_G = 0.5f;
 const float BACKGROUND_B = 1.0f;
@@ -37,7 +42,7 @@ int main(int argc, char *argv[]) {
     conv->Update();
 
     // --------------------
-    // VTK: Create a VolumeMapper that uses input image.
+    // VTK: (3D) Create a VolumeMapper that uses input image.
     // --------------------
     vtkSmartPointer<vtkGPUVolumeRayCastMapper> volumeMapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
     volumeMapper->SetInputData(conv->GetOutput());
@@ -59,6 +64,16 @@ int main(int argc, char *argv[]) {
     vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
     volume->SetMapper(volumeMapper);
     volume->SetProperty(volumeProperty);
+
+    // --------------------
+    // VTK: (2D) Create a ImageResliceMapper that uses input image.
+    // --------------------
+    vtkSmartPointer<vtkImageResliceMapper> imageResliceMapper = vtkSmartPointer<vtkImageResliceMapper>::New();
+    imageResliceMapper->SetInputData(conv->GetOutput());
+
+    vtkSmartPointer<vtkImageSlice> imageSlice = vtkSmartPointer<vtkImageSlice>::New();
+    imageSlice->SetMapper(imageResliceMapper);
+    imageSlice->GetProperty()->SetInterpolationTypeToNearest();
 
     // --------------------
     // VTK: Create RenderWindow and Renderer(s).
@@ -96,6 +111,8 @@ int main(int argc, char *argv[]) {
     
     // Window Interactor
     vtkSmartPointer<vtkRenderWindowInteractor> windowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    windowInteractor->SetInteractorStyle(style);
     windowInteractor->SetRenderWindow(renWin);
     
     renWin->SetSize(1280,720);
@@ -113,7 +130,7 @@ int main(int argc, char *argv[]) {
     // --------------------
     // VTK: Go!
     // --------------------
-    axialRenderer->AddVolume(volume);
+    axialRenderer->AddViewProp(imageSlice);
     threeDRenderer->AddVolume(volume);
     sagittalRenderer->AddVolume(volume);
     coronalRenderer->AddVolume(volume);
