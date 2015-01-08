@@ -14,8 +14,6 @@ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-
-
 #include <berryStarter.h>
 #include <Poco/Util/MapConfiguration.h>
 
@@ -41,4 +39,5 @@ int main(int argc, char** argv)
   sbConfig->setString(berry::Platform::ARG_PROVISIONING, provFile.toString());
   sbConfig->setString(berry::Platform::ARG_APPLICATION, "org.mitk.qt.extapplication");
   return berry::Starter::Run(argc, argv, sbConfig);
+  return 0;
 }
