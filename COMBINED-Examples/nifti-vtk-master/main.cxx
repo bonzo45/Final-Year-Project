@@ -23,20 +23,11 @@
 #include <vtkActor2D.h>
 
 #include <myVtkInteractorStyleImage.h>
+#include <StatusMessage.h>
 
 const float BACKGROUND_R = 0.5f;
 const float BACKGROUND_G = 0.5f;
 const float BACKGROUND_B = 1.0f;
-
-// helper class to format slice status message
-class StatusMessage {
-public:
-   static std::string Format(int slice, int maxSlice) {
-      std::stringstream tmp;
-      tmp << "Slice Number  " << slice + 1 << "/" << maxSlice + 1;
-      return tmp.str();
-   }
-};
 
 int main(int argc, char *argv[]) {
     // --------------------
