@@ -25,34 +25,65 @@
 #include <VtkSliceInteractorStyle.h>
 #include <StatusMessage.h>
 
-const float BACKGROUND_R = 0.5f;
-const float BACKGROUND_G = 0.5f;
-const float BACKGROUND_B = 1.0f;
+const float BACKGROUND_R = 0.0f;
+const float BACKGROUND_G = 0.0f;
+const float BACKGROUND_B = 0.0f;
 
-int main(int argc, char *argv[]) {
-    // --------------------
-    // ITK: Read the Image.
-    // --------------------
-    typedef itk::Image<unsigned char, 3> VisualizingImageType;
-    typedef itk::ImageFileReader<VisualizingImageType> ReaderType;
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName(argv[1]);
-    reader->Update();
-    VisualizingImageType::Pointer image=reader->GetOutput();
+const int RESOLUTION_X = 1280;
+const int RESOLUTION_Y = 720;
 
-    // --------------------
-    // ItkVtkGlue: ITK to VTK image conversion.
-    // --------------------
-    typedef itk::ImageToVTKImageFilter<VisualizingImageType> itkVtkConverter;
-    itkVtkConverter::Pointer conv = itkVtkConverter::New();
-    conv->SetInput(image);
-    conv->Update();
+typedef itk::Image<unsigned char, 3> VisualizingImageType;
+typedef itk::ImageFileReader<VisualizingImageType> ReaderType;
+typedef itk::ImageToVTKImageFilter<VisualizingImageType> itkVtkConverter;
 
+void slice(itkVtkConverter::Pointer inputData) {
+    // --------------------
+    // VTK: (2D) Display the data in slice view.
+    // --------------------
+    vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    imageViewer->SetInputData(inputData->GetOutput()); 
+
+    // Setup Slice Indicator
+    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
+    sliceTextProp->SetFontFamilyToCourier();
+    sliceTextProp->SetFontSize(20);
+    sliceTextProp->SetVerticalJustificationToBottom();
+    sliceTextProp->SetJustificationToLeft();
+
+    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
+    std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
+    sliceTextMapper->SetInput(msg.c_str());
+    sliceTextMapper->SetTextProperty(sliceTextProp);
+
+    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+    sliceTextActor->SetMapper(sliceTextMapper);
+    sliceTextActor->SetPosition(15, 10);
+
+    // Custom Interactor
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
+    myInteractorStyle->SetImageViewer(imageViewer);
+    myInteractorStyle->SetStatusMapper(sliceTextMapper);
+
+    imageViewer->SetupInteractor(renderWindowInteractor);
+    renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
+    imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
+
+    // Go!
+    imageViewer->GetRenderWindow()->SetSize(RESOLUTION_X, RESOLUTION_Y);
+    imageViewer->GetRenderer()->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    imageViewer->Render();
+    imageViewer->GetRenderer()->ResetCamera();
+    imageViewer->Render();
+    renderWindowInteractor->Start();
+}
+
+void splitscreen(itkVtkConverter::Pointer inputData) {
     // --------------------
     // VTK: (3D) Create a VolumeMapper that uses input image.
     // --------------------
     vtkSmartPointer<vtkGPUVolumeRayCastMapper> volumeMapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
-    volumeMapper->SetInputData(conv->GetOutput());
+    volumeMapper->SetInputData(inputData->GetOutput());
 
     // VTK: Setting VolumeProperty (transparency and color mapping).
     vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
@@ -76,58 +107,11 @@ int main(int argc, char *argv[]) {
     // VTK: (2D) Create a ImageResliceMapper that uses input image.
     // --------------------
     vtkSmartPointer<vtkImageResliceMapper> imageResliceMapper = vtkSmartPointer<vtkImageResliceMapper>::New();
-    imageResliceMapper->SetInputData(conv->GetOutput());
+    imageResliceMapper->SetInputData(inputData->GetOutput());
 
     vtkSmartPointer<vtkImageSlice> imageSlice = vtkSmartPointer<vtkImageSlice>::New();
     imageSlice->SetMapper(imageResliceMapper);
     imageSlice->GetProperty()->SetInterpolationTypeToNearest();
-
-    // --------------------
-    // VTK: (2D) Create a ImageViewer that uses input image.
-    // --------------------
-    vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
-    imageViewer->SetInputData(conv->GetOutput()); 
-
-    // slice status message
-    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
-    sliceTextProp->SetFontFamilyToCourier();
-    sliceTextProp->SetFontSize(20);
-    sliceTextProp->SetVerticalJustificationToBottom();
-    sliceTextProp->SetJustificationToLeft();
-
-    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
-    std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
-    sliceTextMapper->SetInput(msg.c_str());
-    sliceTextMapper->SetTextProperty(sliceTextProp);
-
-    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
-    sliceTextActor->SetMapper(sliceTextMapper);
-    sliceTextActor->SetPosition(15, 10);    // create an interactor with our own style (inherit from vtkInteractorStyleImage)
-   // in order to catch mousewheel and key events
-   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
- 
-   vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
- 
-   // make imageviewer2 and sliceTextMapper visible to our interactorstyle
-   // to enable slice status message updates when scrolling through the slices
-   myInteractorStyle->SetImageViewer(imageViewer);
-   myInteractorStyle->SetStatusMapper(sliceTextMapper);
- 
-   imageViewer->SetupInteractor(renderWindowInteractor);
-   // make the interactor use our own interactorstyle
-   // cause SetupInteractor() is defining it's own default interatorstyle 
-   // this must be called after SetupInteractor()
-   renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
-   // add slice status message and usage hint message to the renderer
-   imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
- 
-   // initialize rendering and interaction
-   //imageViewer->GetRenderWindow()->SetSize(400, 300);
-   //imageViewer->GetRenderer()->SetBackground(0.2, 0.3, 0.4);
-   imageViewer->Render();
-   imageViewer->GetRenderer()->ResetCamera();
-   imageViewer->Render();
-   renderWindowInteractor->Start();  
 
     // --------------------
     // VTK: Create RenderWindow and Renderer(s).
@@ -165,11 +149,11 @@ int main(int argc, char *argv[]) {
     
     // Window Interactor
     vtkSmartPointer<vtkRenderWindowInteractor> windowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-    windowInteractor->SetInteractorStyle(style);
+    //vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    //windowInteractor->SetInteractorStyle(style);
     windowInteractor->SetRenderWindow(renWin);
     
-    renWin->SetSize(1280,720);
+    renWin->SetSize(RESOLUTION_X, RESOLUTION_Y);
     renWin->Render(); // (call render to ensure we have  an OpenGL context)
 
     // --------------------
@@ -184,7 +168,7 @@ int main(int argc, char *argv[]) {
     // --------------------
     // VTK: Go!
     // --------------------
-    //axialRenderer->AddViewProp(imageSlice);
+    axialRenderer->AddVolume(volume);
     threeDRenderer->AddVolume(volume);
     sagittalRenderer->AddVolume(volume);
     coronalRenderer->AddVolume(volume);
@@ -196,6 +180,25 @@ int main(int argc, char *argv[]) {
 
     renWin->Render();
     windowInteractor->Start();
+}
+
+int main(int argc, char *argv[]) {
+    // --------------------
+    // ITK: Read the Image.
+    // --------------------
+    ReaderType::Pointer reader = ReaderType::New();
+    reader->SetFileName(argv[1]);
+    reader->Update();
+    VisualizingImageType::Pointer image=reader->GetOutput();
+
+    // --------------------
+    // ItkVtkGlue: ITK to VTK image conversion.
+    // --------------------
+    itkVtkConverter::Pointer itkVtkConverter = itkVtkConverter::New();
+    itkVtkConverter->SetInput(image);
+    itkVtkConverter->Update();
+
+    slice(itkVtkConverter);
 
     return EXIT_SUCCESS;
 }
