@@ -1,3 +1,42 @@
+#include "RenderWindowUI.h"
+
+#include <vtkPolyDataMapper.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkSphereSource.h>
+#include <vtkSmartPointer.h>
+
+// Constructor
+RenderWindowUI::RenderWindowUI() {
+  this->setupUi(this);
+ 
+  // Sphere
+  vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  sphereSource->Update();
+  
+  vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  sphereMapper->SetInputConnection(sphereSource->GetOutputPort());
+  
+  vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+  sphereActor->SetMapper(sphereMapper);
+ 
+  // VTK Renderer
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+  renderer->AddActor(sphereActor);
+ 
+  // VTK/Qt wedded
+  this->qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
+ 
+  // Set up action signals and slots
+  connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
+};
+
+void RenderWindowUI::slotExit() {
+  qApp->exit();
+}
+
+/*
+
 #include <itkImageFileReader.h>
 #include "itkImageToVTKImageFilter.h"
 
@@ -24,6 +63,10 @@
 
 #include <VtkSliceInteractorStyle.h>
 #include <StatusMessage.h>
+
+#include <QApplication>
+#include <QVTKWidget.h>
+
 
 const float BACKGROUND_R = 0.0f;
 const float BACKGROUND_G = 0.0f;
@@ -95,7 +138,7 @@ void splitscreen(itkVtkConverter::Pointer inputData) {
     volumeProperty->SetScalarOpacityUnitDistance(1.0);
 
     vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<vtkColorTransferFunction>::New();
-    color->AddRGBPoint(0.0,    0.0,0.0,0.0);
+    color->AddRGBPoint(0.0, 0.0,0.0,0.0);
     color->AddRGBPoint(255.0, 1.0,1.0,1.0);
     volumeProperty->SetColor(color);
 
@@ -149,12 +192,7 @@ void splitscreen(itkVtkConverter::Pointer inputData) {
     
     // Window Interactor
     vtkSmartPointer<vtkRenderWindowInteractor> windowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    //vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-    //windowInteractor->SetInteractorStyle(style);
     windowInteractor->SetRenderWindow(renWin);
-    
-    renWin->SetSize(RESOLUTION_X, RESOLUTION_Y);
-    renWin->Render(); // (call render to ensure we have  an OpenGL context)
 
     // --------------------
     // VTK: Add Axis to 3D View.
@@ -178,11 +216,19 @@ void splitscreen(itkVtkConverter::Pointer inputData) {
     sagittalRenderer->ResetCamera();
     coronalRenderer->ResetCamera();
 
-    renWin->Render();
     windowInteractor->Start();
+
+    // QT Things
+    QVTKWidget widget;
+    widget.resize(RESOLUTION_X, RESOLUTION_Y);
+    widget.SetRenderWindow(renWin);
+    widget.show();
 }
 
 int main(int argc, char *argv[]) {
+    
+    QApplication app(argc, argv);
+    
     // --------------------
     // ITK: Read the Image.
     // --------------------
@@ -198,7 +244,10 @@ int main(int argc, char *argv[]) {
     itkVtkConverter->SetInput(image);
     itkVtkConverter->Update();
 
-    slice(itkVtkConverter);
+    splitscreen(itkVtkConverter);
+
+    app.exec();
 
     return EXIT_SUCCESS;
 }
+*/
