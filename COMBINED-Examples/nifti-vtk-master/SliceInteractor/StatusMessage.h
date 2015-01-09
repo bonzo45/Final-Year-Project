@@ -1,6 +1,4 @@
 #include <string>
-#include <iostream>
-#include <sstream>
 
 // helper class to format slice status message
 class StatusMessage {

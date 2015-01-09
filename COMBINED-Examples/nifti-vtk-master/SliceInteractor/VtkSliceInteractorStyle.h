@@ -5,13 +5,12 @@
 #include <vtkObjectFactory.h>
 #include <vtkImageViewer2.h>
 #include <vtkTextMapper.h>
-#include <vtkRenderWindowInteractor.h>
  
-class myVtkInteractorStyleImage : public vtkInteractorStyleImage {
+class VtkSliceInteractorStyle : public vtkInteractorStyleImage {
 
    public:
-      static myVtkInteractorStyleImage* New();
-      vtkTypeMacro(myVtkInteractorStyleImage, vtkInteractorStyleImage);
+      static VtkSliceInteractorStyle* New();
+      vtkTypeMacro(VtkSliceInteractorStyle, vtkInteractorStyleImage);
 
    protected:
       vtkImageViewer2* _ImageViewer;
@@ -31,4 +30,5 @@ class myVtkInteractorStyleImage : public vtkInteractorStyleImage {
       virtual void OnMouseWheelForward();
       virtual void OnMouseWheelBackward();
 };
+
 #endif

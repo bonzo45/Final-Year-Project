@@ -22,7 +22,7 @@
 #include <vtkTextProperty.h>
 #include <vtkActor2D.h>
 
-#include <myVtkInteractorStyleImage.h>
+#include <VtkSliceInteractorStyle.h>
 #include <StatusMessage.h>
 
 const float BACKGROUND_R = 0.5f;
@@ -104,11 +104,9 @@ int main(int argc, char *argv[]) {
     sliceTextActor->SetMapper(sliceTextMapper);
     sliceTextActor->SetPosition(15, 10);    // create an interactor with our own style (inherit from vtkInteractorStyleImage)
    // in order to catch mousewheel and key events
-   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-      vtkSmartPointer<vtkRenderWindowInteractor>::New();
+   vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
  
-   vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
-      vtkSmartPointer<myVtkInteractorStyleImage>::New();
+   vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
  
    // make imageviewer2 and sliceTextMapper visible to our interactorstyle
    // to enable slice status message updates when scrolling through the slices
