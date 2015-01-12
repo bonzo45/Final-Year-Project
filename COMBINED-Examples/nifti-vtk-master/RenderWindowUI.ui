@@ -1,26 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>RenderWindowUI</class>
- <widget class="QMainWindow" name="SimpleView">
+ <widget class="QMainWindow" name="RenderWindowUI">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>583</height>
+    <width>1280</width>
+    <height>720</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>RenderWindowUI</string>
+   <string>Sam's Incredible Project</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QVTKWidget" name="qvtkWidget">
+   <widget class="QVTKWidget" name="axialWidget" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>511</width>
-      <height>541</height>
+      <x>0</x>
+      <y>0</y>
+      <width>640</width>
+      <height>360</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QVTKWidget" name="threeDWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>0</y>
+      <width>640</width>
+      <height>360</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QVTKWidget" name="sagittalWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>360</y>
+      <width>640</width>
+      <height>360</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QVTKWidget" name="coronalWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>360</y>
+      <width>640</width>
+      <height>360</height>
      </rect>
     </property>
    </widget>
@@ -61,8 +91,6 @@
    <header>QVTKWidget.h</header>
   </customwidget>
  </customwidgets>
- <resources>
- 
- </resources>
+ <resources/>
  <connections/>
 </ui>
