@@ -28,6 +28,11 @@
 #include <VtkSliceInteractorStyle.h>
 #include <StatusMessage.h>
 
+// CUBE and SPHERE
+#include <vtkPolyDataMapper.h>
+#include <vtkSphereSource.h>
+#include <vtkCubeSource.h>
+
 const float BACKGROUND_R = 0.0f;
 const float BACKGROUND_G = 0.0f;
 const float BACKGROUND_B = 0.0f;
@@ -75,8 +80,8 @@ vtkSmartPointer<vtkVolume> createNiftiVolume(itkVtkConverter::Pointer niftiInput
     volumeProperty->SetScalarOpacityUnitDistance(1.0);
 
     vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<vtkColorTransferFunction>::New();
-    color->AddRGBPoint(0.0, 0.0,0.0,0.0);
-    color->AddRGBPoint(255.0, 1.0,1.0,1.0);
+    color->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+    color->AddRGBPoint(255.0, 1.0, 1.0, 1.0);
     volumeProperty->SetColor(color);
 
     vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
@@ -107,68 +112,85 @@ vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
     return defaultRenderer;
 }
 
-// vtkSmartPointer<vtkRenderWindow> splitscreen(itkVtkConverter::Pointer inputData) {
-//     // --------------------
-//     // VTK: Create Renderers
-//     // --------------------
+vtkSmartPointer<vtkRenderWindow> splitscreen(itkVtkConverter::Pointer niftiItkVtkConverter) {
+    // // --------------------
+    // // VTK: (3D) Create a VolumeMapper that uses input image.
+    // // --------------------
+    // vtkSmartPointer<vtkGPUVolumeRayCastMapper> volumeMapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
+    // volumeMapper->SetInputData(niftiItkVtkConverter->GetOutput());
 
-//     // Axial
-//     vtkSmartPointer<vtkRenderer> axialRenderer = vtkSmartPointer<vtkRenderer>::New();
-//     axialRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    // // VTK: Setting VolumeProperty (transparency and color mapping).
+    // vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 
-//     // 3D
-//     vtkSmartPointer<vtkRenderer> threeDRenderer = vtkSmartPointer<vtkRenderer>::New();
-//     threeDRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    // vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
+    // compositeOpacity->AddPoint(0.0, 0.0);
+    // compositeOpacity->AddPoint(255.0, 1.0);
+    // volumeProperty->SetScalarOpacity(compositeOpacity);
+    // volumeProperty->SetScalarOpacityUnitDistance(1.0);
 
-//     // Sagittal
-//     vtkSmartPointer<vtkRenderer> sagittalRenderer = vtkSmartPointer<vtkRenderer>::New();
-//     sagittalRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    // vtkSmartPointer<vtkColorTransferFunction> color = vtkSmartPointer<vtkColorTransferFunction>::New();
+    // color->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+    // color->AddRGBPoint(255.0, 1.0, 1.0, 1.0);
+    // volumeProperty->SetColor(color);
 
-//     // Coronal
-//     vtkSmartPointer<vtkRenderer> coronalRenderer = vtkSmartPointer<vtkRenderer>::New();
-//     coronalRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    // vtkSmartPointer<vtkVolume> volume = vtkSmartPointer<vtkVolume>::New();
+    // volume->SetMapper(volumeMapper);
+    // volume->SetProperty(volumeProperty);
 
-//     // --------------------
-//     // VTK: Add Volume to Renderers.
-//     // --------------------
-//     axialRenderer->AddVolume(volume);
-//     threeDRenderer->AddVolume(volume);
-//     sagittalRenderer->AddVolume(volume);
-//     coronalRenderer->AddVolume(volume);
+    // --
+    // Create a Volume (for 3D visualisation of the Nifti)
+    // --
+    vtkSmartPointer<vtkVolume> niftiVolume = createNiftiVolume(niftiItkVtkConverter);
 
-//     // --------------------
-//     // VTK: Add Axis to 3D View.
-//     // --------------------
-//     vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
-//     axes->SetTotalLength(250,250,250);
-//     axes->SetShaftTypeToCylinder();
-//     axes->SetCylinderRadius(0.01);
-//     threeDRenderer->AddActor(axes);
+    // --
+    // Create a renderer for each view.
+    //--
+    vtkSmartPointer<vtkRenderer> axialRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> threeDRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> sagittalRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> coronalRenderer = newDefaultRenderer();
 
-//     // --------------------
-//     // VTK: Setup View
-//     // --------------------
-//     axialRenderer->ResetCamera();
-//     threeDRenderer->ResetCamera();
-//     sagittalRenderer->ResetCamera();
-//     coronalRenderer->ResetCamera();
+    // --------------------
+    // VTK: Add Volume to Renderers.
+    // --------------------
+    axialRenderer->AddVolume(niftiVolume);
+    threeDRenderer->AddVolume(niftiVolume);
+    sagittalRenderer->AddVolume(niftiVolume);
+    coronalRenderer->AddVolume(niftiVolume);
 
-//     // --------------------
-//     // VTK: Add to Window
-//     // --------------------
-//     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-//     renderWindow->AddRenderer(axialRenderer);
-//     renderWindow->AddRenderer(threeDRenderer);
-//     renderWindow->AddRenderer(sagittalRenderer);
-//     renderWindow->AddRenderer(coronalRenderer);
+    // --------------------
+    // VTK: Add Axis to 3D View.
+    // --------------------
+    vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
+    axes->SetTotalLength(250,250,250);
+    axes->SetShaftTypeToCylinder();
+    axes->SetCylinderRadius(0.01);
+    threeDRenderer->AddActor(axes);
 
-//     // Window Interactor
-//     // vtkSmartPointer<vtkRenderWindowInteractor> windowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-//     // windowInteractor->SetRenderWindow(renderWindow);
-//     // windowInteractor->Start();
+    // --------------------
+    // VTK: Setup View
+    // --------------------
+    axialRenderer->ResetCamera();
+    threeDRenderer->ResetCamera();
+    sagittalRenderer->ResetCamera();
+    coronalRenderer->ResetCamera();
 
-//     return renderWindow;
-// }
+    // --------------------
+    // VTK: Add to Window
+    // --------------------
+    vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+    renderWindow->AddRenderer(axialRenderer);
+    renderWindow->AddRenderer(threeDRenderer);
+    renderWindow->AddRenderer(sagittalRenderer);
+    renderWindow->AddRenderer(coronalRenderer);
+
+    // Window Interactor
+    // vtkSmartPointer<vtkRenderWindowInteractor> windowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    // windowInteractor->SetRenderWindow(renderWindow);
+    // windowInteractor->Start();
+
+    return renderWindow;
+}
 
 // void slice(itkVtkConverter::Pointer inputData, vtkRenderWindow* renderWindow) {
 //     // --------------------
@@ -230,9 +252,9 @@ RenderWindowUI::RenderWindowUI() {
     // Create a renderer for each view.
     //--
     vtkSmartPointer<vtkRenderer> axialRenderer = newDefaultRenderer();
-    // vtkSmartPointer<vtkRenderer> threeDRenderer = newDefaultRenderer();
-    // vtkSmartPointer<vtkRenderer> sagittalRenderer = newDefaultRenderer();
-    // vtkSmartPointer<vtkRenderer> coronalRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> threeDRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> sagittalRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> coronalRenderer = newDefaultRenderer();
 
     // --
     // Add volumes/slices/props
@@ -242,33 +264,78 @@ RenderWindowUI::RenderWindowUI() {
     // sagittalRenderer->AddVolume(niftiVolume);
     // coronalRenderer->AddVolume(niftiVolume);
 
-    vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
-    renWin->AddRenderer(axialRenderer);
-    // renWin->SetSize(300, 300);
-    // vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    // iren->SetRenderWindow(renWin);
-    // renWin->Render();
-    // iren->Start();
+    // // --------------------------- SPHERE AND CUBE -----------------
+    // // Sphere
+    // vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+    // sphereSource->Update();
+    // vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    // sphereMapper->SetInputConnection(sphereSource->GetOutputPort());
+    // vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
+    // sphereActor->SetMapper(sphereMapper);
 
+    // // Cube
+    // vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
+    // cubeSource->Update();
+    // vtkSmartPointer<vtkPolyDataMapper> cubeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    // cubeMapper->SetInputConnection(cubeSource->GetOutputPort());
+    // vtkSmartPointer<vtkActor> cubeActor = vtkSmartPointer<vtkActor>::New();
+    // cubeActor->SetMapper(cubeMapper);
+
+    // // VTK Renderer
+    // axialRenderer->AddActor(sphereActor);
+    // threeDRenderer->AddActor(cubeActor);
+    // sagittalRenderer->AddActor(cubeActor);
+    // coronalRenderer->AddActor(sphereActor);
+    // // -------------------------------------------------------------
+
+    // ---------------------------- USE QT -------------------------
     // --
     // Reset cameras
     // --
-    // axialRenderer->ResetCamera();
-    // threeDRenderer->ResetCamera();
-    // sagittalRenderer->ResetCamera();
-    // coronalRenderer->ResetCamera();
+    axialRenderer->ResetCamera();
+    threeDRenderer->ResetCamera();
+    sagittalRenderer->ResetCamera();
+    coronalRenderer->ResetCamera();
 
-    // --
-    // Add renderers to widgets
-    // --
-    this->axialWidget->SetRenderWindow(renWin);
+    // // --
+    // // Add renderers to widgets
+    // // --
     // this->axialWidget->GetRenderWindow()->AddRenderer(axialRenderer);
     // this->threeDWidget->GetRenderWindow()->AddRenderer(threeDRenderer);
     // this->sagittalWidget->GetRenderWindow()->AddRenderer(sagittalRenderer);
     // this->coronalWidget->GetRenderWindow()->AddRenderer(coronalRenderer);
 
+    // --
+    // OR set render windows of widgets
+    // --
+    vtkSmartPointer<vtkRenderWindow> renWin = this->axialWidget->GetRenderWindow(); // vtkSmartPointer<vtkRenderWindow>::New();
+    //this->axialWidget->SetRenderWindow(renWin);
+    
+    vtkSmartPointer<vtkRenderWindowInteractor> iren = this->axialWidget->GetInteractor(); // vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    // renWin->SetInteractor(iren);
+    // iren->SetRenderWindow(renWin);
+
+    renWin->AddRenderer(axialRenderer);
+    //this->axialWidget->show();
+    renWin->Render();
+    iren->Start();
+    // this->threeDWidget->SetRenderWindow();
+    // this->sagittalWidget->SetRenderWindow();
+    // this->coronalWidget->SetRenderWindow();
+    // -------------------------------------------------------------
+
+    // --------------------------- OR NOT --------------------------
+    // vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
+    // renWin->AddRenderer(axialRenderer);
+    // renWin->SetSize(300, 300);
+    // vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    // iren->SetRenderWindow(renWin);
+    // renWin->Render();
+    // iren->Start();
+    // -------------------------------------------------------------
+
     // Set up action signals and slots
-    //connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
+    connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
 };
 
 void RenderWindowUI::slotExit() {

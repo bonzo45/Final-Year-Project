@@ -47,7 +47,7 @@
    <widget class="QVTKWidget" name="coronalWidget" native="true">
     <property name="geometry">
      <rect>
-      <x>630</x>
+      <x>640</x>
       <y>360</y>
       <width>640</width>
       <height>360</height>
