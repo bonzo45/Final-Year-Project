@@ -4,6 +4,9 @@ Data/
 # Slicer
 Slicer/
 
+# VTK 6.2
+VTK-Latest/
+
 # Sam's Project
 Sams_Project-build/
 
