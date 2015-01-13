@@ -33,6 +33,9 @@
 #include <vtkSphereSource.h>
 #include <vtkCubeSource.h>
 
+// PNG
+#include <vtkPNGReader.h>
+
 const float BACKGROUND_R = 0.0f;
 const float BACKGROUND_G = 0.0f;
 const float BACKGROUND_B = 0.0f;
@@ -105,6 +108,50 @@ vtkSmartPointer<vtkImageResliceMapper> createNiftiSimpleSliceMapper(itkVtkConver
     return imageResliceMapper;
 }
 
+vtkSmartPointer<vtkImageViewer2> createNiftiImageViewer(itkVtkConverter::Pointer niftiInput) {
+    // --------------------
+    // VTK: (2D) Display the data in slice view.
+    // --------------------
+    vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    imageViewer->SetInputData(niftiInput->GetOutput()); 
+
+    // Setup Text to indicate slice number.
+    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
+    sliceTextProp->SetFontFamilyToCourier();
+    sliceTextProp->SetFontSize(20);
+    sliceTextProp->SetVerticalJustificationToBottom();
+    sliceTextProp->SetJustificationToLeft();
+
+    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
+    std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
+    sliceTextMapper->SetInput(msg.c_str());
+    sliceTextMapper->SetTextProperty(sliceTextProp);
+
+    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+    sliceTextActor->SetMapper(sliceTextMapper);
+    sliceTextActor->SetPosition(15, 10);
+
+    // Custom Interactor
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
+    myInteractorStyle->SetImageViewer(imageViewer);
+    myInteractorStyle->SetStatusMapper(sliceTextMapper);
+
+    imageViewer->SetupInteractor(renderWindowInteractor);
+    renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
+    imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
+
+    // Go!
+    imageViewer->GetRenderWindow()->SetSize(RESOLUTION_X, RESOLUTION_Y);
+    imageViewer->GetRenderer()->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+    imageViewer->Render();
+    imageViewer->GetRenderer()->ResetCamera();
+    imageViewer->Render();
+    renderWindowInteractor->Start();
+
+    return imageViewer;
+}
+
 vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
     vtkSmartPointer<vtkRenderer> defaultRenderer = vtkSmartPointer<vtkRenderer>::New();
     defaultRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
@@ -114,37 +161,40 @@ vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
 
 // Constructor
 RenderWindowUI::RenderWindowUI() {
+    cout << "RenderWindowUI: Setting up UI..." << endl;
     this->setupUi(this);
  
     // --
     // Read the Nifti File
     // --
-    itkVtkConverter::Pointer niftiItkVtkConverter = readNifti("/home/sam/cs4/final-year-project/Data/Nifti/avg152T1_LR_nifti.nii.gz");
+    std::string fileName = "/home/sam/cs4/final-year-project/Data/Nifti/avg152T1_LR_nifti.nii.gz";
+    cout << "RenderWindowUI: Reading " << fileName << endl;
+    itkVtkConverter::Pointer niftiItkVtkConverter = readNifti(fileName);
     
     // --
     // Create a Volume (for 3D visualisation of the Nifti)
     // --
-    vtkSmartPointer<vtkVolume> niftiVolume1 = createNiftiVolume(niftiItkVtkConverter);
-    vtkSmartPointer<vtkVolume> niftiVolume2 = createNiftiVolume(niftiItkVtkConverter);
-    vtkSmartPointer<vtkVolume> niftiVolume3 = createNiftiVolume(niftiItkVtkConverter);
-    vtkSmartPointer<vtkVolume> niftiVolume4 = createNiftiVolume(niftiItkVtkConverter);
+    cout << "RenderWindowUI: Creating Volume..." << endl;
+    vtkSmartPointer<vtkVolume> niftiVolume = createNiftiVolume(niftiItkVtkConverter);
+
+    // --
+    // Create the slice viewer (for 2D visualisation of the Nifti)
+    // --
+    //vtkSmartPointer<vtkImageViewer2> niftiImageViewer = createNiftiImageViewer(niftiItkVtkConverter);
 
     // --
     // Create a renderer for each view.
     //--
-    vtkSmartPointer<vtkRenderer> axialRenderer = newDefaultRenderer();
+    cout << "RenderWindowUI: Creating 3D Renderer..." << endl;
     vtkSmartPointer<vtkRenderer> threeDRenderer = newDefaultRenderer();
-    vtkSmartPointer<vtkRenderer> sagittalRenderer = newDefaultRenderer();
-    vtkSmartPointer<vtkRenderer> coronalRenderer = newDefaultRenderer();
 
     // --
     // Add volumes/slices/props
     // --
-    axialRenderer->AddVolume(niftiVolume1);
-    threeDRenderer->AddVolume(niftiVolume2);
-    sagittalRenderer->AddVolume(niftiVolume3);
-    coronalRenderer->AddVolume(niftiVolume4);
+    cout << "RenderWindowUI: Adding Volume..." << endl;
+    threeDRenderer->AddVolume(niftiVolume);
 
+    cout << "RenderWindowUI: Adding Axes..." << endl;
     vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
     axes->SetTotalLength(250,250,250);
     axes->SetShaftTypeToCylinder();
@@ -154,37 +204,44 @@ RenderWindowUI::RenderWindowUI() {
     // --
     // Reset cameras
     // --
-    axialRenderer->ResetCamera();
+    cout << "RenderWindowUI: Resetting Camera..." << endl;
     threeDRenderer->ResetCamera();
-    sagittalRenderer->ResetCamera();
-    coronalRenderer->ResetCamera();
 
     // --
     // Add Renderers to the Window.
     // --
-    vtkSmartPointer<vtkRenderWindow> renWin = this->axialWidget->GetRenderWindow();    
-    vtkSmartPointer<vtkRenderWindowInteractor> iren = this->axialWidget->GetInteractor();
-    renWin->AddRenderer(axialRenderer);
-    renWin->Render();
-    iren->Start();
-
-    renWin = this->threeDWidget->GetRenderWindow();    
-    iren = this->threeDWidget->GetInteractor();
+    cout << "Adding Renderer to RenderWindow..." << endl;
+    vtkSmartPointer<vtkRenderWindow> renWin = this->threeDWidget->GetRenderWindow();    
+    //vtkSmartPointer<vtkRenderWindowInteractor> iren = this->threeDWidget->GetInteractor();
     renWin->AddRenderer(threeDRenderer);
     renWin->Render();
-    iren->Start();
+    // If you do this it does: QVTKInteractor cannot control the event loop.
+    // iren->Start();
 
-    renWin = this->sagittalWidget->GetRenderWindow();    
-    iren = this->sagittalWidget->GetInteractor();
-    renWin->AddRenderer(sagittalRenderer);
-    renWin->Render();
-    iren->Start();
+    // --
+    // BETA
+    // --
+    // Create Image Viewer
+    cout << "Adding PNG to RenderWindow..." << endl;
+    vtkSmartPointer<vtkPNGReader> reader = vtkSmartPointer<vtkPNGReader>::New();
+    reader->SetFileName("/home/sam/Desktop/test.png");
 
-    renWin = this->coronalWidget->GetRenderWindow();    
-    iren = this->coronalWidget->GetInteractor();
-    renWin->AddRenderer(coronalRenderer);
-    renWin->Render();
-    iren->Start();
+    // Visualize
+    vtkSmartPointer<vtkImageViewer2> pngViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    pngViewer->SetInputConnection(reader->GetOutputPort());
+    pngViewer->SetRenderWindow(this->axialWidget->GetRenderWindow());
+    pngViewer->Render();
+
+    // --
+    // BETA2
+    // --
+    cout << "Adding Slices to RenderWindow..." << endl;
+    // Read the image
+    itkVtkConverter::Pointer niftiItkVtkConverter2 = readNifti(fileName);
+    vtkSmartPointer<vtkImageViewer2> sliceViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    sliceViewer->SetInputData(niftiItkVtkConverter2->GetOutput());
+    sliceViewer->SetRenderWindow(this->sagittalWidget->GetRenderWindow());
+    sliceViewer->Render();
 
     // Set up action signals and slots
     connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
@@ -193,45 +250,3 @@ RenderWindowUI::RenderWindowUI() {
 void RenderWindowUI::slotExit() {
   qApp->exit();
 }
-
-// void slice(itkVtkConverter::Pointer inputData, vtkRenderWindow* renderWindow) {
-//     // --------------------
-//     // VTK: (2D) Display the data in slice view.
-//     // --------------------
-//     vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
-//     imageViewer->SetInputData(inputData->GetOutput()); 
-
-//     // Setup Slice Indicator
-//     vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
-//     sliceTextProp->SetFontFamilyToCourier();
-//     sliceTextProp->SetFontSize(20);
-//     sliceTextProp->SetVerticalJustificationToBottom();
-//     sliceTextProp->SetJustificationToLeft();
-
-//     vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
-//     std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
-//     sliceTextMapper->SetInput(msg.c_str());
-//     sliceTextMapper->SetTextProperty(sliceTextProp);
-
-//     vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
-//     sliceTextActor->SetMapper(sliceTextMapper);
-//     sliceTextActor->SetPosition(15, 10);
-
-//     // Custom Interactor
-//     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-//     vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
-//     myInteractorStyle->SetImageViewer(imageViewer);
-//     myInteractorStyle->SetStatusMapper(sliceTextMapper);
-
-//     imageViewer->SetupInteractor(renderWindowInteractor);
-//     renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
-//     imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
-
-//     // Go!
-//     imageViewer->GetRenderWindow()->SetSize(RESOLUTION_X, RESOLUTION_Y);
-//     imageViewer->GetRenderer()->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
-//     imageViewer->Render();
-//     imageViewer->GetRenderer()->ResetCamera();
-//     imageViewer->Render();
-//     renderWindowInteractor->Start();
-// }

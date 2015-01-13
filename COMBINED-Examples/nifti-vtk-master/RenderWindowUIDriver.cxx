@@ -3,10 +3,15 @@
  
 int main(int argc, char** argv)
 {
-  QApplication app(argc, argv);
- 
-  RenderWindowUI renderWindowUI;
-  renderWindowUI.show();
- 
-  return app.exec();
+	cout << "Main: Creating Application..." << endl;
+	QApplication app(argc, argv);
+
+	cout << "Main: Creating UI..." << endl;
+	RenderWindowUI renderWindowUI;
+
+	cout << "Main: Displaying UI..." << endl;
+	renderWindowUI.show();
+
+	cout << "Main: Executing App..." << endl;
+	return app.exec();
 }
