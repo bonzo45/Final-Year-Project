@@ -164,15 +164,21 @@ vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
 
 // Constructor
 RenderWindowUI::RenderWindowUI() {
+    // --
+    // Files
+    // --
+    const char* nifti1Demo = "/home/sam/cs4/final-year-project/Data/Nifti/avg152T1_LR_nifti.nii.gz";
+    const char* nifti2Fetal = "/home/sam/cs4/final-year-project/Data/Fetal/3T_GPUtest.nii.gz";
+    const char* nifti2Demo = "/home/sam/cs4/final-year-project/Data/Nifti2/MNI152_T1_1mm_nifti2.nii.gz";
+
     cout << "RenderWindowUI: Setting up UI..." << endl;
     this->setupUi(this);
  
     // --
     // Read the Nifti File
     // --
-    std::string fileName = "/home/sam/cs4/final-year-project/Data/Nifti/avg152T1_LR_nifti.nii.gz";
-    cout << "RenderWindowUI: Reading " << fileName << endl;
-    itkVtkConverter::Pointer niftiItkVtkConverter = readNifti(fileName);
+    cout << "RenderWindowUI: Reading " << nifti1Demo << endl;
+    itkVtkConverter::Pointer niftiItkVtkConverter = readNifti(nifti1Demo);
     
     // --
     // Create a Volume (for 3D visualisation of the Nifti)
@@ -240,7 +246,7 @@ RenderWindowUI::RenderWindowUI() {
     // --
     cout << "Adding Slices to RenderWindow..." << endl;
     // Read the image
-    itkVtkConverter::Pointer niftiItkVtkConverter2 = readNifti(fileName);
+    itkVtkConverter::Pointer niftiItkVtkConverter2 = readNifti(nifti1Demo);
     vtkSmartPointer<vtkImageViewer2> sliceViewer = vtkSmartPointer<vtkImageViewer2>::New();
     sliceViewer->SetInputData(niftiItkVtkConverter2->GetOutput());
     sliceViewer->SetRenderWindow(this->sagittalWidget->GetRenderWindow());
@@ -251,8 +257,9 @@ RenderWindowUI::RenderWindowUI() {
     // --
     cout << "Adding Nifti to RenderWindow..." << endl;
     vtkSmartPointer<vtkNIFTIImageReader> niftiReader = vtkSmartPointer<vtkNIFTIImageReader>::New();
-    // niftiReader->SetFileName("/home/sam/cs4/final-year-project/Data/Fetal/3T_GPUtest.nii.gz");
-    niftiReader->SetFileName("/home/sam/cs4/final-year-project/Data/Nifti2/MNI152_T1_1mm_nifti2.nii.gz");
+    niftiReader->SetFileName(nifti1Demo);
+    // niftiReader->SetFileName(nifti2Fetal);
+    // niftiReader->SetFileName(nifti2Demo);
 
     // Visualize
     vtkSmartPointer<vtkImageViewer2> niftiViewer = vtkSmartPointer<vtkImageViewer2>::New();
