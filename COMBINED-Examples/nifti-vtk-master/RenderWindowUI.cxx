@@ -36,6 +36,9 @@
 // PNG
 #include <vtkPNGReader.h>
 
+// Nifti? Need VTK 6.2.
+// #include <vtkNIFTIImageReader.h>
+
 const float BACKGROUND_R = 0.0f;
 const float BACKGROUND_G = 0.0f;
 const float BACKGROUND_B = 0.0f;
@@ -242,6 +245,19 @@ RenderWindowUI::RenderWindowUI() {
     sliceViewer->SetInputData(niftiItkVtkConverter2->GetOutput());
     sliceViewer->SetRenderWindow(this->sagittalWidget->GetRenderWindow());
     sliceViewer->Render();
+
+    // // --
+    // // BETA3
+    // // --
+    // cout << "Adding Nifti to RenderWindow..." << endl;
+    // vtkSmartPointer<vtkNIFTIImageReader> niftiReader = vtkSmartPointer<vtkPNGReader>::New();
+    // niftiReader->SetFileName("/home/sam/cs4/final-year-project/Data/Fetal/3T_GPUtest.nii.gz");
+
+    // // Visualize
+    // vtkSmartPointer<vtkImageViewer2> niftiViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    // niftiViewer->SetInputConnection(niftiReader->GetOutputPort());
+    // niftiViewer->SetRenderWindow(this->coronalWidget->GetRenderWindow());
+    // niftiViewer->Render();
 
     // Set up action signals and slots
     connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
