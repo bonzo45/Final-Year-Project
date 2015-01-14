@@ -258,6 +258,7 @@ RenderWindowUI::RenderWindowUI() {
     // --
     cout << "Adding Axial View..." << endl;
     axialViewer = createNiftiSliceViewer(nifti1Demo, this->axialWidget->GetRenderWindow());
+    axialViewer->SetSliceOrientationToXY();
     axialViewer->Render();
 
     // --
@@ -265,6 +266,7 @@ RenderWindowUI::RenderWindowUI() {
     // --
     cout << "Adding Sagittal View..." << endl;
     sagittalViewer = createNiftiSliceViewer(nifti1Demo, this->sagittalWidget->GetRenderWindow());
+    sagittalViewer->SetSliceOrientationToYZ();
     sagittalViewer->Render();
 
     // --
@@ -272,6 +274,7 @@ RenderWindowUI::RenderWindowUI() {
     // --
     cout << "Adding Coronal View..." << endl;
     coronalViewer = createNiftiSliceViewer(nifti1Demo, this->coronalWidget->GetRenderWindow());
+    coronalViewer->SetSliceOrientationToXZ();
     coronalViewer->Render();
 
     // Set up action signals and slots
