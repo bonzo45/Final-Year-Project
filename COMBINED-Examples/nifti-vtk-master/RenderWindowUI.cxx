@@ -15,11 +15,6 @@
 #include <vtkRenderer.h>
 #include <vtkAxesActor.h>
 
-// Simple Slice
-#include <vtkImageSlice.h>
-#include <vtkImageResliceMapper.h>
-#include <vtkImageProperty.h>
-
 // Slices
 #include <vtkImageViewer2.h>
 #include <vtkTextProperty.h>
@@ -28,29 +23,42 @@
 #include <VtkSliceInteractorStyle.h>
 #include <StatusMessage.h>
 
-// CUBE and SPHERE
-#include <vtkPolyDataMapper.h>
-#include <vtkSphereSource.h>
-#include <vtkCubeSource.h>
-
 // PNG
 #include <vtkPNGReader.h>
 
-// Nifti? Need VTK 6.2.
+// Nifti. Need VTK 6.2.
 #include <vtkNIFTIImageReader.h>
 
+// --
+// Colours
+// --
 const float BACKGROUND_R = 0.0f;
 const float BACKGROUND_G = 0.0f;
 const float BACKGROUND_B = 0.0f;
 
-const int RESOLUTION_X = 1280;
-const int RESOLUTION_Y = 720;
+// --
+// Files
+// --
+const char* nifti1Demo = "/home/sam/cs4/final-year-project/Data/Nifti/avg152T1_LR_nifti.nii.gz";
+const char* nifti2Fetal = "/home/sam/cs4/final-year-project/Data/Fetal/3T_GPUtest.nii.gz";
+const char* nifti2Demo = "/home/sam/cs4/final-year-project/Data/Nifti2/MNI152_T1_1mm_nifti2.nii.gz";
 
+// --
+// Typedefs
+// --
 typedef itk::Image<unsigned char, 3> VisualizingImageType;
 typedef itk::ImageFileReader<VisualizingImageType> ReaderType;
 typedef itk::ImageToVTKImageFilter<VisualizingImageType> itkVtkConverter;
 
-itkVtkConverter::Pointer readNifti(std::string fileName) {
+vtkSmartPointer<vtkImageViewer2> axialViewer;
+vtkSmartPointer<vtkImageViewer2> sagittalViewer;
+vtkSmartPointer<vtkImageViewer2> coronalViewer;
+
+/**
+  * Loads a nifti file using ITK and converts it to VTK format suitable for 3D rendering.
+  * fileName - the .nii or .nii.gz file.
+  */
+itkVtkConverter::Pointer loadNifti(std::string fileName) {
    // --------------------
     // ITK: Read the Image.
     // --------------------
@@ -69,6 +77,10 @@ itkVtkConverter::Pointer readNifti(std::string fileName) {
     return itkVtkConverter; 
 }
 
+/**
+  * Creates a volume mapper from a nifti file imported with loadNifti(), so it can be rendered in 3D.
+  * niftiInput - output of loadNifti
+  */
 vtkSmartPointer<vtkVolume> createNiftiVolume(itkVtkConverter::Pointer niftiInput) {
     // --------------------
     // VTK: (3D) Create a VolumeMapper that uses input image.
@@ -76,7 +88,9 @@ vtkSmartPointer<vtkVolume> createNiftiVolume(itkVtkConverter::Pointer niftiInput
     vtkSmartPointer<vtkGPUVolumeRayCastMapper> volumeMapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
     volumeMapper->SetInputData(niftiInput->GetOutput());
 
-    // VTK: Setting VolumeProperty (transparency and color mapping).
+    // --
+    // VTK: Setting VolumeProperty (Transparency and Colours)
+    // --
     vtkSmartPointer<vtkVolumeProperty> volumeProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 
     vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -97,118 +111,11 @@ vtkSmartPointer<vtkVolume> createNiftiVolume(itkVtkConverter::Pointer niftiInput
     return volume;
 }
 
-vtkSmartPointer<vtkImageResliceMapper> createNiftiSimpleSliceMapper(itkVtkConverter::Pointer niftiInput) {
-    // --------------------
-    // VTK: (2D) Create a ImageResliceMapper that uses input image.
-    // --------------------
-    vtkSmartPointer<vtkImageResliceMapper> imageResliceMapper = vtkSmartPointer<vtkImageResliceMapper>::New();
-    imageResliceMapper->SetInputData(niftiInput->GetOutput());
-
-    vtkSmartPointer<vtkImageSlice> imageSlice = vtkSmartPointer<vtkImageSlice>::New();
-    imageSlice->SetMapper(imageResliceMapper);
-    imageSlice->GetProperty()->SetInterpolationTypeToNearest();
-
-    return imageResliceMapper;
-}
-
-// vtkSmartPointer<vtkImageViewer2> createNiftiImageViewer(itkVtkConverter::Pointer niftiInput) {
-//     // --------------------
-//     // VTK: (2D) Display the data in slice view.
-//     // --------------------
-//     vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
-//     imageViewer->SetInputData(niftiInput->GetOutput()); 
-
-//     // Setup Text to indicate slice number.
-//     vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
-//     sliceTextProp->SetFontFamilyToCourier();
-//     sliceTextProp->SetFontSize(20);
-//     sliceTextProp->SetVerticalJustificationToBottom();
-//     sliceTextProp->SetJustificationToLeft();
-
-//     vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
-//     std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
-//     sliceTextMapper->SetInput(msg.c_str());
-//     sliceTextMapper->SetTextProperty(sliceTextProp);
-
-//     vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
-//     sliceTextActor->SetMapper(sliceTextMapper);
-//     sliceTextActor->SetPosition(15, 10);
-
-//     // Custom Interactor
-//     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-//     vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
-//     myInteractorStyle->SetImageViewer(imageViewer);
-//     // myInteractorStyle->SetStatusMapper(sliceTextMapper);
-
-//     imageViewer->SetupInteractor(renderWindowInteractor);
-//     renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
-//     imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
-
-//     // Go!
-//     imageViewer->GetRenderWindow()->SetSize(RESOLUTION_X, RESOLUTION_Y);
-//     imageViewer->GetRenderer()->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
-//     imageViewer->Render();
-//     imageViewer->GetRenderer()->ResetCamera();
-//     imageViewer->Render();
-//     renderWindowInteractor->Start();
-
-//     return imageViewer;
-// }
-
-vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
-    vtkSmartPointer<vtkRenderer> defaultRenderer = vtkSmartPointer<vtkRenderer>::New();
-    defaultRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
-
-    return defaultRenderer;
-}
-
-vtkSmartPointer<vtkTextProperty> getSliceTextProperty() {
-    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
-    sliceTextProp->SetFontFamilyToCourier();
-    sliceTextProp->SetFontSize(20);
-    sliceTextProp->SetVerticalJustificationToBottom();
-    sliceTextProp->SetJustificationToLeft();
-
-    return sliceTextProp;
-}
-
-vtkSmartPointer<vtkTextMapper> getSliceTextMapper(int minSlice, int maxSlice, vtkSmartPointer<vtkTextProperty> textProperty) {
-    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
-    std::string msg = StatusMessage::Format(minSlice, maxSlice);
-    sliceTextMapper->SetInput(msg.c_str());
-    sliceTextMapper->SetTextProperty(textProperty);
-
-    return sliceTextMapper;
-}
-
-vtkSmartPointer<vtkActor2D> getSliceTextActor(vtkSmartPointer<vtkTextMapper> textMapper) {
-    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
-    sliceTextActor->SetMapper(textMapper);
-    sliceTextActor->SetPosition(15, 10);
-
-    return sliceTextActor;
-}
-
-vtkSmartPointer<vtkImageViewer2> niftiViewer;
-
-// Constructor
-RenderWindowUI::RenderWindowUI() {
-    // --
-    // Files
-    // --
-    const char* nifti1Demo = "/home/sam/cs4/final-year-project/Data/Nifti/avg152T1_LR_nifti.nii.gz";
-    const char* nifti2Fetal = "/home/sam/cs4/final-year-project/Data/Fetal/3T_GPUtest.nii.gz";
-    const char* nifti2Demo = "/home/sam/cs4/final-year-project/Data/Nifti2/MNI152_T1_1mm_nifti2.nii.gz";
-
-    cout << "RenderWindowUI: Setting up UI..." << endl;
-    this->setupUi(this);
- 
-    // --
-    // Read the Nifti File
-    // --
-    cout << "RenderWindowUI: Reading " << nifti1Demo << endl;
-    itkVtkConverter::Pointer niftiItkVtkConverter = readNifti(nifti1Demo);
-    
+/**
+  * Creates a renderer from a nifti file imported with loadNifti().
+  * niftiItkVtkConverter - output of loadNifti
+  */
+vtkSmartPointer<vtkRenderer> createNifti3DRenderer(itkVtkConverter::Pointer niftiItkVtkConverter) {
     // --
     // Create a Volume (for 3D visualisation of the Nifti)
     // --
@@ -216,18 +123,14 @@ RenderWindowUI::RenderWindowUI() {
     vtkSmartPointer<vtkVolume> niftiVolume = createNiftiVolume(niftiItkVtkConverter);
 
     // --
-    // Create the slice viewer (for 2D visualisation of the Nifti)
-    // --
-    //vtkSmartPointer<vtkImageViewer2> niftiImageViewer = createNiftiImageViewer(niftiItkVtkConverter);
-
-    // --
-    // Create a renderer for each view.
+    // Create a Renderer
     //--
     cout << "RenderWindowUI: Creating 3D Renderer..." << endl;
-    vtkSmartPointer<vtkRenderer> threeDRenderer = newDefaultRenderer();
+    vtkSmartPointer<vtkRenderer> threeDRenderer = vtkSmartPointer<vtkRenderer>::New();
+    threeDRenderer->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
 
     // --
-    // Add volumes/slices/props
+    // Add Volume & Axes
     // --
     cout << "RenderWindowUI: Adding Volume..." << endl;
     threeDRenderer->AddVolume(niftiVolume);
@@ -240,94 +143,154 @@ RenderWindowUI::RenderWindowUI() {
     threeDRenderer->AddActor(axes);
 
     // --
-    // Reset cameras
+    // Reset Camera
     // --
     cout << "RenderWindowUI: Resetting Camera..." << endl;
     threeDRenderer->ResetCamera();
 
-    // --
-    // Add Renderers to the Window.
-    // --
-    cout << "Adding Renderer to RenderWindow..." << endl;
-    vtkSmartPointer<vtkRenderWindow> renWin = this->threeDWidget->GetRenderWindow();    
-    //vtkSmartPointer<vtkRenderWindowInteractor> iren = this->threeDWidget->GetInteractor();
-    renWin->AddRenderer(threeDRenderer);
-    renWin->Render();
-    // If you do this it does: QVTKInteractor cannot control the event loop.
-    // iren->Start();
+    return threeDRenderer;
+}
 
-    // --
-    // BETA
-    // --
-    // Create Image Viewer
-    cout << "Adding PNG to RenderWindow..." << endl;
+/**
+  * Properties of Text displaying slice number.
+  */
+vtkSmartPointer<vtkTextProperty> getSliceTextProperty() {
+    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
+    sliceTextProp->SetFontFamilyToCourier();
+    sliceTextProp->SetFontSize(20);
+    sliceTextProp->SetVerticalJustificationToBottom();
+    sliceTextProp->SetJustificationToLeft();
+
+    return sliceTextProp;
+}
+
+/**
+  * Creates a TextMapper for displaying the slice number.
+  * minSlice - the first slice in the file
+  * maxSlice - the last slice in the file
+  * textProperty - the properties for the text (call getSliceTextProperty())
+  */
+vtkSmartPointer<vtkTextMapper> getSliceTextMapper(int minSlice, int maxSlice, vtkSmartPointer<vtkTextProperty> textProperty) {
+    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
+    std::string msg = StatusMessage::Format(minSlice, maxSlice);
+    sliceTextMapper->SetInput(msg.c_str());
+    sliceTextMapper->SetTextProperty(textProperty);
+
+    return sliceTextMapper;
+}
+
+/**
+  * Creates an Actor for displaying the slice number.
+  * textMapper - the text mapper (call getSliceTextMapper())
+  */
+vtkSmartPointer<vtkActor2D> getSliceTextActor(vtkSmartPointer<vtkTextMapper> textMapper) {
+    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+    sliceTextActor->SetMapper(textMapper);
+    sliceTextActor->SetPosition(15, 10);
+
+    return sliceTextActor;
+}
+
+/**
+  * Creates a vtkImageViewer2 which views a PNG file.
+  * fileName - path to the .png file
+  */
+vtkSmartPointer<vtkImageViewer2> createPNGViewer(const char* fileName) {
+    // Reader
     vtkSmartPointer<vtkPNGReader> reader = vtkSmartPointer<vtkPNGReader>::New();
-    reader->SetFileName("/home/sam/Desktop/test.png");
+    reader->SetFileName(fileName);
 
-    // Visualize
+    // Viewer
     vtkSmartPointer<vtkImageViewer2> pngViewer = vtkSmartPointer<vtkImageViewer2>::New();
     pngViewer->SetInputConnection(reader->GetOutputPort());
-    pngViewer->SetRenderWindow(this->axialWidget->GetRenderWindow());
-    pngViewer->Render();
 
-    // --
-    // BETA2
-    // --
-    cout << "Adding Slices to RenderWindow..." << endl;
-    // Read the image
-    itkVtkConverter::Pointer niftiItkVtkConverter2 = readNifti(nifti1Demo);
-    vtkSmartPointer<vtkImageViewer2> sliceViewer = vtkSmartPointer<vtkImageViewer2>::New();
-    sliceViewer->SetInputData(niftiItkVtkConverter2->GetOutput());
-    sliceViewer->SetRenderWindow(this->sagittalWidget->GetRenderWindow());
-    sliceViewer->Render();
+    return pngViewer;
+}
 
-    // --
-    // BETA3
-    // --
-    cout << "Adding Nifti to RenderWindow..." << endl;
+/**
+  * Creates a vtkImageViewer2 which provides a slice view of some Nifti data.
+  * fileName - path to the .nii or .nii.gz file
+  * renderWindow - vtkRenderWindow to render the result
+  *
+  */
+vtkSmartPointer<vtkImageViewer2> createNiftiSliceViewer(const char* fileName, vtkSmartPointer<vtkRenderWindow> renderWindow) {
     vtkSmartPointer<vtkNIFTIImageReader> niftiReader = vtkSmartPointer<vtkNIFTIImageReader>::New();
-    niftiReader->SetFileName(nifti1Demo);
-    // niftiReader->SetFileName(nifti2Fetal);
-    // niftiReader->SetFileName(nifti2Demo);
+    niftiReader->SetFileName(fileName);
 
-    // Visualize
-    niftiViewer = vtkSmartPointer<vtkImageViewer2>::New();
-    niftiViewer->SetInputConnection(niftiReader->GetOutputPort());
-    niftiViewer->SetRenderWindow(this->coronalWidget->GetRenderWindow());
+    // IMAGEVIEWER
+    vtkSmartPointer<vtkImageViewer2> newViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    newViewer->SetInputConnection(niftiReader->GetOutputPort());
+    newViewer->SetRenderWindow(renderWindow);
     
-    ////
-    // vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    // STYLE
     vtkSmartPointer<VtkSliceInteractorStyle> style = vtkSmartPointer<VtkSliceInteractorStyle>::New();
-    style->SetImageViewer(niftiViewer);
+    style->SetImageViewer(newViewer);
 
-    // // Setup Text to indicate slice number.
     vtkSmartPointer<vtkTextProperty> sliceTextProp = getSliceTextProperty();
-    vtkSmartPointer<vtkTextMapper> sliceTextMapper = getSliceTextMapper(niftiViewer->GetSliceMin(), niftiViewer->GetSliceMax(), sliceTextProp);
+    vtkSmartPointer<vtkTextMapper> sliceTextMapper = getSliceTextMapper(newViewer->GetSliceMin(), newViewer->GetSliceMax(), sliceTextProp);
     vtkSmartPointer<vtkActor2D> sliceTextActor = getSliceTextActor(sliceTextMapper);
-
-    // vtkSmartPointer<VtkSliceInteractorStyle> style = vtkSmartPointer<VtkSliceInteractorStyle>::New();
-    // style->SetImageViewer(niftiViewer);
     style->SetStatusMapper(sliceTextMapper);
+    newViewer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
+    newViewer->GetRenderer()->AddActor2D(sliceTextActor);
 
-    niftiViewer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
-    // niftiViewer->SetupInteractor(this->coronalWidget->GetRenderWindow()->GetInteractor());
-    niftiViewer->GetRenderer()->AddActor2D(sliceTextActor);
-    
-    ////
-    niftiViewer->SetSlice(10);
-    niftiViewer->Render();
+    return newViewer;
+}
+
+/**
+  * Constructor. Called when Window is created.
+  */
+RenderWindowUI::RenderWindowUI() {
+    cout << "RenderWindowUI: Setting up UI..." << endl;
+    this->setupUi(this);
+ 
+    // --
+    // 3D
+    // --
+    cout << "Adding 3D View..." << endl;
+    itkVtkConverter::Pointer niftiItkVtkConverter = loadNifti(nifti1Demo);
+    vtkSmartPointer<vtkRenderer> threeDRenderer = createNifti3DRenderer(niftiItkVtkConverter);
+    vtkSmartPointer<vtkRenderWindow> renWin = this->threeDWidget->GetRenderWindow();    
+    renWin->AddRenderer(threeDRenderer);
+    renWin->Render();
+
+    // --
+    // Axial
+    // --
+    cout << "Adding Axial View..." << endl;
+    axialViewer = createNiftiSliceViewer(nifti1Demo, this->axialWidget->GetRenderWindow());
+    axialViewer->Render();
+
+    // --
+    // Sagittal
+    // --
+    cout << "Adding Sagittal View..." << endl;
+    sagittalViewer = createNiftiSliceViewer(nifti1Demo, this->sagittalWidget->GetRenderWindow());
+    sagittalViewer->Render();
+
+    // --
+    // Coronal
+    // --
+    cout << "Adding Coronal View..." << endl;
+    coronalViewer = createNiftiSliceViewer(nifti1Demo, this->coronalWidget->GetRenderWindow());
+    coronalViewer->Render();
 
     // Set up action signals and slots
     connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
 };
 
+/**
+  * Flicks through each slice.
+  */
 void RenderWindowUI::something() {
-    for (int i = 1; i < 90; i++) {
-        niftiViewer->SetSlice(i);
-        niftiViewer->Render();
+    for (int i = coronalViewer->GetSliceMin(); i < coronalViewer->GetSliceMax(); i++) {
+        coronalViewer->SetSlice(i);
+        coronalViewer->Render();
     }
 }
 
+/**
+  * What to do when the window is closed?
+  */
 void RenderWindowUI::slotExit() {
   qApp->exit();
 }
