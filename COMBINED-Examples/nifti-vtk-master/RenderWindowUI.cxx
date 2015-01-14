@@ -301,17 +301,17 @@ RenderWindowUI::RenderWindowUI() {
     style->SetImageViewer(niftiViewer);
 
     // // Setup Text to indicate slice number.
-    // vtkSmartPointer<vtkTextProperty> sliceTextProp = getSliceTextProperty();
-    // vtkSmartPointer<vtkTextMapper> sliceTextMapper = getSliceTextMapper(niftiViewer->GetSliceMin(), niftiViewer->GetSliceMax(), sliceTextProp);
-    // vtkSmartPointer<vtkActor2D> sliceTextActor = getSliceTextActor(sliceTextMapper);
+    vtkSmartPointer<vtkTextProperty> sliceTextProp = getSliceTextProperty();
+    vtkSmartPointer<vtkTextMapper> sliceTextMapper = getSliceTextMapper(niftiViewer->GetSliceMin(), niftiViewer->GetSliceMax(), sliceTextProp);
+    vtkSmartPointer<vtkActor2D> sliceTextActor = getSliceTextActor(sliceTextMapper);
 
     // vtkSmartPointer<VtkSliceInteractorStyle> style = vtkSmartPointer<VtkSliceInteractorStyle>::New();
     // style->SetImageViewer(niftiViewer);
-    // style->SetStatusMapper(sliceTextMapper);
+    style->SetStatusMapper(sliceTextMapper);
 
     niftiViewer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
     // niftiViewer->SetupInteractor(this->coronalWidget->GetRenderWindow()->GetInteractor());
-    // niftiViewer->GetRenderer()->AddActor2D(sliceTextActor);
+    niftiViewer->GetRenderer()->AddActor2D(sliceTextActor);
     
     ////
     niftiViewer->SetSlice(10);

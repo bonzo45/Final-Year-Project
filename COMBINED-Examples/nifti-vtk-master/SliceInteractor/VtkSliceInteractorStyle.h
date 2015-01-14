@@ -14,14 +14,14 @@ class VtkSliceInteractorStyle : public vtkInteractorStyleImage {
 
    protected:
       vtkImageViewer2* _ImageViewer;
-      //vtkTextMapper* _StatusMapper;
+      vtkTextMapper* _StatusMapper;
       int _Slice;
       int _MinSlice;
       int _MaxSlice;
 
    public:
    	void SetImageViewer(vtkImageViewer2* imageViewer);
-   	//void SetStatusMapper(vtkTextMapper* statusMapper);
+   	void SetStatusMapper(vtkTextMapper* statusMapper);
 
    protected:
       void MoveSliceForward();
