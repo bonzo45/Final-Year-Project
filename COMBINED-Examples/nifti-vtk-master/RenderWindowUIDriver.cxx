@@ -12,6 +12,8 @@ int main(int argc, char** argv)
 	cout << "Main: Displaying UI..." << endl;
 	renderWindowUI.show();
 
+	//renderWindowUI.something();
+
 	cout << "Main: Executing App..." << endl;
 	return app.exec();
 }

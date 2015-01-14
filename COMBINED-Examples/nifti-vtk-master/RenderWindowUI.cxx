@@ -111,49 +111,49 @@ vtkSmartPointer<vtkImageResliceMapper> createNiftiSimpleSliceMapper(itkVtkConver
     return imageResliceMapper;
 }
 
-vtkSmartPointer<vtkImageViewer2> createNiftiImageViewer(itkVtkConverter::Pointer niftiInput) {
-    // --------------------
-    // VTK: (2D) Display the data in slice view.
-    // --------------------
-    vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
-    imageViewer->SetInputData(niftiInput->GetOutput()); 
+// vtkSmartPointer<vtkImageViewer2> createNiftiImageViewer(itkVtkConverter::Pointer niftiInput) {
+//     // --------------------
+//     // VTK: (2D) Display the data in slice view.
+//     // --------------------
+//     vtkSmartPointer<vtkImageViewer2> imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
+//     imageViewer->SetInputData(niftiInput->GetOutput()); 
 
-    // Setup Text to indicate slice number.
-    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
-    sliceTextProp->SetFontFamilyToCourier();
-    sliceTextProp->SetFontSize(20);
-    sliceTextProp->SetVerticalJustificationToBottom();
-    sliceTextProp->SetJustificationToLeft();
+//     // Setup Text to indicate slice number.
+//     vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
+//     sliceTextProp->SetFontFamilyToCourier();
+//     sliceTextProp->SetFontSize(20);
+//     sliceTextProp->SetVerticalJustificationToBottom();
+//     sliceTextProp->SetJustificationToLeft();
 
-    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
-    std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
-    sliceTextMapper->SetInput(msg.c_str());
-    sliceTextMapper->SetTextProperty(sliceTextProp);
+//     vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
+//     std::string msg = StatusMessage::Format(imageViewer->GetSliceMin(), imageViewer->GetSliceMax());
+//     sliceTextMapper->SetInput(msg.c_str());
+//     sliceTextMapper->SetTextProperty(sliceTextProp);
 
-    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
-    sliceTextActor->SetMapper(sliceTextMapper);
-    sliceTextActor->SetPosition(15, 10);
+//     vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+//     sliceTextActor->SetMapper(sliceTextMapper);
+//     sliceTextActor->SetPosition(15, 10);
 
-    // Custom Interactor
-    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
-    myInteractorStyle->SetImageViewer(imageViewer);
-    myInteractorStyle->SetStatusMapper(sliceTextMapper);
+//     // Custom Interactor
+//     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+//     vtkSmartPointer<VtkSliceInteractorStyle> myInteractorStyle = vtkSmartPointer<VtkSliceInteractorStyle>::New();
+//     myInteractorStyle->SetImageViewer(imageViewer);
+//     // myInteractorStyle->SetStatusMapper(sliceTextMapper);
 
-    imageViewer->SetupInteractor(renderWindowInteractor);
-    renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
-    imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
+//     imageViewer->SetupInteractor(renderWindowInteractor);
+//     renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
+//     imageViewer->GetRenderer()->AddActor2D(sliceTextActor);
 
-    // Go!
-    imageViewer->GetRenderWindow()->SetSize(RESOLUTION_X, RESOLUTION_Y);
-    imageViewer->GetRenderer()->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
-    imageViewer->Render();
-    imageViewer->GetRenderer()->ResetCamera();
-    imageViewer->Render();
-    renderWindowInteractor->Start();
+//     // Go!
+//     imageViewer->GetRenderWindow()->SetSize(RESOLUTION_X, RESOLUTION_Y);
+//     imageViewer->GetRenderer()->SetBackground(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
+//     imageViewer->Render();
+//     imageViewer->GetRenderer()->ResetCamera();
+//     imageViewer->Render();
+//     renderWindowInteractor->Start();
 
-    return imageViewer;
-}
+//     return imageViewer;
+// }
 
 vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
     vtkSmartPointer<vtkRenderer> defaultRenderer = vtkSmartPointer<vtkRenderer>::New();
@@ -161,6 +161,35 @@ vtkSmartPointer<vtkRenderer> newDefaultRenderer() {
 
     return defaultRenderer;
 }
+
+vtkSmartPointer<vtkTextProperty> getSliceTextProperty() {
+    vtkSmartPointer<vtkTextProperty> sliceTextProp = vtkSmartPointer<vtkTextProperty>::New();
+    sliceTextProp->SetFontFamilyToCourier();
+    sliceTextProp->SetFontSize(20);
+    sliceTextProp->SetVerticalJustificationToBottom();
+    sliceTextProp->SetJustificationToLeft();
+
+    return sliceTextProp;
+}
+
+vtkSmartPointer<vtkTextMapper> getSliceTextMapper(int minSlice, int maxSlice, vtkSmartPointer<vtkTextProperty> textProperty) {
+    vtkSmartPointer<vtkTextMapper> sliceTextMapper = vtkSmartPointer<vtkTextMapper>::New();
+    std::string msg = StatusMessage::Format(minSlice, maxSlice);
+    sliceTextMapper->SetInput(msg.c_str());
+    sliceTextMapper->SetTextProperty(textProperty);
+
+    return sliceTextMapper;
+}
+
+vtkSmartPointer<vtkActor2D> getSliceTextActor(vtkSmartPointer<vtkTextMapper> textMapper) {
+    vtkSmartPointer<vtkActor2D> sliceTextActor = vtkSmartPointer<vtkActor2D>::New();
+    sliceTextActor->SetMapper(textMapper);
+    sliceTextActor->SetPosition(15, 10);
+
+    return sliceTextActor;
+}
+
+vtkSmartPointer<vtkImageViewer2> niftiViewer;
 
 // Constructor
 RenderWindowUI::RenderWindowUI() {
@@ -262,18 +291,42 @@ RenderWindowUI::RenderWindowUI() {
     // niftiReader->SetFileName(nifti2Demo);
 
     // Visualize
-    vtkSmartPointer<vtkImageViewer2> niftiViewer = vtkSmartPointer<vtkImageViewer2>::New();
+    niftiViewer = vtkSmartPointer<vtkImageViewer2>::New();
     niftiViewer->SetInputConnection(niftiReader->GetOutputPort());
     niftiViewer->SetRenderWindow(this->coronalWidget->GetRenderWindow());
+    
     ////
-    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    // vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    vtkSmartPointer<VtkSliceInteractorStyle> style = vtkSmartPointer<VtkSliceInteractorStyle>::New();
+    style->SetImageViewer(niftiViewer);
+
+    // // Setup Text to indicate slice number.
+    // vtkSmartPointer<vtkTextProperty> sliceTextProp = getSliceTextProperty();
+    // vtkSmartPointer<vtkTextMapper> sliceTextMapper = getSliceTextMapper(niftiViewer->GetSliceMin(), niftiViewer->GetSliceMax(), sliceTextProp);
+    // vtkSmartPointer<vtkActor2D> sliceTextActor = getSliceTextActor(sliceTextMapper);
+
+    // vtkSmartPointer<VtkSliceInteractorStyle> style = vtkSmartPointer<VtkSliceInteractorStyle>::New();
+    // style->SetImageViewer(niftiViewer);
+    // style->SetStatusMapper(sliceTextMapper);
+
     niftiViewer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
+    // niftiViewer->SetupInteractor(this->coronalWidget->GetRenderWindow()->GetInteractor());
+    // niftiViewer->GetRenderer()->AddActor2D(sliceTextActor);
+    
     ////
+    niftiViewer->SetSlice(10);
     niftiViewer->Render();
 
     // Set up action signals and slots
     connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
 };
+
+void RenderWindowUI::something() {
+    for (int i = 1; i < 90; i++) {
+        niftiViewer->SetSlice(i);
+        niftiViewer->Render();
+    }
+}
 
 void RenderWindowUI::slotExit() {
   qApp->exit();

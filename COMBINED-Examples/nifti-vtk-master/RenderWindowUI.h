@@ -10,6 +10,7 @@ class RenderWindowUI : public QMainWindow, private Ui::RenderWindowUI {
 	
 	public: 
 	  RenderWindowUI();
+	  void something();
 	 
 	public slots: 
   		virtual void slotExit(); 
