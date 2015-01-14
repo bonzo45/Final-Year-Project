@@ -265,6 +265,10 @@ RenderWindowUI::RenderWindowUI() {
     vtkSmartPointer<vtkImageViewer2> niftiViewer = vtkSmartPointer<vtkImageViewer2>::New();
     niftiViewer->SetInputConnection(niftiReader->GetOutputPort());
     niftiViewer->SetRenderWindow(this->coronalWidget->GetRenderWindow());
+    ////
+    vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
+    niftiViewer->GetRenderWindow()->GetInteractor()->SetInteractorStyle(style);
+    ////
     niftiViewer->Render();
 
     // Set up action signals and slots
