@@ -27,3 +27,10 @@ ui_*
 
 # Report
 Interim-Report/.*
+Interim-Report/*.aux
+Interim-Report/*.bbl
+Interim-Report/*.blg
+Interim-Report/*.log
+Interim-Report/*.out
+Interim-Report/*.pdf
+Interim-Report/*.toc
