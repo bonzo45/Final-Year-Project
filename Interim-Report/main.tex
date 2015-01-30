@@ -27,6 +27,9 @@
 \usepackage{titlesec}
 \titlespacing\subsection{0pt}{0pt}{0pt}
 
+% Shiny Pictures
+\usepackage{graphicx}
+
 \title{INTERIM REPORT\\Visualising uncertainty in super resolution fetal MRI images.}
 \author{by\\Sam Esgate\\\\supervised by\\Bernhard Kainz}
 
@@ -371,7 +374,14 @@ Think about how the motion-compensation framework can be extended to produce dat
 
 With the research now completed a working prototype needs to be developed that can then evaluated by radiologists.
 
-As I see it now the process that the software should follow is sketched out above. It is an iterative process that begins with an initial scan that can be visualised as it comes in. The uncertainty can then be computed and visualised.
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/flowchart.png}
+    \caption{Application Flow}
+    \label{fig:flowchart}
+\end{figure}
+
+As I see it now the process that the software should follow is sketched out in Figure~\ref{fig:flowchart}. It is an iterative process that begins with an initial scan that can be visualised as it comes in. The uncertainty can then be computed and visualised.
 
 For the prototype I need to create a number of different visualisations which I can then compare afterwards to decide what works well and what does not.
 
@@ -427,7 +437,21 @@ I aim to have a working prototype completed and with all the features above by t
 	\item[] 29th June - Archive
 \end{itemize}
 
-\chapter{Evaluation}
+\chapter{Evaluation Plan}
+The focus of the evaluation shall be on assessing the effectiveness of the visualisations to see which is the best at highlighting uncertainty.
+
+The potential users of these visualisations are radiographers. In an ideal world I would get a very large number of radiographers to try the prototype and try to get feedback on what works and what does not. Since the time of radiographers is very precious however I will probably only be able to get a small expert user study.
+
+Record them using the software.
+Time how long it takes to find the uncertain region.
+Short quiz - which was their favourite?
+
+Since expert users are in short supply it might be possible to do some evaluation with non-expert users. Amazon Mechanical Turk - which image is shinier?
+
+\begin{verbatim}
+Look at other visualisation papers and see what they have done.
+\end{verbatim}
+
 
 \bibliography{bibliography} 
 \bibliographystyle{plain}
