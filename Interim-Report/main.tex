@@ -92,12 +92,12 @@ Super resolution is a technique that is designed to address this issue. The idea
 
 In the case of super resolution two (or more) images are taken such that the translation between them known to subpixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed by interpolation of these images.
 
-\begin{verbatim}
-	<three images: red, green, blue>
-	<become registered>
-	<add sample grid>
-	<high resolution interpolated from the three>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/super_resolution.png}
+    \caption{Many low resolution images are aligned to sub-pixel accuracy. Adapted from \cite{superresolution2}}
+    \label{fig:superresolution}
+\end{figure}
 
 \subsubsection*{Intuitive Super Resolution Overview}
 The most simple form of super resolution follows three steps:
@@ -209,11 +209,14 @@ Principal component analysis, or a slightly modified version of it, may be appli
 \subsection{RANSAC}
 RANSAC, which stands for Random Sample Consensus, is a technique for estimating model parameters given some sample data.
 
-Consider the task of trying to fit a line to some data which contains both correct points (inliers) and noisy data (outliers). The problem with simply minimizing the sum of squared errors to all of the points is that the outliers will distort the result such that the inliers are not perfectly described by the data.
+Consider the task of trying to fit a line to some data which contains both correct points (inliers) and noisy data (outliers). The problem with simply minimizing the sum of squared errors to all of the points is that the outliers will distort the result such that the inliers are not perfectly described by the data. Figure~\ref{fig:ransac} illustrates this task.
 
-\begin{verbatim}
-<picture or RANSAC>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.4\textwidth]{images/ransac.png}
+    \caption{Inliers are shown in blue, outliers shown in red. From \cite{ransac:image}}
+    \label{fig:ransac}
+\end{figure}
 
 RANSAC gets over this problem using random sampling and iteration. It relies on there being more inliers than there are outliers so that statistically inliers will be chosen more frequently. The algorithm is composed of two steps which are repeatedly applied.
 
@@ -270,11 +273,14 @@ This advantage of using surface extraction is that it is much cheaper computatio
 
 A common surface extraction algorithm is marching cubes. This algorithm works by examining the intensities of neighbouring voxels to tell whether or not the surface passes between them by comparing the values to a threshold value. 
 
-The process is easier to visualise in 2D (marching squares), but it can be simply extended to 3D.
+The process is easier to visualise in 2D (marching squares), see Figure~\ref{fig:marching_squares}, but it can be simply extended to 3D.
 
-\begin{verbatim}
-<image>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/marching_squares.jpg}
+    \caption{Using marching squares to extract a shape. From \cite{marching_squares:image}}
+    \label{fig:marching_squares}
+\end{figure}
 
 The marching cubes algorithm generates as a result a mesh of triangles which can be reduced to the desired resolution by applying some mesh decimation techniques. Once this has been done the volume can be rendered very efficiently using standard rendering techniques.
 
@@ -341,11 +347,14 @@ This extra dimensionality will make visualising the uncertainty harder than it w
 
 Another aspect of this project will be proposing (and visualising) the next scan plane. This, and potentially other parts of the project, will involve labelling the data in some way. Work on choosing a good labelling system has been done previously and there are a number of different approaches that can be taken\cite{labelling}.
 
-\begin{verbatim}
-<labelling diagram>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/labels.png}
+    \caption{A number of different labelling techniques have been studied. From \cite{labelling}}
+    \label{fig:labels}
+\end{figure}
 
-If the need for labelling comes up in my project it will be worth investigating these techniques.
+If the need for labelling comes up in my project it will be worth investigating these techniques. See Figure~\ref{fig:labels}
 
 \chapter{Project Plan \& Progress}
 This project will broadly speaking go through three phases from start to finish: research, prototyping and a trial.
