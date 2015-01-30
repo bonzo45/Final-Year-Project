@@ -299,45 +299,36 @@ To get an idea of what is possible with visualisation techniques here are some e
 \begin{figure}[h]
     \centering
 	\includegraphics[width=0.8\textwidth]{images/error_bars.png}
-    \caption{Left: Error Bar, Right: Box and Whisker Plot\cite{uncertaintyoverview}
+    \caption{Left: Error Bar, Right: Box and Whisker Plot. From \cite{uncertaintyoverview}}
     \label{fig:error_bars}
 \end{figure}
 
-Error bars are possibly the simplest form of uncertainty visualisation possible and are commonly found on graphs. They make use of one spatial dimension. An extension of this technique is the box and whisker plot which adds some idea of variance and range.
+Error bars are possibly the simplest form of uncertainty visualisation possible and are commonly found on graphs. They make use of one spatial dimension. An extension of this technique is the box and whisker plot which adds some idea of variance and range. An example of both is shown in Figure~\ref{fig:error_bars}.
 
-\begin{verbatim}
-<Heatmap Image>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/heatmap.png}
+    \caption{An example heatmap. From \cite{heatmap}}
+    \label{fig:heatmap}
+\end{figure}
 
-Colour can be very effective at communicating information. A heatmap uses a range of colours to represent intensity data in a certain range.
-
-\begin{verbatim}
-<Transparency Image>
-\end{verbatim}
-
-Transparency can also be used though care must be taken to not over complicate the visualisation.
-
-\begin{verbatim}
-<Frames of Animation>
-\end{verbatim}
+Colour can be very effective at communicating information. A heatmap uses a range of colours to represent intensity data in a certain range. Transparency can also be used though care must be taken to not over complicate the visualisation. An example of using both colour and transparency is shown in Figure~\ref{fig:heatmap}.
 
 Time is a useful dimension to exploit but is more suited to some visualisations than others. When combined with a different dimension, such as colour, an animation can be produced that can draw the viewers attention.
 
-In particular a team at the Vienna University of Technology have written a paper on attractive flicker which is designed to draw the viewers attention to a particular point in a cluttered scene\cite{attractiveflicker}.
+In particular a team at the Vienna University of Technology have written a paper on attractive flicker which is designed to draw the viewers attention to a particular point in a cluttered scene\cite{attractiveflicker}. Figure~\ref{fig:error_bars} illustrates this idea.
 
-\begin{verbatim}
-<image>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/flicker.png}
+    \caption{The three frames show a molecule being highlighted as it flickers. From \cite{attractiveflicker}}
+    \label{fig:flicker}
+\end{figure}
 
 This technique could be useful for illustrating the area of greatest uncertainty or highlighting the scan plane.
 
-\begin{verbatim}
-<Combination>
-\end{verbatim}
-
-A combination of many dimensions may well be appropriate.
-
 When visualising uncertainty in particular you must consider which extreme you would like to draw attention to. A lot of uncertainty visualisations draw larger attention to high uncertainty areas, for example brighter colours on a heatmap or larger error bars, but it may be the case that the viewer is interested in areas of high certainty as this is what they can draw conclusions from.
+
 The uncertainty that we will be dealing with in this project is in fact a vector quantity, composed of three values. 
 
 \begin{enumerate}
