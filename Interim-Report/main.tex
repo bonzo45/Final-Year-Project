@@ -59,7 +59,7 @@ It was not until the 1980s that magnetic resonance imaging (MRI) was first used 
 
 MRI can be used to create anatomical images by examining the varying water content in different parts of the body. More recently MRI has been used to create functional images of the brain by using the same principals to detect blood flow\cite{fmri}. Unlike CT, which uses x-rays, MRI does not require the use of any ionizing radiation to perform the scan.
 
-As with all medical imaging techniques the benefits and risks need to be weighed up before it is performed. When it comes to the imaging of fetuses the risks are even higher and so in general CT scans tend not to be used where possible due to radiation involved. MRI, like ultrasound, is not associated with known adverse fetal effects.\cite{pregnancyimagingguidelines}
+As with all medical imaging techniques the benefits and risks need to be weighed up before a scan is performed. When imaging fetuses the risks are higher than normal and so in general CT scans tend not to be used wherever possible. MRI however, like US (ultrasound), is not associated with known adverse fetal effects.\cite{pregnancyimagingguidelines}
 
 \subsection{MRI (Magnetic Resonance Imaging)\cite{howmriworks}}
 
@@ -80,9 +80,9 @@ If the contrast that can be achieved with MRI is insufficient for the imaging th
 
 \subsection{Fetal MRI\cite{fetalmri}}
 
-Since MRI, like US (ultrasound), is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains the cheaper of the two and is unlikely to be replaced as the main fetal imaging tool in the near future.
+Since MRI, like US, is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains the cheaper of the two and is unlikely to be replaced as the main fetal imaging tool in the near future.
 
-There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partially a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan.
+There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partly a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan.
 
 \newpage
 \subsection{Super Resolution\cite{superresolution1}\cite{superresolution2}}
@@ -116,7 +116,7 @@ We can then take our final outputted image and apply some post-processing effect
 
 \subsubsection*{Details}
 To understand the uncertainty that is introduced we must look more closely at how it works.
-To begin with we model the process that happens when a discrete, low resolution image is taken of a continuous scene in the real world. We can express the low resolution images in terms of a perfect, non-aliased, high resolution version which, in an ideal world, we would like to recover. From the Shannon-Nyquist sampling theory an accurate representation is one that is sampled at twice the frequency of the real world signal\cite{shannonnyquist}. In our model we will assume that the resolution of our perfect image is $LN * LN$ and our actual camera takes images at the resolution of $N * N$ and the scale factor between the two is $L$.
+To begin with we model the process that happens when a discrete, low resolution image is taken of a continuous scene in the real world. We can express the low resolution images in terms of a perfect, non-aliased, high resolution version which, in an ideal world, we would like to recover. From the Shannon-Nyquist sampling theory an accurate representation is one that is sampled at twice the frequency of the real world signal\cite{shannonnyquist}. In our model we will assume that the resolution of our perfect image is $LN * LN$, our actual camera takes images at the resolution of $N * N$ and the scale factor between the two is $L$.
 
 There are a number of effects that combine to create the final image during acquisition. Each image may be taken from a different position so we will need to account for translations, rotations or other warping. Then various optical effects, such as the limit of diffraction, aberrations or being out of focus, will cause some degree of blurring. Finally the image will be sampled at the resolution of the camera and a certain amount of noise will be present.
 
@@ -147,9 +147,15 @@ These matrices can be combined to give us this result, without loss of generalit
 & y = Wx + n \nonumber
 \end{align}
 
-\begin{verbatim}
-	Explain what the uncertainties are.
-\end{verbatim}
+There are a number of different processes that are used to try and reverse this process. In particular we can see that we will have different confidence in each pixel based on:
+
+\begin{enumerate}
+	\item sampling - If we sample our new image too finely then a lot of the pixels will just blend together yielding no new information.
+	\item registration - Depending on the calibration of the scanner we will know the registration values to within a certain tolerance.
+	\item bias/intensity.
+\end{enumerate}
+
+% TODO: Work out what bias is.
 
 \newpage
 \subsection{Singular Value Decomposition (SVD) and Principal Component Analysis (PCA)}
@@ -168,7 +174,7 @@ NOTE: Unitary Matrix means that $UU* = I$ or alternately $U^{-1} = UT$. This is 
 
 NOTE: The conjugate transpose ($*$) of a matrix is where you take the transpose and then take the complex conjugate of each cell.
 
-SVD on it’s own isn’t particularly exciting, but it comes in handy when doing PCA. PCA is used to take a dataset in n dimensions and remap it in such a way that you can describe it in less, whilst minimizing the information lost.
+SVD on it’s own isn’t particularly exciting, but it comes in handy when doing PCA. PCA is used to take a dataset in n dimensions and map it in a way that allows you to describe it in fewer, whilst minimizing the information lost.
 
 PCA takes in a data matrix, this is just a two dimensional table where each row represents an experiment or data point and each column is a particular property. PCA works off the covariance of this data, to see how each property varies with relation to each other property.
 
@@ -194,11 +200,9 @@ X &= UDVT \\
 XXT &= (UDVT)(UDVT)T \\
 	&= (UDVT)(VDTUT) \\
 	&= UDDTV \\
-	&= UD^{2}U
-\end{align*}
-	
-\begin{align*}
-UD^{2}U = WDW
+	&= UD^{2}U \\
+	& \text{therefore} \\
+UD^{2}U &= WDW
 \end{align*}
 
 We see that the eigenvalues are just the square root of the diagonal we get from SVD and the eigenvectors are the same.
@@ -350,11 +354,11 @@ Another aspect of this project will be proposing (and visualising) the next scan
 \begin{figure}[h]
     \centering
 	\includegraphics[width=0.8\textwidth]{images/labels.png}
-    \caption{A number of different labelling techniques have been studied. From \cite{labelling}}
+    \caption{A number of different labelling techniques have been studied. Adapted from \cite{labelling}}
     \label{fig:labels}
 \end{figure}
 
-If the need for labelling comes up in my project it will be worth investigating these techniques. See Figure~\ref{fig:labels}
+If the need for labelling comes up in my project it will be worth investigating these techniques. See Figure~\ref{fig:labels} for examples.
 
 \chapter{Project Plan \& Progress}
 This project will broadly speaking go through three phases from start to finish: research, prototyping and a trial.
@@ -362,16 +366,38 @@ This project will broadly speaking go through three phases from start to finish:
 \subsection*{Stage 1: Research - Done}
 \textit{November to Christmas}
 
-The research phase involved doing background reading around some relevant topics as well as experimenting with using different libraries to decide what would be best to build the prototype in.
+The research phase involved doing background reading around some relevant topics as well as experimenting with using different libraries to decide what would be best to build the prototype in. The research completed forms the background section of this report.
 
-The research completed forms the background section of this report.
+After my initial research I spent some time over the Christmas break experimenting with a number of different libraries and frameworks to get an idea of what was possible with them.
 
-\begin{verbatim}
-Mention libraries and current progress.
+My experimentation began with getting a simple example working that I had found online to display in 3D an MRI scan. An MRI scan, in my case a .nifti file, is simply a volume: a collection of voxels representing the organ that had been scanned. The simplest way to visualise such data is by volume rendering.
 
-Think about how the motion-compensation framework can be extended to produce data you can use for uncertainty vis. Which values do you want me to save for you explicitly besides the final reconstruction?
-\end{verbatim}
+I found an example that used the file reading capabilities of ITK and the volume rendering components of VTK to read and display a scan and set about getting it to work and adapting it \cite{niftivtk}.
 
+
+ITK, the Insight Segmentation and Registration Toolkit, is an open source image processing toolkit that includes code for performing tasks as simple as loading and cropping an image to performing registration between two images.
+
+VTK, the Visualisation Toolkit, is an open source toolkit that includes both image processing libraries and has the capability to create scientific visualisations.
+
+After jumping through a few hoops to get the two libraries to co-operate I was able to get a simple application to work and display an MRI scan in 3D. I then wanted to also be able to go through the data in slices and view it from each of the three main viewpoints: Axial, Sagittal and Coronal. To do this on the same window I found that I had reached the limits of what the VTK UI could achieve and so I had to begin to work with Qt.
+
+Qt is a cross-platform UI framework that allows you to develop applications that will run on a number of platforms.
+
+With some more time spent reading documentation and looking at other examples I managed to create an application that could visualise an MRI scan in both 2D and 3D and each slice of data could be examined.
+
+The problem that I am having is that I am new to these libraries and it was taking longer than I had hoped to get this basic functionality. It had become obvious that given the time that I had for this project it would be in my best interest to build upon an existing framework rather than write an application using purely VTK.
+
+Fortunately there are options out there. The main two that I found were Slicer and MITK.
+
+Slicer, also known as 3D Slicer, is an open source image analysis and visualisation tool that started as a masters project at MIT in the 90s. It is now one of the more popular frameworks for doing medical imaging research as it is cross platform and provides a lot of functionality out of the box.
+
+MITK, the Medical Imaging Toolkit, is a free open-source software system for development of interactive medical image processing software. It is functionally very similar to Slicer, with the main difference being that Slicer is designed to be downloaded and used as a fully functioning user application with more features built in whereas MITK can be used simply as a framework that can be built into any application.
+
+Both of these frameworks use ITK and VTK under the hood, MITK in fact also uses Qt for building it’s GUI. So whilst my initial experimentation had been worthwhile in obtaining an understanding of how these libraries work it had become clear that using either Slicer or MITK would allow me to focus more on the challenging parts of this project.
+
+Which of the two will be better suited is still under investigation.
+
+\newpage
 \subsection*{Stage 2: Prototype}
 \textit{January to April (Spring Term \& Start of Summer Term)}
 
@@ -426,6 +452,7 @@ The prototype will require the following functionality:
 	\end{itemize}
 \end{itemize}
 
+\newpage
 \subsection*{Stage 3: Trial}
 \textit{May \& June (Summer Term)}
 
