@@ -1,0 +1,45 @@
+% book example for classicthesis.sty
+\documentclass[
+  % Replace twoside with oneside if you are printing your thesis on a single side
+  % of the paper, or for viewing on screen.
+  oneside,
+  11pt, a4paper,
+  footinclude=true,
+  headinclude=true,
+  cleardoublepage=empty
+]{scrbook}
+
+\usepackage{lipsum}
+\usepackage[linedheaders,parts,pdfspacing]{classicthesis}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{acronym}
+\usepackage[nottoc,numbib]{tocbibind}
+
+\usepackage{geometry}
+\geometry{margin=1in}
+\linespread{1.3}
+
+\title{INTERIM REPORT\\Visualising uncertainty in super resolution fetal MRI images.}
+\author{Sam Esgate\\\\supervised by\\Bernhard Kainz}
+
+\begin{document}
+
+\maketitle
+
+\include{contents}
+
+\chapter{Introduction}
+MRI is very suited to imaging the developing fetus due to its impressive contrast and lack of harmful side effects. However, limitations in resolution make imaging what can often be a very small target volume difficult. Super resolution is a technique to mitigate this that constructs a higher resolution image from many lower resolution images. Unfortunately super resolution introduces some uncertainty which may not be obvious from looking at the reconstructed image.
+
+\chapter{Background}
+
+\chapter{Project Plan}
+
+\chapter{Evaluation}
+
+
+\bibliography{bibliography} 
+\bibliographystyle{plain}
+    
+\end{document}
