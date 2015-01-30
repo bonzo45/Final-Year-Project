@@ -283,7 +283,7 @@ There are some constraints associated with using surface extraction for volume v
 For this project surface extraction could prove useful for generating a rough overview of the scan being worked on that uncertainty data or other information can be overlayed on. If however it is not possible to get a good enough extraction from the data then a reference image, also known as an imposter, could be used instead.
 
 \newpage
-\subsection{Uncertainty Visualisation}
+\subsection{Uncertainty Visualisation\cite{uncertaintyoverview}}
 Uncertainty visualisation tackles the problem of trying to represent the ambiguity or uncertainty in a some data or a model when visualising it.
 
 Most data visualisation techniques implicitly assume that all of the data being used is perfect and because of this create visualisations that are misleading or appear to represent with great precision a model when in fact the underlying data cannot be that sure.
@@ -296,9 +296,12 @@ The issue when it comes to uncertainty visualisation is that most of these dimen
 
 To get an idea of what is possible with visualisation techniques here are some examples that have been applied successfully in the past.
 
-\begin{verbatim}
-<Error Bars Image>
-\end{verbatim}
+\begin{figure}[h]
+    \centering
+	\includegraphics[width=0.8\textwidth]{images/error_bars.png}
+    \caption{Left: Error Bar, Right: Box and Whisker Plot\cite{uncertaintyoverview}
+    \label{fig:error_bars}
+\end{figure}
 
 Error bars are possibly the simplest form of uncertainty visualisation possible and are commonly found on graphs. They make use of one spatial dimension. An extension of this technique is the box and whisker plot which adds some idea of variance and range.
 
