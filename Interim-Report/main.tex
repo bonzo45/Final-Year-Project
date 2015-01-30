@@ -20,6 +20,9 @@
 \geometry{margin=1in}
 \linespread{1.3}
 
+% New Lines not Indentation for Paragraphs
+\usepackage[parfill]{parskip}
+
 \title{INTERIM REPORT\\Visualising uncertainty in super resolution fetal MRI images.}
 \author{by\\Sam Esgate\\\\supervised by\\Bernhard Kainz}
 
@@ -140,6 +143,7 @@ These matrices can be combined to give us this result, without loss of generalit
 	Explain what the uncertainties are.
 \end{verbatim}
 
+\newpage
 \subsection{Singular Value Decomposition (SVD) and Principal Component Analysis (PCA)}
 SVD breaks down a matrix, $A$, into three components: $U$, $D$ and $V$.
 
@@ -193,6 +197,35 @@ We see that the eigenvalues are just the square root of the diagonal we get from
 
 Principal component analysis, or a slightly modified version of it, may be applicable when suggesting the next scan plane based on the uncertainty information.
 
+\subsection{RANSAC}
+RANSAC, which stands for Random Sample Consensus, is a technique for estimating model parameters given some sample data.
+
+Consider the task of trying to fit a line to some data which contains both correct points (inliers) and noisy data (outliers). The problem with simply minimizing the sum of squared errors to all of the points is that the outliers will distort the result such that the inliers are not perfectly described by the data.
+
+\begin{verbatim}
+<picture or RANSAC>
+\end{verbatim}
+
+RANSAC gets over this problem using random sampling and iteration. It relies on there being more inliers than there are outliers so that statistically inliers will be chosen more frequently. The algorithm is composed of two steps which are repeatedly applied.
+
+As many points are taken randomly from the data set as are needed to fully specify the model. e.g. you need two points to specify a line.
+
+The model is fit to these points. e.g. by minimizing the sum of squared differences.
+All of the data points are compared to this model. If they differ by more than a threshold value they are discarded. If they fit the model they are put into this iterations ‘inlier set’.
+
+A number of iterations are then performed and the winning iteration is the one with the largest inlier set. The final model is then either the model which gave the largest inlier set or alternatively the model can be generated using every point in the inlier set.
+This algorithm relies on certain parameters being tweaked to perform well.
+
+\begin{itemize}
+	\item threshold (how picky to be when discarding points)
+	\item iterations (how many times to perform the algorithm)
+\end{itemize}
+
+RANSAC may be of use in this project to pick the next scan plane given our uncertainty values. The scan plane will be chosen such that it provides the most information, given the uncertainty, and so in this case you can imagine using it to fit a ‘plane’ to the uncertainty values.
+
+The algorithm will need to be modified to account for the three types of uncertainty that the visualisation uses and some experimentation will be needed to find a solution that performs well.
+
+\newpage
 \subsection{Direct Volume Rendering\cite{nvidia:volumerendering}}
 MRI is tomographic imaging technique which means that the image is acquired in slices. The resulting scan is created by combining these slices to build a 3D volume. An MRI scan is often displayed in 2D by taking each slice and displaying it, however it is also possible to take all of the slices and view the scan in 3D. One technique for doing this is direct volume rendering.
 
@@ -308,6 +341,7 @@ Another aspect of this project will be proposing (and visualising) the next scan
 \end{verbatim}
 
 If the need for labelling comes up in my project it will be worth investigating these techniques.
+
 
 \chapter{Project Plan}
 
