@@ -193,6 +193,33 @@ We see that the eigenvalues are just the square root of the diagonal we get from
 
 Principal component analysis, or a slightly modified version of it, may be applicable when suggesting the next scan plane based on the uncertainty information.
 
+\subsection{Direct Volume Rendering\cite{nvidia:volumerendering}}
+MRI is tomographic imaging technique which means that the image is acquired in slices. The resulting scan is created by combining these slices to build a 3D volume. An MRI scan is often displayed in 2D by taking each slice and displaying it, however it is also possible to take all of the slices and view the scan in 3D. One technique for doing this is direct volume rendering.
+
+Direct volume rendering is a technique for visualising 3D volumetric data which does not generate any intermediate representation. The process uses ray tracing where rays are fired into the volume and properties of light, such as colour and opacity, are modelled to render the data.
+
+Each ray of light (we have one per pixel) is sent into the volume and samples are taken at a regular interval. Each sample point may not exactly hit a voxel in the volume and so the value will be interpolated from the neighbouring points. Trilinear interpolation can be used but may introduce some visual artefacts in which case more complex interpolation (such as piecewise cubic polynomials) can be used.
+
+Each of these samples, which is just an intensity value, needs to be mapped to something that we can visualise. We use a transfer function to map these values to colour and transparency values. We can change our transfer function to highlight different features of our volume, for example we could make all values below a certain threshold completely transparent.
+
+All of the samples along the ray are then combined to calculate the value of the pixel.
+
+\begin{align*}
+	C &= \sum\limits_{i=1}^n C_{i}\prod\limits_{j=1}^{i-1}(1 - O_j) \\
+	A &= 1 - \prod\limits_{j=1}^n(1 - O_j) \\
+	& \text{where} \\
+	C_i &= \text{ colour at sample i} \\
+	O_j &= \text{ opacity at sample j} \\
+	C &= \text{ final colour} \\
+	O &= \text{ final opacity}
+\end{align*}
+
+NOTE: If the final opacity is greater than 0 then the colour is normalised (divided by $O$).
+
+For this project I will experiment with using both 2D and 3D to visualise the uncertainty. Direct volume rendering can be used to visualise the raw MRI image and also the errors themselves, which are a set of scalar values for each pixel in the scene.
+
+Direct volume rendering is a very powerful technique for visualising 3D datasets but it is also computationally expensive. It requires the entire scan to be stored in memory and altering the viewpoint requires the volume to be constantly resampled. Part of the experimentation in this project will be to see if this overhead is worth it when compared to using surface rendering.
+
 \chapter{Project Plan}
 
 \chapter{Evaluation}
