@@ -220,6 +220,25 @@ For this project I will experiment with using both 2D and 3D to visualise the un
 
 Direct volume rendering is a very powerful technique for visualising 3D datasets but it is also computationally expensive. It requires the entire scan to be stored in memory and altering the viewpoint requires the volume to be constantly resampled. Part of the experimentation in this project will be to see if this overhead is worth it when compared to using surface rendering.
 
+\subsection{Surface Extraction}
+Surface extraction is another technique that can be used to visualising volumetric data. Instead of visualising the data directly, as in direct volume rendering, the volume is processed to build a geometric representation which can then be rendered.
+
+This advantage of using surface extraction is that it is much cheaper computationally\cite{surfacevsvolumerendering}. There is an initial penalty where the volume data is processed to extract surfaces but once this has been completed the rendering of geometric primitives is something that can be done incredibly quickly by graphics hardware.
+
+A common surface extraction algorithm is marching cubes. This algorithm works by examining the intensities of neighbouring voxels to tell whether or not the surface passes between them by comparing the values to a threshold value. 
+
+The process is easier to visualise in 2D (marching squares), but it can be simply extended to 3D.
+
+\begin{verbatim}
+<image>
+\end{verbatim}
+
+The marching cubes algorithm generates as a result a mesh of triangles which can be reduced to the desired resolution by applying some mesh decimation techniques. Once this has been done the volume can be rendered very efficiently using standard rendering techniques.
+
+There are some constraints associated with using surface extraction for volume visualisation. Firstly the number of primitives required to represent certain volumes may be prohibitively high. As an extreme you can imagine trying to extract surfaces from the volumetric representation of a dust cloud; in this case it would not be practical to do so and in other situations an accuracy/efficiency trade off must be found. Also, there is a certain amount of information loss with this technique, importantly the intensity values are lost.
+
+For this project surface extraction could prove useful for generating a rough overview of the scan being worked on that uncertainty data or other information can be overlayed on. If however it is not possible to get a good enough extraction from the data then a reference image, also known as an imposter, could be used instead.
+
 \chapter{Project Plan}
 
 \chapter{Evaluation}
