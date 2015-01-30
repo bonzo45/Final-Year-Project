@@ -136,6 +136,63 @@ These matrices can be combined to give us this result, without loss of generalit
 & y = Wx + n \nonumber
 \end{align}
 
+\begin{verbatim}
+	Explain what the uncertainties are.
+\end{verbatim}
+
+\subsection{Singular Value Decomposition (SVD) and Principal Component Analysis (PCA)}
+SVD breaks down a matrix, $A$, into three components: $U$, $D$ and $V$.
+
+\begin{align}
+& A = UDV* \nonumber \\
+& \text{where} \nonumber \\
+& A \text{ - the original matrix, M x N.} \nonumber \\
+& U \text{ - a unitary matrix, M x M.} \nonumber \\
+& D \text{ - a diagonal matrix containing the singular values, M x N.} \nonumber \\
+& V* \text{ - the conjugate transpose of V, a unitary matrix, N x N.} \nonumber
+\end{align}
+
+NOTE: Unitary Matrix means that $UU* = I$ or alternately $U^{-1} = UT$. This is true where the matrix contains unit vectors.
+
+NOTE: The conjugate transpose ($*$) of a matrix is where you take the transpose and then take the complex conjugate of each cell.
+
+SVD on it’s own isn’t particularly exciting, but it comes in handy when doing PCA. PCA is used to take a dataset in n dimensions and remap it in such a way that you can describe it in less, whilst minimizing the information lost.
+
+PCA takes in a data matrix, this is just a two dimensional table where each row represents an experiment or data point and each column is a particular property. PCA works off the covariance of this data, to see how each property varies with relation to each other property.
+
+To find the principal component we would like find the vector that maximizes the variance in the covariance matrix. This can be found by extracting the eigenvalues of the covariance matrix.
+
+\begin{align*}
+& X \text{ - data matrix (demeaned)} \\
+& XX^{T} \text{ - covariance matrix} \\
+& \\
+& \text{Since the covariance matrix is symmetric it can be diagonalized.} \\
+& \\
+& XX^{T} = WDW^{-1} \\
+& \\
+& W \text{ - eigenvectors of the covariance matrix} \\
+& D \text{ - eigenvalues of the covariance matrix} \\
+\end{align*}
+
+We can use PCA on $X$:
+
+\begin{align*}
+X &= UDVT \\
+& \\
+XXT &= (UDVT)(UDVT)T \\
+	&= (UDVT)(VDTUT) \\
+	&= UDDTV \\
+	&= UD^{2}U
+\end{align*}
+	
+\begin{align*}
+UD^{2}U = WDW
+\end{align*}
+
+We see that the eigenvalues are just the square root of the diagonal we get from SVD and the eigenvectors are the same.
+
+Principal component analysis, or a slightly modified version of it, may be applicable when suggesting the next scan plane based on the uncertainty information.
+
 \chapter{Project Plan}
 
 \chapter{Evaluation}
