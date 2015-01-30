@@ -68,15 +68,73 @@ There are also a number of different ways of acquiring the scan. SSFSE (Single S
 
 If the contrast that can be achieved with MRI is insufficient for the imaging then a contrast agent, such as gadolinium, can be administered to enhance the quality of the image.
 
-\subsubsection{Fetal MRI\cite{fetalmri}}
+\subsection{Fetal MRI\cite{fetalmri}}
 
 Since MRI, like US (ultrasound), is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains the cheaper of the two and is unlikely to be replaced as the main fetal imaging tool in the near future.
 
 There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partially a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan.
 
-\subsubsection{Super Resolution\cite{superresolution1}\cite{superresolution2}}
-Hi
+\subsection{Super Resolution\cite{superresolution1}\cite{superresolution2}}
+One of the challenges with using MRI for fetal imaging the resolution that is achievable with current scanners. A typical slice thickness when performing a scan on a fetal brain for example is 3mm, which is set to provide a good balance between resolution and noise. Comparing this to the brain, which may only be 5cm, limits the diagnostic potential.
 
+Super resolution is a technique that is designed to address this issue. The idea behind super resolution is to construct a higher resolution image by combining information from multiple lower resolution images. A similar approach is used in stereoscopic 3D where the information from two images taken from different perspectives are combined to create one 3D image.
+
+In the case of super resolution two (or more) images are taken such that the translation between them known to subpixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed by interpolation of these images.
+
+\begin{verbatim}
+	<three images: red, green, blue>
+	<become registered>
+	<add sample grid>
+	<high resolution interpolated from the three>
+\end{verbatim}
+
+\subsubsection*{Intuitive Super Resolution Overview}
+The most simple form of super resolution follows three steps:
+
+\begin{enumerate}
+	\item Registration
+	\item Interpolation
+	\item Post-processing
+\end{enumerate}
+
+The registration step is where the translation between each image is established. Crucially this must be known to subpixel accuracy and must not be an integer number of pixels. If, for example, we had two images and one was taken exactly 1 pixels width to the right of the other then we see that both images will contain the same amount of information, in effect we can generate one using the other. However, if the second image is known to be taken half a pixels width to the right then there is the potential to extract more information.
+
+Once we have registered our images we then interpolate points at a higher resolution, using a combination of the pixel values from each image at each point. There are a number of different interpolation algorithms that we can use; for example nearest neighbour or (bi)linear interpolation.
+
+We can then take our final outputted image and apply some post-processing effects to reduce the noise or blur. For example, we could apply a Wiener filter\cite{wienerfilter}.
+
+\subsubsection*{Details}
+To understand the uncertainty that is introduced we must look more closely at how it works.
+To begin with we model the process that happens when a discrete, low resolution image is taken of a continuous scene in the real world. We can express the low resolution images in terms of a perfect, non-aliased, high resolution version which, in an ideal world, we would like to recover. From the Shannon-Nyquist sampling theory an accurate representation is one that is sampled at twice the frequency of the real world signal\cite{shannonnyquist}. In our model we will assume that the resolution of our perfect image is $LN * LN$ and our actual camera takes images at the resolution of $N * N$ and the scale factor between the two is $L$.
+
+There are a number of effects that combine to create the final image during acquisition. Each image may be taken from a different position so we will need to account for translations, rotations or other warping. Then various optical effects, such as the limit of diffraction, aberrations or being out of focus, will cause some degree of blurring. Finally the image will be sampled at the resolution of the camera and a certain amount of noise will be present.
+
+These processes can be represented by a series of transformations that can be applied to our ideal image.
+
+\begin{align*} 
+& y = DBMx + n \nonumber \\ 
+& \text{where} \\
+& y \text{ - low resolution image} \nonumber \\
+& x \text{ - high resolution (ideal) image} \nonumber \\
+& M \text{ - warping (translation, rotation)} \nonumber \\
+& B \text{ - blurring (optical effects, motion blur)} \nonumber \\
+& D \text{ - scaling (discrete sampling)} \nonumber \\
+& n \text{ - noise} \nonumber
+\end{align*}
+
+The task of image super resolution is given a number of these such images $y$, can we reverse the process to find $x$, our high resolution version.
+
+Finding $M$ is a case of estimating the movement between each of the images that we have. Depending on the application finding these translations can be a very difficult task; in the case of MRI we are dealing with a controlled environment and so it is possible to take images with a known relationship to each other. If the target remains stationary, this makes finding the translations straight-forward, however dealing with movement (such as breathing) makes this a significantly harder task.
+
+Finding B requires modelling the optical effects that occur at each pixel. This will vary between devices and is normally modelled by a point spread function (PSF) that is a spatial averaging of the pixel values in the area. The PSF can be assumed to be the same throughout the image, known as linear space invariant (LSI), or can vary across the image, known as linear space variant (LSV). An example where a linear space variant PSF would be suitable is where there is more heavy blurring near the edge of an image.
+
+The matrix $D$ then samples the result to produce a lower resolution, aliased image and then some noise, $n$, is added to model random variation in the sensor.
+
+These matrices can be combined to give us this result, without loss of generality:
+
+\begin{align}
+& y = Wx + n \nonumber
+\end{align}
 
 \chapter{Project Plan}
 

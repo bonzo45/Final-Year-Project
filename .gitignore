@@ -24,3 +24,6 @@ nifti-vtk
 
 moc_*
 ui_*
+
+# Report
+Interim-Report/.*
