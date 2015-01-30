@@ -23,6 +23,10 @@
 % New Lines not Indentation for Paragraphs
 \usepackage[parfill]{parskip}
 
+% Distance to Headings
+\usepackage{titlesec}
+\titlespacing\subsection{0pt}{0pt}{0pt}
+
 \title{INTERIM REPORT\\Visualising uncertainty in super resolution fetal MRI images.}
 \author{by\\Sam Esgate\\\\supervised by\\Bernhard Kainz}
 
@@ -77,6 +81,7 @@ Since MRI, like US (ultrasound), is a non-invasive procedure that doesn’t use 
 
 There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partially a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan.
 
+\newpage
 \subsection{Super Resolution\cite{superresolution1}\cite{superresolution2}}
 One of the challenges with using MRI for fetal imaging the resolution that is achievable with current scanners. A typical slice thickness when performing a scan on a fetal brain for example is 3mm, which is set to provide a good balance between resolution and noise. Comparing this to the brain, which may only be 5cm, limits the diagnostic potential.
 
@@ -197,6 +202,7 @@ We see that the eigenvalues are just the square root of the diagonal we get from
 
 Principal component analysis, or a slightly modified version of it, may be applicable when suggesting the next scan plane based on the uncertainty information.
 
+\newpage
 \subsection{RANSAC}
 RANSAC, which stands for Random Sample Consensus, is a technique for estimating model parameters given some sample data.
 
@@ -253,6 +259,7 @@ For this project I will experiment with using both 2D and 3D to visualise the un
 
 Direct volume rendering is a very powerful technique for visualising 3D datasets but it is also computationally expensive. It requires the entire scan to be stored in memory and altering the viewpoint requires the volume to be constantly resampled. Part of the experimentation in this project will be to see if this overhead is worth it when compared to using surface rendering.
 
+\newpage
 \subsection{Surface Extraction}
 Surface extraction is another technique that can be used to visualising volumetric data. Instead of visualising the data directly, as in direct volume rendering, the volume is processed to build a geometric representation which can then be rendered.
 
@@ -272,7 +279,8 @@ There are some constraints associated with using surface extraction for volume v
 
 For this project surface extraction could prove useful for generating a rough overview of the scan being worked on that uncertainty data or other information can be overlayed on. If however it is not possible to get a good enough extraction from the data then a reference image, also known as an imposter, could be used instead.
 
-subsection{Uncertainty Visualisation}
+\newpage
+\subsection{Uncertainty Visualisation}
 Uncertainty visualisation tackles the problem of trying to represent the ambiguity or uncertainty in a some data or a model when visualising it.
 
 Most data visualisation techniques implicitly assume that all of the data being used is perfect and because of this create visualisations that are misleading or appear to represent with great precision a model when in fact the underlying data cannot be that sure.
@@ -342,8 +350,82 @@ Another aspect of this project will be proposing (and visualising) the next scan
 
 If the need for labelling comes up in my project it will be worth investigating these techniques.
 
+\chapter{Project Plan \& Progress}
+This project will broadly speaking go through three phases from start to finish: research, prototyping and a trial.
 
-\chapter{Project Plan}
+\subsection*{Stage 1: Research - Done}
+\textit{November to Christmas}
+
+The research phase involved doing background reading around some relevant topics as well as experimenting with using different libraries to decide what would be best to build the prototype in.
+
+The research completed forms the background section of this report.
+
+\begin{verbatim}
+Mention libraries and current progress.
+
+Think about how the motion-compensation framework can be extended to produce data you can use for uncertainty vis. Which values do you want me to save for you explicitly besides the final reconstruction?
+\end{verbatim}
+
+\subsection*{Stage 2: Prototype}
+\textit{January to April (Spring Term \& Start of Summer Term)}
+
+With the research now completed a working prototype needs to be developed that can then evaluated by radiologists.
+
+As I see it now the process that the software should follow is sketched out above. It is an iterative process that begins with an initial scan that can be visualised as it comes in. The uncertainty can then be computed and visualised.
+
+For the prototype I need to create a number of different visualisations which I can then compare afterwards to decide what works well and what does not.
+
+Initially the work should focus on developing these visualisations as this is the main aim of the project. When a number of these have been developed however I can begin to work on the second part of the project which uses the uncertainty values to suggest the next scan plane. When this is roughly working a visualisation for this will also need to be developed.
+
+Whilst I don’t have access to an MRI scanner to provide raw data to my application, it should function as if data was being fed from a machine, and be able to iterate as new scans come in.
+
+During the development of the initial visualisations I can use a file that was taken from a scanner to get an idea of how the visualisations will look. However, when it comes to suggesting a new scan plane I need a way of simulating a scan. One way to do this would be to assume that a scanned file is the ground truth and then simulate an MRI scanner by sampling at a lower resolution.
+
+The prototype will require the following functionality:
+\begin{itemize}
+	\item Display Scan
+	\begin{itemize}
+		\item 2D Views (Sagittal, Coronal, Transverse)
+		\item 3D Overview (Volume Rendering or Surface Extraction) - Experimentation Required.
+	\end{itemize}
+	\item Calculate Uncertainty (CUDA)
+	\begin{itemize}
+		\item The code that calculates this has been written by my supervisor, Bernhard Kainz. The prototype will need to integrate with this.
+	\end{itemize}
+	\item Display Uncertainty
+	\begin{itemize}
+		\item 2D \& 3D
+		\item Map to Colour (Heat map)
+		\item Map to Transparency (Overlay onto scan)
+		\item Map to Contour Lines
+		\item Thresholding (ignore really low values - allow user to adjust)
+		\item Flicker - Region of highest (perhaps above threshold, perhaps top 10\%) uncertainty flickers to draw attention. <Paper>
+	\end{itemize}
+	\item Calculate Next Scan
+	\begin{itemize}
+		\item Investigate PCA
+		\item Investigate RANSAC
+	\end{itemize}
+	\item Display Next Scan
+	\begin{itemize}
+		\item Visual Indication in 3D
+		\item Match format that radiologist specifies when scanning.
+	\end{itemize}
+\end{itemize}
+
+\subsection*{Stage 3: Trial}
+\textit{May \& June (Summer Term)}
+
+I aim to have a working prototype completed and with all the features above by the end of April. This gives me all this term and easter to work on it and leaves 6 weeks in which to evaluate the techniques and write the report. The evaluation stage will involve showing the prototype to a group of radiographers and as a bonus it would be nice to implement some changes based on their feedback.
+
+\subsection*{Deadlines}
+\begin{itemize}
+	\item[] 30th April - Finish Prototype
+	\item[] 30th June - Evaluation and Improvements
+	\item[] 16th June - Final Report
+	\item[] 22nd/23rd June - Presentation
+	\item[] 29th June - Archive
+\end{itemize}
 
 \chapter{Evaluation}
 
