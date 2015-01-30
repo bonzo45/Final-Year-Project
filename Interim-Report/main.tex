@@ -31,7 +31,7 @@
 \usepackage{graphicx}
 
 \title{INTERIM REPORT\\Visualising uncertainty in super resolution fetal MRI images.}
-\author{by\\Sam Esgate\\\\supervised by\\Bernhard Kainz}
+\author{by\\Sam Esgate\\\\supervised by\\Dr. Bernhard Kainz}
 
 \begin{document}
 
@@ -158,7 +158,7 @@ There are a number of different processes that are used to try and reverse this 
 % TODO: Work out what bias is.
 
 \newpage
-\subsection{Singular Value Decomposition (SVD) and Principal Component Analysis (PCA)}
+\subsection{Singular Value Decomposition and Principal Component Analysis}
 SVD breaks down a matrix, $A$, into three components: $U$, $D$ and $V$.
 
 \begin{align}
@@ -429,7 +429,7 @@ The prototype will require the following functionality:
 	\end{itemize}
 	\item Calculate Uncertainty (CUDA)
 	\begin{itemize}
-		\item The code that calculates this has been written by my supervisor, Bernhard Kainz. The prototype will need to integrate with this.
+		\item The code that calculates this has been written by my supervisor, Dr. Bernhard Kainz. The prototype will need to integrate with this.
 	\end{itemize}
 	\item Display Uncertainty
 	\begin{itemize}
@@ -472,16 +472,21 @@ The focus of the evaluation shall be on assessing the effectiveness of the visua
 
 The potential users of these visualisations are radiographers. In an ideal world I would get a very large number of radiographers to try the prototype and try to get feedback on what works and what does not. Since the time of radiographers is very precious however I will probably only be able to get a small expert user study.
 
-Record them using the software.
-Time how long it takes to find the uncertain region.
-Short quiz - which was their favourite?
+To evaluate each of the visualisations that have been developed I will let the expert users use the prototype and get feedback including:
 
-Since expert users are in short supply it might be possible to do some evaluation with non-expert users. Amazon Mechanical Turk - which image is shinier?
+\begin{enumerate}
+\item Record them using the software. It will be useful to observe their behaviour to see what is intuitive and what is not about using the prototype. Recording the screen using some screen capture software will allow me to replay this and analyse after the feedback session as well as during.
+\item Time how long it takes to find an uncertain region. I will need to add a feature to the demo that requires the user to click on the uncertain region in the visualisation and time them in a number of scenarios with different visualisations. This will provide some quantitative data about the effectiveness.
+\item Ask them which is clearest. It is important that I speak to them and see what they like and dislike about the prototype. I will need to draw up a list of questions to ask them.
+\end{enumerate}
 
-\begin{verbatim}
-Look at other visualisation papers and see what they have done.
-\end{verbatim}
+In the case that I can't get many expert users at all I may be able to get the opinion of non-expert users. The same experiments can be performed amongst my colleagues at university or as an alternative I could investigate using Amazon Mechanical Turk to get a larger sample group.
 
+There are also performance concerns; the visualisations have to run in real time and so I need to monitor each visualisation on some representative hardware and see if an acceptable framerate (~24fps) can be consistently achieved.
+
+The second part of the project will be the suggesting the next scan plane feature. More research is currently needed into how to evaluate this effectively. The ideal world will involve comparing this to a ground truth value which can be done by simulating an MRI scanner with some previously acquired data.
+
+%TODO: Look at other visualisation papers and see what they have done.
 
 \bibliography{bibliography} 
 \bibliographystyle{plain}
