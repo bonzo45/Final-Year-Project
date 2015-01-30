@@ -21,7 +21,7 @@
 \linespread{1.3}
 
 \title{INTERIM REPORT\\Visualising uncertainty in super resolution fetal MRI images.}
-\author{Sam Esgate\\\\supervised by\\Bernhard Kainz}
+\author{by\\Sam Esgate\\\\supervised by\\Bernhard Kainz}
 
 \begin{document}
 
@@ -41,12 +41,45 @@ Hopefully the findings of this project will be able to guide the incorporation o
 \chapter{Background}
 
 \section{Medical Imaging}
-The field of medical imaging came into existence with the discovery of x-rays in 1895 by Wilhelm Röntgen. This meant that for the first time it was possible to peek into the human anatomy without having to physically open it up. This revolution came at a cost however as at the time the dangers of high doses of radiation were not understood and many of the pioneers died as a result of exposure.
+The field of medical imaging came into existence with the discovery of x-rays in 1895 by Wilhelm R\"{o}ntgen\cite{rontgen}. This meant that for the first time it was possible to peek into the human anatomy without having to physically open it up. This revolution came at a cost however as at the time the dangers of high doses of radiation were not understood and many of the pioneers died as a result of exposure\cite{xraydeath}.
+
+Radiology, the use of ionizing radiation to image objects, was greatly refined over the years; contrast agents were developed which made fields like angiography (imaging of blood vessels) possible\cite{infinityhistory} and the doses used were refined to dramatically decrease the associated risks. X-rays have been used successfully in medical imaging ever since and in the 70s the invention of the CT scanner allowed them to be used to produce 3D images of the body.
+
+It was not until the 1980s that magnetic resonance imaging (MRI) was first used for medical diagnosis. MRI is based on the principles of nuclear magnetic resonance (NMR), which had been used in chemical analysis since the 40s\cite{bshr:mallard}.
+
+MRI can be used to create anatomical images by examining the varying water content in different parts of the body. More recently MRI has been used to create functional images of the brain by using the same principals to detect blood flow\cite{fmri}. Unlike CT, which uses x-rays, MRI does not require the use of any ionizing radiation to perform the scan.
+
+As with all medical imaging techniques the benefits and risks need to be weighed up before it is performed. When it comes to the imaging of fetuses the risks are even higher and so in general CT scans tend not to be used where possible due to radiation involved. MRI, like ultrasound, is not associated with known adverse fetal effects.\cite{pregnancyimagingguidelines}
+
+\subsection{MRI (Magnetic Resonance Imaging)\cite{howmriworks}}
+
+MRI is a medical imaging technique that uses a strong magnetic field and radio waves to produce images of the body. MRI can be used to produce 2D, 3D and even 4D images and has the advantage that it doesn’t use any ionizing radiation during the scanning process.
+
+MRI is able to detect the amount of water that is contained in different types of tissue in the body by exploiting a property of protons called spin. Each water molecule in the body contains two hydrogen atoms and the nucleus of each is simply a proton.
+
+MRI applies a strong uniform magnetic field to the area being imaged which causes the spins of the protons to line up with the direction of the field. Some of the protons line up in the same direction, with low energy, and some line up opposing the magnetic field, which have high energy.
+
+When a radio wave is then applied some of the lower energy protons flip to become higher energy and oppose the magnetic field, when the radio waves are stopped these protons then flip back and emit a radio wave that can be detected.
+
+The resonant frequency of radio wave that is required to excite the protons depends on the strength of the magnetic field. This property allows an area to be scanned by applying a gradient magnetic field and varying the radio frequency.
+
+There are a number of different variations of MRI. T1-weighted scans are best for visualising fat, calcification, hemorrhage, thyroid, liver and bone marrow whereas T2-weighted scans accentuate water content.
+There are also a number of different ways of acquiring the scan. SSFSE (Single Shot Fast Spin Echo) works by acquiring each slice of the image in sequence whereas 2DGRE (Gradient Echo) acquires all of the slices simultaneously.
+
+If the contrast that can be achieved with MRI is insufficient for the imaging then a contrast agent, such as gadolinium, can be administered to enhance the quality of the image.
+
+\subsubsection{Fetal MRI\cite{fetalmri}}
+
+Since MRI, like US (ultrasound), is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains the cheaper of the two and is unlikely to be replaced as the main fetal imaging tool in the near future.
+
+There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partially a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan.
+
+\subsubsection{Super Resolution}
+
 
 \chapter{Project Plan}
 
 \chapter{Evaluation}
-
 
 \bibliography{bibliography} 
 \bibliographystyle{plain}
