@@ -15,7 +15,6 @@ PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
-
 #ifndef Sams_View_h
 #define Sams_View_h
 
@@ -25,7 +24,6 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "ui_Sams_ViewControls.h"
 
-
 /*!
   \brief Sams_View
 
@@ -34,34 +32,23 @@ PURPOSE.  See the above copyright notices for more information.
   \sa QmitkFunctionality
   \ingroup ${plugin_target}_internal
 */
-class Sams_View : public QmitkAbstractView
-{  
-  // this is needed for all Qt objects that should have a Qt meta-object
-  // (everything that derives from QObject and wants to have signal/slots)
+class Sams_View : public QmitkAbstractView {  
+  // Needed for all Qt objects that want signals/slots.
   Q_OBJECT
   
   public:  
-
     static const std::string VIEW_ID;
-
     virtual void CreateQtPartControl(QWidget *parent);
 
   protected slots:
-  
-    /// \brief Called when the user clicks the GUI button
     void DoImageProcessing();
 
-  protected:
-  
+  protected:  
     virtual void SetFocus();
-
-    /// \brief called by QmitkFunctionality when DataManager's selection has changed
-    virtual void OnSelectionChanged( berry::IWorkbenchPart::Pointer source,
-                                     const QList<mitk::DataNode::Pointer>& nodes );
+    virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);
 
     Ui::Sams_ViewControls m_Controls;
 
 };
 
 #endif // Sams_View_h
-

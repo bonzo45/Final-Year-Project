@@ -15,7 +15,6 @@ PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
-
 // Blueberry
 #include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
@@ -26,51 +25,60 @@ PURPOSE.  See the above copyright notices for more information.
 // Qt
 #include <QMessageBox>
 
+// Stuff I've included.
 #include <mitkImage.h>
-
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
-void Sams_View::SetFocus()
-{
+/**
+  * Create the UI
+  */
+void Sams_View::CreateQtPartControl(QWidget *parent) {
+  // Create Qt UI
+  m_Controls.setupUi(parent);
+
+  // Add click handler.
+  connect(m_Controls.buttonPerformImageProcessing, SIGNAL(clicked()), this, SLOT(DoImageProcessing()) );
+}
+
+/**
+  * What to do when focus is set.
+  */
+void Sams_View::SetFocus() {
+  // Focus on the button.
   m_Controls.buttonPerformImageProcessing->setFocus();
 }
 
-void Sams_View::CreateQtPartControl( QWidget *parent )
-{
-  // create GUI widgets from the Qt Designer's .ui file
-  m_Controls.setupUi( parent );
-  connect( m_Controls.buttonPerformImageProcessing, SIGNAL(clicked()), this, SLOT(DoImageProcessing()) );
-}
-
-void Sams_View::OnSelectionChanged( berry::IWorkbenchPart::Pointer /*source*/,
-                                             const QList<mitk::DataNode::Pointer>& nodes )
-{ 
-  // iterate all selected objects, adjust warning visibility
-  foreach( mitk::DataNode::Pointer node, nodes )
-  {
-    if( node.IsNotNull() && dynamic_cast<mitk::Image*>(node->GetData()) )
-    {
-      m_Controls.labelWarning->setVisible( false );
-      m_Controls.buttonPerformImageProcessing->setEnabled( true );
+/**
+  * What to do when a data node or selection changes.
+  */
+void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
+  // Go through all of the nodes, checking if one is an image.
+  foreach(mitk::DataNode::Pointer node, nodes) {
+    if(node.IsNotNull() && dynamic_cast<mitk::Image*>(node->GetData())) {
+      m_Controls.labelWarning->setVisible(false);
+      m_Controls.buttonPerformImageProcessing->setEnabled(true);
       return;
     }
   }
 
-  m_Controls.labelWarning->setVisible( true );
-  m_Controls.buttonPerformImageProcessing->setEnabled( false );
+  // If none are an image, display warning.
+  m_Controls.labelWarning->setVisible(true);
+  m_Controls.buttonPerformImageProcessing->setEnabled(false);
 }
 
-
-void Sams_View::DoImageProcessing()
-{
+/**
+  * Image Processing
+  */
+void Sams_View::DoImageProcessing() {
   QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
-  if (nodes.empty()) return;
+  if (nodes.empty()) {
+    return;
+  }
 
   mitk::DataNode* node = nodes.front();
 
-  if (!node)
-  {
+  if (!node) {
     // Nothing selected. Inform the user and return
     QMessageBox::information( NULL, "Template", "Please load and select an image before starting image processing.");
     return;
@@ -80,25 +88,23 @@ void Sams_View::DoImageProcessing()
 
   // a node itself is not very useful, we need its data item (the image)
   mitk::BaseData* data = node->GetData();
-  if (data)
-  {
+  if (data) {
     // test if this data item is an image or not (could also be a surface or something totally different)
-    mitk::Image* image = dynamic_cast<mitk::Image*>( data );
-    if (image)
-    {
+    mitk::Image* image = dynamic_cast<mitk::Image*>(data);
+    if (image) {
       std::stringstream message;
       std::string name;
       message << "Performing image processing for image ";
-      if (node->GetName(name))
-      {
+      if (node->GetName(name)) {
         // a property called "name" was found for this DataNode
         message << "'" << name << "'";
       }
       message << ".";
       MITK_INFO << message.str();
 
+      // -----------------------------
       // actually do something here...
-
+      // -----------------------------
     }
   }
 }
