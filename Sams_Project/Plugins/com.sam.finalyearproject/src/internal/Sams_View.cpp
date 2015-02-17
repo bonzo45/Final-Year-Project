@@ -28,6 +28,14 @@ PURPOSE.  See the above copyright notices for more information.
 // Stuff I've included.
 #include <mitkImage.h>
 
+// for interacting with the render window
+#include <mitkIRenderWindowPart.h>
+#include <mitkILinkedRenderWindowPart.h>
+
+// for volume rendering
+#include <mitkTransferFunction.h>
+#include <mitkTransferFunctionProperty.h>
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 /**
@@ -47,6 +55,11 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 void Sams_View::SetFocus() {
   // Focus on the button.
   m_Controls.buttonPerformImageProcessing->setFocus();
+
+  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  if (linkedRenderWindowPart != NULL) {
+    linkedRenderWindowPart->EnableSlicingPlanes(false);
+  }
 }
 
 /**
@@ -55,7 +68,30 @@ void Sams_View::SetFocus() {
 void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
   // Go through all of the nodes, checking if one is an image.
   foreach(mitk::DataNode::Pointer node, nodes) {
-    if(node.IsNotNull() && dynamic_cast<mitk::Image*>(node->GetData())) {
+    // If it's an image.
+    mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(node->GetData());
+    if(node.IsNotNull() && image) {
+      // Get it's name.
+      SetScan(node->GetName());
+
+      // Volume Render it!
+      node->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+      
+      // Create a transfer function.
+      mitk::TransferFunction::Pointer tf = mitk::TransferFunction::New();
+      tf->InitializeByMitkImage (image);
+
+      // Colour Transfer Function: AddRGBPoint(double x, double r, double g, double b)
+      tf->GetColorTransferFunction()->AddRGBPoint(tf->GetColorTransferFunction()->GetRange() [0], 1.0, 0.0, 0.0);
+      tf->GetColorTransferFunction()->AddRGBPoint(tf->GetColorTransferFunction()->GetRange() [1], 1.0, 1.0, 0.0);
+
+      // Opacity Transfer Function: AddPoint(double x, double y)
+      tf->GetScalarOpacityFunction()->AddPoint(0, 0);
+      tf->GetScalarOpacityFunction()->AddPoint(tf->GetColorTransferFunction()->GetRange() [1], 1);
+
+      node->SetProperty ("TransferFunction", mitk::TransferFunctionProperty::New(tf.GetPointer()));
+
+      // Previous Behaviour.
       m_Controls.labelWarning->setVisible(false);
       m_Controls.buttonPerformImageProcessing->setEnabled(true);
       return;
@@ -107,4 +143,8 @@ void Sams_View::DoImageProcessing() {
       // -----------------------------
     }
   }
+}
+
+void Sams_View::SetScan(std::string name) {
+  m_Controls.scanLabel->setText(QString::fromStdString(name));
 }

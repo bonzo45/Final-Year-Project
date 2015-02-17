@@ -49,6 +49,9 @@ class Sams_View : public QmitkAbstractView {
 
     Ui::Sams_ViewControls m_Controls;
 
+  private:
+    void SetScan(std::string name);
+
 };
 
 #endif // Sams_View_h
