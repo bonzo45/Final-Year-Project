@@ -52,7 +52,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   m_Controls.setupUi(parent);
 
   // Add click handler.
-  connect(m_Controls.buttonPerformImageProcessing, SIGNAL(clicked()), this, SLOT(DoImageProcessing()) );
+  connect(m_Controls.buttonPickScan, SIGNAL(clicked()), this, SLOT(PickScan()));
+  connect(m_Controls.buttonPickUncertainty, SIGNAL(clicked()), this, SLOT(PickUncertainty()));
+  connect(m_Controls.buttonOverlay, SIGNAL(clicked()), this, SLOT(ShowOverlay()));
+  connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
 }
 
 /**
@@ -60,14 +63,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   */
 void Sams_View::SetFocus() {
   // Focus on the button.
-  m_Controls.buttonPerformImageProcessing->setFocus();
-
-
-  // Disable Crosshairs.
-  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  if (linkedRenderWindowPart != NULL) {
-    linkedRenderWindowPart->EnableSlicingPlanes(false);
-  }
+  m_Controls.buttonOverlay->setFocus();
 }
 
 /**
@@ -101,20 +97,20 @@ void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, co
 
       // Previous Behaviour.
       m_Controls.labelWarning->setVisible(false);
-      m_Controls.buttonPerformImageProcessing->setEnabled(true);
+      m_Controls.buttonOverlay->setEnabled(true);
       return;
     }
   }
 
   // If none are an image, display warning.
   m_Controls.labelWarning->setVisible(true);
-  m_Controls.buttonPerformImageProcessing->setEnabled(false);
+  m_Controls.buttonOverlay->setEnabled(false);
 }
 
 /**
-  * Image Processing
+  * Show Overlay
   */
-void Sams_View::DoImageProcessing() {
+void Sams_View::ShowOverlay() {
   mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
   QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
   mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
@@ -134,6 +130,25 @@ void Sams_View::DoImageProcessing() {
   
   //Add the overlay to the overlayManager. It is added to all registered renderers automaticly
   overlayManager->AddOverlay(textOverlay.GetPointer());
+}
+
+/**
+  * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
+  */
+void Sams_View::ToggleCrosshairs(int state) {
+  // Disable Crosshairs.
+  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  if (linkedRenderWindowPart != NULL) {
+    linkedRenderWindowPart->EnableSlicingPlanes(state > 0);
+  }
+}
+
+void Sams_View::PickScan() {
+  mitk::DataStorage::Pointer dataStorage = GetDataStorage();
+}
+
+void Sams_View::PickUncertainty() {
+
 }
 
 void Sams_View::SetScan(std::string name) {

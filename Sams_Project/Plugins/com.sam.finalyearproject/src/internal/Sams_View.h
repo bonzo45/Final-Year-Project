@@ -41,7 +41,10 @@ class Sams_View : public QmitkAbstractView {
     virtual void CreateQtPartControl(QWidget *parent);
 
   protected slots:
-    void DoImageProcessing();
+    void PickScan();
+    void PickUncertainty();
+    void ShowOverlay();
+    void ToggleCrosshairs(int state);
 
   protected:  
     virtual void SetFocus();
