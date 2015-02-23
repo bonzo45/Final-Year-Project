@@ -36,6 +36,12 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkTransferFunction.h>
 #include <mitkTransferFunctionProperty.h>
 
+// Operation 'Overlay'
+#include <mitkBaseRenderer.h>
+#include <QmitkRenderWindow.h>
+#include <mitkOverlayManager.h>
+#include <mitkTextOverlay2D.h>
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 /**
@@ -109,44 +115,64 @@ void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, co
   * Image Processing
   */
 void Sams_View::DoImageProcessing() {
-  QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
-  if (nodes.empty()) {
-    return;
-  }
+  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
+  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
+  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
 
-  mitk::DataNode* node = nodes.front();
+  //Create a textOverlay2D
+  mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
+  textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
+  textOverlay->SetFontSize(40);
+  textOverlay->SetColor(1,0,0); //Set text color to red
+  textOverlay->SetOpacity(1);
 
-  if (!node) {
-    // Nothing selected. Inform the user and return
-    QMessageBox::information( NULL, "Template", "Please load and select an image before starting image processing.");
-    return;
-  }
-
-  // here we have a valid mitk::DataNode
-
-  // a node itself is not very useful, we need its data item (the image)
-  mitk::BaseData* data = node->GetData();
-  if (data) {
-    // test if this data item is an image or not (could also be a surface or something totally different)
-    mitk::Image* image = dynamic_cast<mitk::Image*>(data);
-    if (image) {
-      std::stringstream message;
-      std::string name;
-      message << "Performing image processing for image ";
-      if (node->GetName(name)) {
-        // a property called "name" was found for this DataNode
-        message << "'" << name << "'";
-      }
-      message << ".";
-      MITK_INFO << message.str();
-
-      // -----------------------------
-      // actually do something here...
-      // -----------------------------
-    }
-  }
+  //The position of the Overlay can be set to a fixed coordinate on the display.
+  mitk::Point2D pos;
+  pos[0] = 10,pos[1] = 20;
+  textOverlay->SetPosition2D(pos);
+  
+  //Add the overlay to the overlayManager. It is added to all registered renderers automaticly
+  overlayManager->AddOverlay(textOverlay.GetPointer());
 }
 
 void Sams_View::SetScan(std::string name) {
   m_Controls.scanLabel->setText(QString::fromStdString(name));
 }
+
+// QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
+// if (nodes.empty()) {
+//   return;
+// }
+
+// mitk::DataNode* node = nodes.front();
+
+// if (!node) {
+//   // Nothing selected. Inform the user and return
+//   QMessageBox::information( NULL, "Template", "Please load and select an image before starting image processing.");
+//   return;
+// }
+
+// // here we have a valid mitk::DataNode
+
+// // a node itself is not very useful, we need its data item (the image)
+// mitk::BaseData* data = node->GetData();
+// if (data) {
+//   // test if this data item is an image or not (could also be a surface or something totally different)
+//   mitk::Image* image = dynamic_cast<mitk::Image*>(data);
+//   if (image) {
+//     std::stringstream message;
+//     std::string name;
+//     message << "Performing image processing for image ";
+//     if (node->GetName(name)) {
+//       // a property called "name" was found for this DataNode
+//       message << "'" << name << "'";
+//     }
+//     message << ".";
+//     MITK_INFO << message.str();
+
+//     // -----------------------------
+//     // actually do something here...
+//     // -----------------------------
+//   }
+// }
