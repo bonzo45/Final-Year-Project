@@ -56,6 +56,8 @@ void Sams_View::SetFocus() {
   // Focus on the button.
   m_Controls.buttonPerformImageProcessing->setFocus();
 
+
+  // Disable Crosshairs.
   mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
   if (linkedRenderWindowPart != NULL) {
     linkedRenderWindowPart->EnableSlicingPlanes(false);
