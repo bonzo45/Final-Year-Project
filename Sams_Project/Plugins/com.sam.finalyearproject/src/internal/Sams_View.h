@@ -24,6 +24,9 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "ui_Sams_ViewControls.h"
 
+// Stuff I've included.
+#include <mitkImage.h>
+
 /*!
   \brief Sams_View
 
@@ -41,19 +44,25 @@ class Sams_View : public QmitkAbstractView {
     virtual void CreateQtPartControl(QWidget *parent);
 
   protected slots:
-    void PickScan();
-    void PickUncertainty();
-    void ShowOverlay();
+    void SwapScanUncertainty();
+    void ShowTextOverlay();
     void ToggleCrosshairs(int state);
+    void SetLayers();
 
   protected:  
     virtual void SetFocus();
     virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);
 
+    // The current scan and uncertainty images.
+    mitk::DataNode::Pointer scan;
+    mitk::DataNode::Pointer uncertainty;
+
     Ui::Sams_ViewControls m_Controls;
 
   private:
-    void SetScan(std::string name);
+    void SetScan(mitk::DataNode::Pointer scan);
+    void SetUncertainty(mitk::DataNode::Pointer uncertainty);
+    void SetNumberOfImagesSelected(int imagesSelected);
 
 };
 

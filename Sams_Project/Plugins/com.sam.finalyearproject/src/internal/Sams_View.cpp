@@ -26,7 +26,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <QMessageBox>
 
 // Stuff I've included.
-#include <mitkImage.h>
+#include <mitkBaseProperty.h>
 
 // for interacting with the render window
 #include <mitkIRenderWindowPart.h>
@@ -52,10 +52,12 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   m_Controls.setupUi(parent);
 
   // Add click handler.
-  connect(m_Controls.buttonPickScan, SIGNAL(clicked()), this, SLOT(PickScan()));
-  connect(m_Controls.buttonPickUncertainty, SIGNAL(clicked()), this, SLOT(PickUncertainty()));
-  connect(m_Controls.buttonOverlay, SIGNAL(clicked()), this, SLOT(ShowOverlay()));
+  connect(m_Controls.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
+  connect(m_Controls.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
+  connect(m_Controls.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
   connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
+
+  SetNumberOfImagesSelected(0);
 }
 
 /**
@@ -63,27 +65,36 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   */
 void Sams_View::SetFocus() {
   // Focus on the button.
-  m_Controls.buttonOverlay->setFocus();
+  //m_Controls.buttonOverlayText->setFocus();
 }
 
 /**
   * What to do when a data node or selection changes.
   */
 void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
+  int imagesSelected = 0;
+
   // Go through all of the nodes, checking if one is an image.
   foreach(mitk::DataNode::Pointer node, nodes) {
     // If it's an image.
     mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(node->GetData());
     if(node.IsNotNull() && image) {
+      imagesSelected++;
+
       // Get it's name.
-      SetScan(node->GetName());
+      if (imagesSelected == 1) {
+        SetScan(node);
+      }
+      else if (imagesSelected == 2) {
+        SetUncertainty(node);
+      }
 
       // Volume Render it!
       node->SetProperty("volumerendering", mitk::BoolProperty::New(true));
       
       // Create a transfer function.
       mitk::TransferFunction::Pointer tf = mitk::TransferFunction::New();
-      tf->InitializeByMitkImage (image);
+      tf->InitializeByMitkImage(image);
 
       // Colour Transfer Function: AddRGBPoint(double x, double r, double g, double b)
       tf->GetColorTransferFunction()->AddRGBPoint(tf->GetColorTransferFunction()->GetRange() [0], 1.0, 0.0, 0.0);
@@ -94,23 +105,46 @@ void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, co
       tf->GetScalarOpacityFunction()->AddPoint(tf->GetColorTransferFunction()->GetRange() [1], 1);
 
       node->SetProperty ("TransferFunction", mitk::TransferFunctionProperty::New(tf.GetPointer()));
-
-      // Previous Behaviour.
-      m_Controls.labelWarning->setVisible(false);
-      m_Controls.buttonOverlay->setEnabled(true);
-      return;
     }
   }
 
-  // If none are an image, display warning.
-  m_Controls.labelWarning->setVisible(true);
-  m_Controls.buttonOverlay->setEnabled(false);
+  SetNumberOfImagesSelected(imagesSelected);
+}
+
+/**
+  * Updates the UI to reflect the number of images selected.
+  * Shows messages, disables buttons etc.
+  */
+void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
+  if (imagesSelected == 0) {
+    m_Controls.scanLabel->setText("Pick a Scan (Ctrl + Click)");
+  }
+  if (imagesSelected <= 1) {
+    m_Controls.uncertaintyLabel->setText("Pick an Uncertainty (Ctrl + Click)");
+    m_Controls.buttonSwapScanUncertainty->setEnabled(false);
+  }
+  else {
+    m_Controls.buttonSwapScanUncertainty->setEnabled(true);
+  }
+}
+
+/**
+  * Sets the Uncertainty to be above the Scan.
+  */
+void Sams_View::SetLayers() {
+  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
+  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
+
+  this->scan->SetProperty("layer", behindProperty);
+  this->uncertainty->SetProperty("layer", infrontProperty);
+
+  this->RequestRenderWindowUpdate();
 }
 
 /**
   * Show Overlay
   */
-void Sams_View::ShowOverlay() {
+void Sams_View::ShowTextOverlay() {
   mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
   QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
   mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
@@ -128,7 +162,7 @@ void Sams_View::ShowOverlay() {
   pos[0] = 10,pos[1] = 20;
   textOverlay->SetPosition2D(pos);
   
-  //Add the overlay to the overlayManager. It is added to all registered renderers automaticly
+  //Add the overlay to the overlayManager. It is added to all registered renderers automatically
   overlayManager->AddOverlay(textOverlay.GetPointer());
 }
 
@@ -143,16 +177,30 @@ void Sams_View::ToggleCrosshairs(int state) {
   }
 }
 
-void Sams_View::PickScan() {
-  mitk::DataStorage::Pointer dataStorage = GetDataStorage();
+void Sams_View::SwapScanUncertainty() {
+  mitk::DataNode::Pointer temp = this->scan;
+  this->SetScan(this->uncertainty);
+  this->SetUncertainty(temp);
 }
 
-void Sams_View::PickUncertainty() {
+void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
+  this->scan = scan;
 
-}
+  mitk::BaseProperty * nameProperty = scan->GetProperty("name");
+  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
+  std::string name = nameStringProperty->GetValueAsString();
 
-void Sams_View::SetScan(std::string name) {
   m_Controls.scanLabel->setText(QString::fromStdString(name));
+}
+
+void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
+  this->uncertainty = uncertainty;
+
+  mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
+  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
+  std::string name = nameStringProperty->GetValueAsString();
+
+  m_Controls.uncertaintyLabel->setText(QString::fromStdString(name));
 }
 
 // QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();

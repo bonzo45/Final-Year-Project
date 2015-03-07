@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>464</width>
-    <height>345</height>
+    <height>367</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -27,7 +27,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="titleLabel">
+    <widget class="QLabel" name="label1">
      <property name="font">
       <font>
        <pointsize>18</pointsize>
@@ -41,19 +41,45 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="horizontalWidget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
+    <widget class="QWidget" name="filesWidget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
-       <widget class="QPushButton" name="buttonPickScan">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
         <property name="text">
-         <string>Pick MRI</string>
+         <string>Scan:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="buttonPickUncertainty">
+       <widget class="QLabel" name="scanLabel">
         <property name="text">
-         <string>Pick Uncertainty</string>
+         <string>scanLabel</string>
         </property>
        </widget>
       </item>
@@ -61,21 +87,60 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="scanLabel">
+    <widget class="QWidget" name="headingWidget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>16</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Uncertainty:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="uncertaintyLabel">
+        <property name="text">
+         <string>uncertaintyLabel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonSwapScanUncertainty">
      <property name="text">
-      <string>scanLabel</string>
+      <string>Scan &lt;-&gt; Uncertainty</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="uncertaintyLabel">
-     <property name="text">
-      <string>uncertaintyLabel</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label2">
      <property name="font">
       <font>
        <pointsize>18</pointsize>
@@ -89,20 +154,14 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="buttonOverlay">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="toolTip">
-      <string>Do image processing</string>
-     </property>
+    <widget class="QPushButton" name="buttonSetLayers">
      <property name="text">
-      <string>Overlay Uncertainty</string>
+      <string>Set Layers</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="label3">
      <property name="font">
       <font>
        <pointsize>18</pointsize>
@@ -116,6 +175,19 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="buttonOverlayText">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Do image processing</string>
+     </property>
+     <property name="text">
+      <string>Overlay Text</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QCheckBox" name="checkBoxCrosshairs">
      <property name="text">
       <string>Show Crosshairs</string>
@@ -125,16 +197,6 @@
      </property>
      <property name="tristate">
       <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="labelWarning">
-     <property name="styleSheet">
-      <string notr="true">QLabel { color: rgb(255, 0, 0) }</string>
-     </property>
-     <property name="text">
-      <string>Select a Scan</string>
      </property>
     </widget>
    </item>
