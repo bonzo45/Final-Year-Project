@@ -46,6 +46,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkImageAccessByItk.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include "mitkImageCast.h"
+#include <itkMinimumMaximumImageCalculator.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -198,10 +199,10 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
   // Create a thresholder.
   typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
   thresholdFilter->SetInput(itkImage);
-  thresholdFilter->SetInsideValue(255);
+  thresholdFilter->SetInsideValue(1);
   thresholdFilter->SetOutsideValue(0);
-  thresholdFilter->SetLowerThreshold(0);
-  thresholdFilter->SetUpperThreshold(255);
+  thresholdFilter->SetLowerThreshold(0.001f);
+  thresholdFilter->SetUpperThreshold(0.5f);
 
   // Compute result.
   thresholdFilter->Update();
@@ -263,9 +264,46 @@ void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
 void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   this->uncertainty = uncertainty;
 
+  // Update Label
   mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
-
   m_Controls.uncertaintyLabel->setText(QString::fromStdString(name));
+
+  // Calculate intensity range.
+  mitk::BaseData * uncertaintyData = uncertainty->GetData();
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+
+  float min = 0.0f;
+  float max = 0.0f;
+  AccessByItk_2(uncertaintyImage, ItkGetRange, min, max);
+
+  m_Controls.thresholdSlider->setRange(min, max);
+  m_Controls.thresholdSlider->setSpan(min, max);
+  
+  std::ostringstream ss;
+  ss << min;
+  m_Controls.labelSliderLeft->setText(ss.str().c_str());
+  ss.clear();
+  ss << max;
+  m_Controls.labelSliderRight->setText(ss.str().c_str());
+}
+
+/**
+  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
+  */
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
+  
+  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+  imageCalculatorFilter->SetImage(itkImage);
+  imageCalculatorFilter->Compute();
+
+  min = imageCalculatorFilter->GetMinimum();
+  max = imageCalculatorFilter->GetMaximum();
+  cout << "(" << min << ", " << max << ")" << endl;
+
+  this->RequestRenderWindowUpdate();
 }

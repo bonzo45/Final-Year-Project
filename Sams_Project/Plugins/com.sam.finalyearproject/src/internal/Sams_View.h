@@ -68,6 +68,8 @@ class Sams_View : public QmitkAbstractView {
     // ITK Methods
     template <typename TPixel, unsigned int VImageDimension>
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage);
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
 
 
 };
