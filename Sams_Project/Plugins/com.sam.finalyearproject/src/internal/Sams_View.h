@@ -48,6 +48,7 @@ class Sams_View : public QmitkAbstractView {
     void ShowTextOverlay();
     void ToggleCrosshairs(int state);
     void SetLayers();
+    void ThresholdUncertainty();
 
   protected:  
     virtual void SetFocus();
@@ -63,6 +64,11 @@ class Sams_View : public QmitkAbstractView {
     void SetScan(mitk::DataNode::Pointer scan);
     void SetUncertainty(mitk::DataNode::Pointer uncertainty);
     void SetNumberOfImagesSelected(int imagesSelected);
+
+    // ITK Methods
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage);
+
 
 };
 

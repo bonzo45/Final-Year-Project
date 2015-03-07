@@ -149,7 +149,7 @@
       </font>
      </property>
      <property name="text">
-      <string>2. Overlay in 2D</string>
+      <string>2. Do Things</string>
      </property>
     </widget>
    </item>
@@ -157,6 +157,26 @@
     <widget class="QPushButton" name="buttonSetLayers">
      <property name="text">
       <string>Set Layers</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonOverlayText">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Do image processing</string>
+     </property>
+     <property name="text">
+      <string>Overlay Text</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonThreshold">
+     <property name="text">
+      <string>Threshold Uncertainty</string>
      </property>
     </widget>
    </item>
@@ -171,19 +191,6 @@
      </property>
      <property name="text">
       <string>3. Options</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="buttonOverlayText">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="toolTip">
-      <string>Do image processing</string>
-     </property>
-     <property name="text">
-      <string>Overlay Text</string>
      </property>
     </widget>
    </item>

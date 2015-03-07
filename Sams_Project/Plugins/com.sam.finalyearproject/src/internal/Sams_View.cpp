@@ -42,6 +42,11 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkOverlayManager.h>
 #include <mitkTextOverlay2D.h>
 
+// for thresholding
+#include <mitkImageAccessByItk.h>
+#include <itkBinaryThresholdImageFilter.h>
+#include "mitkImageCast.h"
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 /**
@@ -55,6 +60,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(m_Controls.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
   connect(m_Controls.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
   connect(m_Controls.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
+  connect(m_Controls.buttonThreshold, SIGNAL(clicked()), this, SLOT(ThresholdUncertainty()));
   connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
 
   SetNumberOfImagesSelected(0);
@@ -122,9 +128,11 @@ void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
   if (imagesSelected <= 1) {
     m_Controls.uncertaintyLabel->setText("Pick an Uncertainty (Ctrl + Click)");
     m_Controls.buttonSwapScanUncertainty->setEnabled(false);
+    m_Controls.buttonSetLayers->setEnabled(false);
   }
   else {
     m_Controls.buttonSwapScanUncertainty->setEnabled(true);
+    m_Controls.buttonSetLayers->setEnabled(true);
   }
 }
 
@@ -164,7 +172,57 @@ void Sams_View::ShowTextOverlay() {
   
   //Add the overlay to the overlayManager. It is added to all registered renderers automatically
   overlayManager->AddOverlay(textOverlay.GetPointer());
+
+  this->RequestRenderWindowUpdate();
 }
+
+/**
+  * Creates a copy of the uncertainty data with all values less than a threshold removed.
+  */
+void Sams_View::ThresholdUncertainty() {
+  mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
+  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+
+  AccessByItk(uncertaintyImage, ItkThresholdUncertainty);
+}
+
+/**
+  * Uses ITK to do the thresholding.
+  */
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
+  
+  // Create a thresholder.
+  typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
+  thresholdFilter->SetInput(itkImage);
+  thresholdFilter->SetInsideValue(255);
+  thresholdFilter->SetOutsideValue(0);
+  thresholdFilter->SetLowerThreshold(0);
+  thresholdFilter->SetUpperThreshold(255);
+
+  // Compute result.
+  thresholdFilter->Update();
+  ImageType * thresholdedImage = thresholdFilter->GetOutput();
+  mitk::Image::Pointer resultImage;
+  mitk::CastToMitkImage(thresholdedImage, resultImage);
+
+  // Wrap it up in a Data Node
+  mitk::DataNode::Pointer newNode = mitk::DataNode::New();
+  newNode->SetData(resultImage);
+  newNode->SetProperty("binary", mitk::BoolProperty::New(true));
+  newNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Thresholded"));
+  newNode->SetProperty("color", mitk::ColorProperty::New(1.0,0.0,0.0));
+  newNode->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  newNode->SetProperty("layer", mitk::IntProperty::New(1));
+  newNode->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+  this->GetDataStorage()->Add(newNode);
+
+  this->RequestRenderWindowUpdate();
+}
+
 
 /**
   * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
@@ -177,12 +235,18 @@ void Sams_View::ToggleCrosshairs(int state) {
   }
 }
 
+/**
+  * Swaps the scan and the uncertainty data over.
+  */
 void Sams_View::SwapScanUncertainty() {
   mitk::DataNode::Pointer temp = this->scan;
   this->SetScan(this->uncertainty);
   this->SetUncertainty(temp);
 }
 
+/**
+  * Sets the scan to work with.
+  */
 void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
   this->scan = scan;
 
@@ -193,6 +257,9 @@ void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
   m_Controls.scanLabel->setText(QString::fromStdString(name));
 }
 
+/**
+  * Sets the uncertainty to work with.
+  */
 void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   this->uncertainty = uncertainty;
 
@@ -202,40 +269,3 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
 
   m_Controls.uncertaintyLabel->setText(QString::fromStdString(name));
 }
-
-// QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
-// if (nodes.empty()) {
-//   return;
-// }
-
-// mitk::DataNode* node = nodes.front();
-
-// if (!node) {
-//   // Nothing selected. Inform the user and return
-//   QMessageBox::information( NULL, "Template", "Please load and select an image before starting image processing.");
-//   return;
-// }
-
-// // here we have a valid mitk::DataNode
-
-// // a node itself is not very useful, we need its data item (the image)
-// mitk::BaseData* data = node->GetData();
-// if (data) {
-//   // test if this data item is an image or not (could also be a surface or something totally different)
-//   mitk::Image* image = dynamic_cast<mitk::Image*>(data);
-//   if (image) {
-//     std::stringstream message;
-//     std::string name;
-//     message << "Performing image processing for image ";
-//     if (node->GetName(name)) {
-//       // a property called "name" was found for this DataNode
-//       message << "'" << name << "'";
-//     }
-//     message << ".";
-//     MITK_INFO << message.str();
-
-//     // -----------------------------
-//     // actually do something here...
-//     // -----------------------------
-//   }
-// }
