@@ -70,8 +70,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(m_Controls.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
   connect(m_Controls.buttonThreshold, SIGNAL(clicked()), this, SLOT(ThresholdUncertainty()));
   connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
-  connect(m_Controls.minSlider, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
-  connect(m_Controls.maxSlider, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(m_Controls.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
+  connect(m_Controls.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
 
   SetNumberOfImagesSelected(0);
 }
@@ -133,7 +133,6 @@ void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, co
   * Shows messages, disables buttons etc.
   */
 void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
-  cout << "Images Selected: " << imagesSelected << endl;
   if (imagesSelected == 0) {
     ScanPicked(false);
     UncertaintyPicked(false);
@@ -156,26 +155,25 @@ void Sams_View::ScanPicked(bool test) {
 
   }
   else {
-    m_Controls.scanLabel->setText("Pick a Scan (Ctrl + Click)");
+    m_Controls.labelScanName->setText("Pick a Scan (Ctrl + Click)");
   }
 }
 
 void Sams_View::UncertaintyPicked(bool test) {
   if (test) {
     m_Controls.buttonThreshold->setEnabled(true);
-    m_Controls.minSlider->setEnabled(true);
-    m_Controls.maxSlider->setEnabled(true);
+    m_Controls.sliderMinThreshold->setEnabled(true);
+    m_Controls.sliderMaxThreshold->setEnabled(true);
   }
   else {
-    m_Controls.uncertaintyLabel->setText("Pick an Uncertainty (Ctrl + Click)");
+    m_Controls.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
     m_Controls.buttonThreshold->setEnabled(false);
-    m_Controls.minSlider->setEnabled(false);
-    m_Controls.maxSlider->setEnabled(false);
+    m_Controls.sliderMinThreshold->setEnabled(false);
+    m_Controls.sliderMaxThreshold->setEnabled(false);
   }
 }
 
 void Sams_View::BothPicked(bool test) {
-  cout << "Both Picked: " << test << endl;
   if (test) {
     m_Controls.buttonSwapScanUncertainty->setEnabled(true);
     m_Controls.buttonSetLayers->setEnabled(true);
@@ -280,9 +278,15 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
   * Display Lower Threshold
   */
 void Sams_View::LowerThresholdChanged(int lower) {
-  minUncertaintyThreshold = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * lower + minUncertaintyIntensity;
+  
+  float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * lower + minUncertaintyIntensity;
+  if (temp > maxUncertaintyThreshold) {
+    m_Controls.sliderMinThreshold->setValue(m_Controls.sliderMaxThreshold->value());
+    return;
+  }
+  minUncertaintyThreshold = temp;
   std::ostringstream ss;
-  ss << minUncertaintyThreshold;
+  ss << std::setprecision(2) << std::fixed << minUncertaintyThreshold;
   m_Controls.labelSliderLeft->setText(ss.str().c_str());
 
   ThresholdUncertainty();
@@ -292,9 +296,14 @@ void Sams_View::LowerThresholdChanged(int lower) {
   * Display Upper Threshold
   */
 void Sams_View::UpperThresholdChanged(int upper) {
-  maxUncertaintyThreshold = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * upper + minUncertaintyIntensity;
+  float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * upper + minUncertaintyIntensity;
+  if (temp < minUncertaintyThreshold) {
+    m_Controls.sliderMaxThreshold->setValue(m_Controls.sliderMinThreshold->value());
+    return;
+  }
+  maxUncertaintyThreshold = temp;
   std::ostringstream ss;
-  ss << maxUncertaintyThreshold;
+  ss << std::setprecision(2) << std::fixed << maxUncertaintyThreshold;
   m_Controls.labelSliderRight->setText(ss.str().c_str());
 
   ThresholdUncertainty();
@@ -330,7 +339,7 @@ void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
 
-  m_Controls.scanLabel->setText(QString::fromStdString(name));
+  m_Controls.labelScanName->setText(QString::fromStdString(name));
 }
 
 /**
@@ -343,27 +352,28 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
-  m_Controls.uncertaintyLabel->setText(QString::fromStdString(name));
+  m_Controls.labelUncertaintyName->setText(QString::fromStdString(name));
 
   // Calculate intensity range.
   mitk::BaseData * uncertaintyData = uncertainty->GetData();
   mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
   AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
 
-  m_Controls.minSlider->setRange(0, 1000);
-  m_Controls.minSlider->setValue(0);
+  m_Controls.sliderMinThreshold->setRange(0, 1000);
+  m_Controls.sliderMinThreshold->setValue(0);
   LowerThresholdChanged(0);
-  m_Controls.maxSlider->setRange(0, 1000);
-  m_Controls.maxSlider->setValue(1000);
+  m_Controls.sliderMaxThreshold->setRange(0, 1000);
+  m_Controls.sliderMaxThreshold->setValue(1000);
   UpperThresholdChanged(1000);
 
   // Update the labels.
   std::ostringstream ss;
-  ss << minUncertaintyIntensity;
+  ss << std::setprecision(2) << std::fixed << minUncertaintyIntensity;
   m_Controls.labelSliderLeftLimit->setText(ss.str().c_str());
-  ss.clear();
-  ss << maxUncertaintyIntensity;
+  ss.str("");
+  ss << std::setprecision(2) << std::fixed << maxUncertaintyIntensity;
   m_Controls.labelSliderRightLimit->setText(ss.str().c_str());
+  cout << "Here!!!" << ss.str().c_str() << endl;
 }
 
 /**
