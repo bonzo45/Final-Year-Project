@@ -63,6 +63,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(m_Controls.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
   connect(m_Controls.buttonThreshold, SIGNAL(clicked()), this, SLOT(ThresholdUncertainty()));
   connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
+  connect(m_Controls.thresholdSlider, SIGNAL(lowerValueChanged(double)), this, SLOT(LowerThresholdChanged(double)));
+  connect(m_Controls.thresholdSlider, SIGNAL(upperValueChanged(double)), this, SLOT(UpperThresholdChanged(double)));
 
   SetNumberOfImagesSelected(0);
 }
@@ -224,6 +226,25 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
   this->RequestRenderWindowUpdate();
 }
 
+/**
+  * Display Lower Threshold
+  */
+void Sams_View::LowerThresholdChanged(double lower) {
+  cout << lower << endl;
+  std::ostringstream ss;
+  ss << lower;
+  m_Controls.labelSliderLeft->setText(ss.str().c_str());
+}
+
+/**
+  * Display Upper Threshold
+  */
+void Sams_View::UpperThresholdChanged(double upper) {
+  cout << upper << endl;
+  std::ostringstream ss;
+  ss << upper;
+  m_Controls.labelSliderRight->setText(ss.str().c_str());
+}
 
 /**
   * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
@@ -283,10 +304,10 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   
   std::ostringstream ss;
   ss << min;
-  m_Controls.labelSliderLeft->setText(ss.str().c_str());
+  m_Controls.labelSliderLeftLimit->setText(ss.str().c_str());
   ss.clear();
   ss << max;
-  m_Controls.labelSliderRight->setText(ss.str().c_str());
+  m_Controls.labelSliderRightLimit->setText(ss.str().c_str());
 }
 
 /**

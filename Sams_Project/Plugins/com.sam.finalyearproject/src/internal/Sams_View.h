@@ -49,6 +49,8 @@ class Sams_View : public QmitkAbstractView {
     void ToggleCrosshairs(int state);
     void SetLayers();
     void ThresholdUncertainty();
+    void LowerThresholdChanged(double lower);
+    void UpperThresholdChanged(double upper);
 
   protected:  
     virtual void SetFocus();

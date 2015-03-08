@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>464</width>
-    <height>412</height>
+    <height>457</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -177,9 +177,19 @@
     <widget class="QWidget" name="widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
+       <widget class="QLabel" name="labelSliderLeftLimit">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="labelSliderLeft">
         <property name="text">
          <string>0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -189,12 +199,23 @@
          <string>0</string>
         </property>
         <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelSliderRightLimit">
+        <property name="text">
+         <string>0</string>
+        </property>
+        <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
      </layout>
-     <zorder>thresholdSlider</zorder>
+     <zorder>labelSliderRightLimit</zorder>
+     <zorder>labelSliderLeftLimit</zorder>
      <zorder>labelSliderRight</zorder>
      <zorder>labelSliderLeft</zorder>
     </widget>
