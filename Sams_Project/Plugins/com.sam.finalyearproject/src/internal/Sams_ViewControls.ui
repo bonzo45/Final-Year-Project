@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>464</width>
-    <height>457</height>
+    <height>575</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -41,7 +41,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="filesWidget" native="true">
+    <widget class="QWidget" name="scanWidget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="topMargin">
        <number>0</number>
@@ -87,7 +87,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="headingWidget" native="true">
+    <widget class="QWidget" name="uncertaintyWidget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="topMargin">
        <number>0</number>
@@ -221,18 +221,16 @@
     </widget>
    </item>
    <item>
-    <widget class="QmitkFloatingPointSpanSlider" name="thresholdSlider">
-     <property name="toolTip">
-      <string>Change transfer function window range.</string>
-     </property>
+    <widget class="QSlider" name="minSlider">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="tickPosition">
-      <enum>QSlider::NoTicks</enum>
-     </property>
-     <property name="tickInterval">
-      <number>1</number>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSlider" name="maxSlider">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -271,7 +269,23 @@
     </widget>
    </item>
    <item>
-    <spacer name="spacer1">
+    <widget class="QmitkFloatingPointSpanSlider" name="brokenSlider">
+     <property name="toolTip">
+      <string>Change transfer function window range.</string>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::NoTicks</enum>
+     </property>
+     <property name="tickInterval">
+      <number>1</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
