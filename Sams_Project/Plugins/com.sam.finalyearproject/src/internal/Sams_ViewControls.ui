@@ -267,6 +267,27 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="label2b">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>3D Generate Sphere</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonSphere">
+     <property name="text">
+      <string>Show me a sphere...</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="label3">
      <property name="font">
       <font>

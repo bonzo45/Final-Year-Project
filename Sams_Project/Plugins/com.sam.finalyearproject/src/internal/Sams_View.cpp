@@ -48,6 +48,15 @@ PURPOSE.  See the above copyright notices for more information.
 #include "mitkImageCast.h"
 #include <itkMinimumMaximumImageCalculator.h>
 
+// for sphere
+#include <vtkSphereSource.h>
+#include <vtkTextureMapToSphere.h>
+#include <mitkSurface.h>
+#include <mitkSmartPointerProperty.h>
+#include <mitkNodePredicateDataType.h>
+#include <vtkFloatArray.h>
+#include <vtkPointData.h>
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 float minUncertaintyIntensity = 0;
@@ -72,6 +81,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(m_Controls.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(m_Controls.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(m_Controls.buttonSphere, SIGNAL(clicked()), this, SLOT(ShowMeASphere()));
 
   SetNumberOfImagesSelected(0);
 }
@@ -393,4 +403,56 @@ void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float
   cout << "(" << min << ", " << max << ")" << endl;
 
   this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Creates a sphere and maps a texture created from uncertainty to it.
+  */
+void Sams_View::ShowMeASphere() {
+  // Create a sphere.
+  vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+  sphere->SetThetaResolution(12);
+  sphere->SetPhiResolution(12);
+  sphere->SetRadius(20.0);
+  sphere->SetCenter(0, 0, 0);
+
+  // Create a VTK texture map.
+  vtkSmartPointer<vtkTextureMapToSphere> mapToSphere = vtkSmartPointer<vtkTextureMapToSphere>::New();
+  mapToSphere->SetInputConnection(sphere->GetOutputPort());
+  mapToSphere->PreventSeamOn();
+  mapToSphere->Update();
+
+  // TODO: Generate texture.
+  mitk::Image::Pointer textureImage = static_cast<mitk::Image*> (this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Image"))->GetData());
+
+  // Create an MITK surface from the texture map.
+  mitk::Surface::Pointer surfaceToPutTextureOn = mitk::Surface::New();
+  surfaceToPutTextureOn->SetVtkPolyData(static_cast<vtkPolyData*>(mapToSphere->GetOutput()));
+
+  // Set texture co-ordinates.
+  vtkSmartPointer<vtkFloatArray> textureCoords = vtkSmartPointer<vtkFloatArray>::New();
+  textureCoords->SetNumberOfComponents(2); 
+  textureCoords->SetNumberOfTuples(4); 
+  textureCoords->SetTuple2(0, 0.0, 0.0);
+  textureCoords->SetTuple2(1, 0.0, 1.0);
+  textureCoords->SetTuple2(2, 1.0, 0.0);
+  textureCoords->SetTuple2(3, 1.0, 1.0);
+
+  vtkPolyData * polyData = surfaceToPutTextureOn->GetVtkPolyData();
+  vtkPointData * pointData = polyData->GetPointData();
+  pointData->SetTCoords(textureCoords);
+
+  // Create a datanode to store this.
+  mitk::DataNode::Pointer surfaceNode = mitk::DataNode::New();
+  surfaceNode->SetData(surfaceToPutTextureOn);
+  surfaceNode->SetProperty("name", mitk::StringProperty::New("Sphere"));
+  mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(textureImage);
+  surfaceNode->SetProperty("Surface.Texture", textureProperty);
+  surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
+  //surfaceNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
+  
+  
+  this->GetDataStorage()->Add(surfaceNode);
+
+
 }
