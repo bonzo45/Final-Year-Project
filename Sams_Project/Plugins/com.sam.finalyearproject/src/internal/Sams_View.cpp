@@ -31,6 +31,10 @@ PURPOSE.  See the above copyright notices for more information.
 // for interacting with the render window
 #include <mitkIRenderWindowPart.h>
 #include <mitkILinkedRenderWindowPart.h>
+#include <mitkIRenderingManager.h>
+#include <mitkTimeSlicedGeometry.h>
+//????? might not need last one!
+
 
 // for volume rendering
 #include <mitkTransferFunction.h>
@@ -82,6 +86,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(m_Controls.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(m_Controls.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
   connect(m_Controls.buttonSphere, SIGNAL(clicked()), this, SLOT(ShowMeASphere()));
+  connect(m_Controls.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
   SetNumberOfImagesSelected(0);
 }
@@ -406,6 +411,19 @@ void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float
 }
 
 /**
+  * Resets all the cameras.
+  */
+void Sams_View::ResetViews() {
+  // Compute optimal bounds.
+  const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeVisibleBoundingGeometry3D();
+
+  // Set them.
+  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
+  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
+  renderManager->InitializeViews(bounds);
+}
+
+/**
   * Creates a sphere and maps a texture created from uncertainty to it.
   */
 void Sams_View::ShowMeASphere() {
@@ -451,8 +469,5 @@ void Sams_View::ShowMeASphere() {
   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
   //surfaceNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
   
-  
   this->GetDataStorage()->Add(surfaceNode);
-
-
 }

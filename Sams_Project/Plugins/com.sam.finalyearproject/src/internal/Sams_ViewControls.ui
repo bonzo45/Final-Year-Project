@@ -331,6 +331,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="buttonResetViews">
+     <property name="text">
+      <string>Reset Views</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="label4">
      <property name="font">
       <font>

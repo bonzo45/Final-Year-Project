@@ -52,6 +52,7 @@ class Sams_View : public QmitkAbstractView {
     void LowerThresholdChanged(int lower);
     void UpperThresholdChanged(int upper);
     void ShowMeASphere();
+    void ResetViews();
 
   protected:  
     virtual void SetFocus();
