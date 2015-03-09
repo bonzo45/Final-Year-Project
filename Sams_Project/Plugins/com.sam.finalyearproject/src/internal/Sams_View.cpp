@@ -411,8 +411,8 @@ void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float
 void Sams_View::ShowMeASphere() {
   // Create a sphere.
   vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-  sphere->SetThetaResolution(12);
-  sphere->SetPhiResolution(12);
+  sphere->SetThetaResolution(100);
+  sphere->SetPhiResolution(100);
   sphere->SetRadius(20.0);
   sphere->SetCenter(0, 0, 0);
 
@@ -429,18 +429,18 @@ void Sams_View::ShowMeASphere() {
   mitk::Surface::Pointer surfaceToPutTextureOn = mitk::Surface::New();
   surfaceToPutTextureOn->SetVtkPolyData(static_cast<vtkPolyData*>(mapToSphere->GetOutput()));
 
-  // Set texture co-ordinates.
-  vtkSmartPointer<vtkFloatArray> textureCoords = vtkSmartPointer<vtkFloatArray>::New();
-  textureCoords->SetNumberOfComponents(2); 
-  textureCoords->SetNumberOfTuples(4); 
-  textureCoords->SetTuple2(0, 0.0, 0.0);
-  textureCoords->SetTuple2(1, 0.0, 1.0);
-  textureCoords->SetTuple2(2, 1.0, 0.0);
-  textureCoords->SetTuple2(3, 1.0, 1.0);
+  // Optional: Manually set texture co-ordinates.
+  // vtkSmartPointer<vtkFloatArray> textureCoords = vtkSmartPointer<vtkFloatArray>::New();
+  // textureCoords->SetNumberOfComponents(2); 
+  // textureCoords->SetNumberOfTuples(4); 
+  // textureCoords->SetTuple2(0, 0.0, 0.0);
+  // textureCoords->SetTuple2(1, 0.0, 1.0);
+  // textureCoords->SetTuple2(2, 1.0, 0.0);
+  // textureCoords->SetTuple2(3, 1.0, 1.0);
 
-  vtkPolyData * polyData = surfaceToPutTextureOn->GetVtkPolyData();
-  vtkPointData * pointData = polyData->GetPointData();
-  pointData->SetTCoords(textureCoords);
+  // vtkPolyData * polyData = surfaceToPutTextureOn->GetVtkPolyData();
+  // vtkPointData * pointData = polyData->GetPointData();
+  // pointData->SetTCoords(textureCoords);
 
   // Create a datanode to store this.
   mitk::DataNode::Pointer surfaceNode = mitk::DataNode::New();
