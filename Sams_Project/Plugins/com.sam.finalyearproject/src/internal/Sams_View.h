@@ -71,6 +71,7 @@ class Sams_View : public QmitkAbstractView {
     void ScanPicked(bool test);
     void UncertaintyPicked(bool test);
     void BothPicked(bool test);
+    mitk::Image::Pointer GenerateUncertaintyTexture();
 
     // ITK Methods
     template <typename TPixel, unsigned int VImageDimension>

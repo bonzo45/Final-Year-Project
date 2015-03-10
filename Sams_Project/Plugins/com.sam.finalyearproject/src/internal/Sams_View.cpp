@@ -49,7 +49,7 @@ PURPOSE.  See the above copyright notices for more information.
 // for thresholding
 #include <mitkImageAccessByItk.h>
 #include <itkBinaryThresholdImageFilter.h>
-#include "mitkImageCast.h"
+#include <mitkImageCast.h>
 #include <itkMinimumMaximumImageCalculator.h>
 
 // for sphere
@@ -60,6 +60,9 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkNodePredicateDataType.h>
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
+// for sphere texture
+#include <itkImage.h>
+#include <mitkITKImageImport.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -69,6 +72,10 @@ float minUncertaintyThreshold = 0;
 float maxUncertaintyThreshold = 0;
 
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
+
+typedef itk::Image<unsigned char, 2>  TextureImageType;
+
+TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
 
 /**
   * Create the UI
@@ -388,7 +395,6 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   ss.str("");
   ss << std::setprecision(2) << std::fixed << maxUncertaintyIntensity;
   m_Controls.labelSliderRightLimit->setText(ss.str().c_str());
-  cout << "Here!!!" << ss.str().c_str() << endl;
 }
 
 /**
@@ -441,7 +447,15 @@ void Sams_View::ShowMeASphere() {
   mapToSphere->Update();
 
   // TODO: Generate texture.
-  mitk::Image::Pointer textureImage = static_cast<mitk::Image*> (this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Image"))->GetData());
+  //mitk::Image::Pointer textureImage = static_cast<mitk::Image*>(this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Image"))->GetData());
+  mitk::Image::Pointer textureImage = GenerateUncertaintyTexture();
+
+  // Export texture.
+  mitk::DataNode::Pointer textureNode = mitk::DataNode::New();
+  textureNode->SetData(textureImage);
+  textureNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Texture"));
+  textureNode->SetProperty("layer", mitk::IntProperty::New(3));
+  this->GetDataStorage()->Add(textureNode);
 
   // Create an MITK surface from the texture map.
   mitk::Surface::Pointer surfaceToPutTextureOn = mitk::Surface::New();
@@ -460,14 +474,53 @@ void Sams_View::ShowMeASphere() {
   // vtkPointData * pointData = polyData->GetPointData();
   // pointData->SetTCoords(textureCoords);
 
-  // Create a datanode to store this.
+  // Create a datanode to store it.
   mitk::DataNode::Pointer surfaceNode = mitk::DataNode::New();
   surfaceNode->SetData(surfaceToPutTextureOn);
-  surfaceNode->SetProperty("name", mitk::StringProperty::New("Sphere"));
+  surfaceNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Sphere"));
   mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(textureImage);
   surfaceNode->SetProperty("Surface.Texture", textureProperty);
-  surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
-  //surfaceNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
-  
+  surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));  
   this->GetDataStorage()->Add(surfaceNode);
+}
+
+/**
+  * Generates a texture that represents the uncertainty of the uncertainty volume.
+  * It works by projecting a point in the center of the volume outwards, onto a sphere.
+  */
+mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
+  unsigned int width = 100;
+  unsigned int height = 50;
+
+  // Create a blank ITK image.
+  TextureImageType::RegionType region;
+  TextureImageType::IndexType start;
+  start[0] = 0;
+  start[1] = 0;
+ 
+  TextureImageType::SizeType size;
+  size[0] = height;
+  size[1] = width;
+ 
+  region.SetSize(size);
+  region.SetIndex(start);
+
+  uncertaintyTexture = TextureImageType::New();
+  uncertaintyTexture->SetRegions(region);
+  uncertaintyTexture->Allocate();
+
+  // Compute texture.
+  for (unsigned int r = 0; r < height; r++) {
+    for (unsigned int c = 0; c < width; c++) {
+      TextureImageType::IndexType pixelIndex;
+      pixelIndex[0] = r;
+      pixelIndex[1] = c;
+
+      uncertaintyTexture->SetPixel(pixelIndex, 128);
+    }
+  }
+
+  // Convert from ITK to MITK.
+  mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
+  return mitkImage;
 }
