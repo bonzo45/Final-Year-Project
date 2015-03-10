@@ -33,8 +33,6 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkILinkedRenderWindowPart.h>
 #include <mitkIRenderingManager.h>
 #include <mitkTimeSlicedGeometry.h>
-//????? might not need last one!
-
 
 // for volume rendering
 #include <mitkTransferFunction.h>
@@ -63,6 +61,8 @@ PURPOSE.  See the above copyright notices for more information.
 // for sphere texture
 #include <itkImage.h>
 #include <mitkITKImageImport.h>
+#include <cstdlib>
+#include <cmath>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -287,7 +287,7 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
   thresholdedUncertainty->SetData(resultImage);
   thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Thresholded"));
-  thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0,0.0,0.0));
+  thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0));
   thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
@@ -453,9 +453,11 @@ void Sams_View::ShowMeASphere() {
   // Export texture.
   mitk::DataNode::Pointer textureNode = mitk::DataNode::New();
   textureNode->SetData(textureImage);
-  textureNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Texture"));
+  textureNode->SetProperty("name", mitk::StringProperty::New("AAATexture"));
   textureNode->SetProperty("layer", mitk::IntProperty::New(3));
-  this->GetDataStorage()->Add(textureNode);
+  textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 0.0, 0.0));
+  textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
+  //this->GetDataStorage()->Add(textureNode);
 
   // Create an MITK surface from the texture map.
   mitk::Surface::Pointer surfaceToPutTextureOn = mitk::Surface::New();
@@ -512,11 +514,27 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   // Compute texture.
   for (unsigned int r = 0; r < height; r++) {
     for (unsigned int c = 0; c < width; c++) {
+      // Compute spherical coordinates, phi, theta from pixel value.
+      // Latitude
+      float theta = ((float)c / (float)width) * (2 * M_PI);
+      // Longitude
+      float phi = ((float)r / (float)height) * M_PI - (M_PI / 2);
+
+      // Compute point on sphere with radius 1.
+      float x = r * cos(theta) * sin(phi);
+      float y = r * sin(theta) * sin(phi);
+      float z = r * cos(theta);
+
+      // TODO: Compute vector in direction of sphere point from center of uncertainty data.
+
+      // TODO: Follow this vector, sampling points. Average them.
+
+      // Set texture value.
       TextureImageType::IndexType pixelIndex;
       pixelIndex[0] = r;
       pixelIndex[1] = c;
 
-      uncertaintyTexture->SetPixel(pixelIndex, 128);
+      uncertaintyTexture->SetPixel(pixelIndex, rand() % 100);
     }
   }
 
