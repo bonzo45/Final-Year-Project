@@ -311,7 +311,7 @@ void Sams_View::LowerThresholdChanged(int lower) {
   ss << std::setprecision(2) << std::fixed << minUncertaintyThreshold;
   m_Controls.labelSliderLeft->setText(ss.str().c_str());
 
-  ThresholdUncertainty();
+  // ThresholdUncertainty();
 }
 
 /**
@@ -328,7 +328,7 @@ void Sams_View::UpperThresholdChanged(int upper) {
   ss << std::setprecision(2) << std::fixed << maxUncertaintyThreshold;
   m_Controls.labelSliderRight->setText(ss.str().c_str());
 
-  ThresholdUncertainty();
+  // ThresholdUncertainty();
 }
 
 /**
@@ -453,11 +453,11 @@ void Sams_View::ShowMeASphere() {
   // Export texture.
   mitk::DataNode::Pointer textureNode = mitk::DataNode::New();
   textureNode->SetData(textureImage);
-  textureNode->SetProperty("name", mitk::StringProperty::New("AAATexture"));
+  textureNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Texture"));
   textureNode->SetProperty("layer", mitk::IntProperty::New(3));
   textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 0.0, 0.0));
   textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
-  //this->GetDataStorage()->Add(textureNode);
+  this->GetDataStorage()->Add(textureNode);
 
   // Create an MITK surface from the texture map.
   mitk::Surface::Pointer surfaceToPutTextureOn = mitk::Surface::New();
@@ -548,7 +548,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
       // TODO: Start at the center, follow the vector outwards, sampling points. Average them.
       double uncertaintyAccumulator = 0;
       unsigned int numSamples = 0;
-      while (x < uncertaintyWidth && x > 0 && y < uncertaintyHeight && y > 0 && z < uncertaintyDepth && z > 0) {
+      while (x < uncertaintyHeight && x > 0 && y < uncertaintyWidth && y > 0 && z < uncertaintyDepth && z > 0) {
         // Sample point.
         int xSample = floor(x);
         int ySample = floor(y);
@@ -566,13 +566,14 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
 
         // Count how many samples we've taken.
         numSamples++;
-        //cout << "-- sample: " << numSamples << endl;
 
         // Move along.
         x += xDir;
         y += yDir;
         z += zDir;
       }
+      cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
+      cout << "- numSamples: " << numSamples;
 
       double pixelValue = uncertaintyAccumulator / numSamples;
 
@@ -581,7 +582,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
       pixelIndex[0] = r;
       pixelIndex[1] = c;
 
-      uncertaintyTexture->SetPixel(pixelIndex, pixelValue); //rand() % 100);
+      uncertaintyTexture->SetPixel(pixelIndex, pixelValue * 255); //rand() % 100);
     }
   }
 
