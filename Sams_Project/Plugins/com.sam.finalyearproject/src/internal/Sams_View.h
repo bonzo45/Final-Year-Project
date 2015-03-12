@@ -53,6 +53,7 @@ class Sams_View : public QmitkAbstractView {
     void UpperThresholdChanged(int upper);
     void ShowMeASphere();
     void ResetViews();
+    void ToggleUncertaintyThresholding(bool checked);
 
   protected:  
     virtual void SetFocus();
@@ -78,7 +79,6 @@ class Sams_View : public QmitkAbstractView {
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage, float min, float max);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
-
 
 };
 

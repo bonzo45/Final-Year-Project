@@ -257,9 +257,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="buttonThreshold">
+       <widget class="QRadioButton" name="radioButtonEnableThreshold">
         <property name="text">
-         <string>Threshold</string>
+         <string>Enabled</string>
         </property>
        </widget>
       </item>

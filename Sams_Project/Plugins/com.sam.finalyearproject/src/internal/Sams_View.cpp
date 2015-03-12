@@ -63,6 +63,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkITKImageImport.h>
 #include <cstdlib>
 #include <cmath>
+#include <mitkShaderProperty.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -77,6 +78,8 @@ typedef itk::Image<unsigned char, 2>  TextureImageType;
 
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
 
+bool thresholdingEnabled = false;
+
 /**
   * Create the UI
   */
@@ -88,7 +91,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(m_Controls.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
   connect(m_Controls.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
   connect(m_Controls.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
-  connect(m_Controls.buttonThreshold, SIGNAL(clicked()), this, SLOT(ThresholdUncertainty()));
+  connect(m_Controls.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(m_Controls.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(m_Controls.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
@@ -183,15 +186,17 @@ void Sams_View::ScanPicked(bool test) {
 
 void Sams_View::UncertaintyPicked(bool test) {
   if (test) {
-    m_Controls.buttonThreshold->setEnabled(true);
+    m_Controls.radioButtonEnableThreshold->setEnabled(true);
     m_Controls.sliderMinThreshold->setEnabled(true);
     m_Controls.sliderMaxThreshold->setEnabled(true);
+    m_Controls.buttonSphere->setEnabled(true);
   }
   else {
     m_Controls.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
-    m_Controls.buttonThreshold->setEnabled(false);
+    m_Controls.radioButtonEnableThreshold->setEnabled(false);
     m_Controls.sliderMinThreshold->setEnabled(false);
     m_Controls.sliderMaxThreshold->setEnabled(false);
+    m_Controls.buttonSphere->setEnabled(false);
   }
 }
 
@@ -244,6 +249,21 @@ void Sams_View::ShowTextOverlay() {
   overlayManager->AddOverlay(textOverlay.GetPointer());
 
   this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Toggles Thresholding
+  */
+void Sams_View::ToggleUncertaintyThresholding(bool checked) {
+  if (checked) {
+    cout << "Checked." << endl;
+    thresholdingEnabled = true;
+    ThresholdUncertainty();
+  }
+  else {
+    cout << "NOT Checked." << endl;
+    thresholdingEnabled = false;
+  }
 }
 
 /**
@@ -311,7 +331,9 @@ void Sams_View::LowerThresholdChanged(int lower) {
   ss << std::setprecision(2) << std::fixed << minUncertaintyThreshold;
   m_Controls.labelSliderLeft->setText(ss.str().c_str());
 
-  // ThresholdUncertainty();
+  if (thresholdingEnabled) {
+    ThresholdUncertainty();
+  }
 }
 
 /**
@@ -328,7 +350,9 @@ void Sams_View::UpperThresholdChanged(int upper) {
   ss << std::setprecision(2) << std::fixed << maxUncertaintyThreshold;
   m_Controls.labelSliderRight->setText(ss.str().c_str());
 
-  // ThresholdUncertainty();
+  if (thresholdingEnabled) {
+    ThresholdUncertainty();
+  }
 }
 
 /**
@@ -482,7 +506,9 @@ void Sams_View::ShowMeASphere() {
   surfaceNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Sphere"));
   mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(textureImage);
   surfaceNode->SetProperty("Surface.Texture", textureProperty);
-  surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));  
+  surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
+  surfaceNode->SetProperty("shader", mitk::ShaderProperty::New("uniform"));
+
   this->GetDataStorage()->Add(surfaceNode);
 }
 
@@ -517,33 +543,33 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   unsigned int uncertaintyHeight = uncertaintyImage->GetDimension(0);
   unsigned int uncertaintyWidth = uncertaintyImage->GetDimension(1);
   unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
-  cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
+  // cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
 
   //double  GetPixelValueByIndex (const itk::Index< 3 > &position
 
   // Compute texture.
   for (unsigned int r = 0; r < height; r++) {
     for (unsigned int c = 0; c < width; c++) {
-      cout << "Computing Pixel (" << r << ", " << c << ")" << endl;
+      // cout << "Computing Pixel (" << r << ", " << c << ")" << endl;
       // Compute spherical coordinates, phi, theta from pixel value.
       // Latitude
       float theta = ((float)c / (float)width) * (2 * M_PI);
-      cout << "- theta: " << theta << endl;
+      // cout << "- theta: " << theta << endl;
       // Longitude
       float phi = ((float)r / (float)height) * M_PI - (M_PI / 2);
-      cout << "- theta: " << theta << endl;
+      // cout << "- theta: " << theta << endl;
 
       // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
       float xDir = cos(theta) * sin(phi);
       float yDir = sin(theta) * sin(phi);
       float zDir = cos(phi);
-      cout << "- direction: " << xDir << ", " << yDir << ", " << zDir << endl;
+      // cout << "- direction: " << xDir << ", " << yDir << ", " << zDir << endl;
 
       // Compute the center of the uncertainty data.
       float x = (float)uncertaintyHeight / 2.0;
       float y = (float)uncertaintyWidth / 2.0;
       float z = (float)uncertaintyDepth / 2.0;
-      cout << "- center: " << x << ", " << y << ", " << z << endl;
+      // cout << "- center: " << x << ", " << y << ", " << z << endl;
 
       // TODO: Start at the center, follow the vector outwards, sampling points. Average them.
       double uncertaintyAccumulator = 0;
@@ -572,8 +598,8 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
         y += yDir;
         z += zDir;
       }
-      cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
-      cout << "- numSamples: " << numSamples;
+      // cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
+      // cout << "- numSamples: " << numSamples;
 
       double pixelValue = uncertaintyAccumulator / numSamples;
 
