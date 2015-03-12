@@ -511,30 +511,77 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   uncertaintyTexture->SetRegions(region);
   uncertaintyTexture->Allocate();
 
+  // Get the uncertainty data to sample.
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
+  unsigned int dimensions = uncertaintyImage->GetDimension();
+  unsigned int uncertaintyHeight = uncertaintyImage->GetDimension(0);
+  unsigned int uncertaintyWidth = uncertaintyImage->GetDimension(1);
+  unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
+  cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
+
+  //double  GetPixelValueByIndex (const itk::Index< 3 > &position
+
   // Compute texture.
   for (unsigned int r = 0; r < height; r++) {
     for (unsigned int c = 0; c < width; c++) {
+      cout << "Computing Pixel (" << r << ", " << c << ")" << endl;
       // Compute spherical coordinates, phi, theta from pixel value.
       // Latitude
       float theta = ((float)c / (float)width) * (2 * M_PI);
+      cout << "- theta: " << theta << endl;
       // Longitude
       float phi = ((float)r / (float)height) * M_PI - (M_PI / 2);
+      cout << "- theta: " << theta << endl;
 
-      // Compute point on sphere with radius 1.
-      float x = r * cos(theta) * sin(phi);
-      float y = r * sin(theta) * sin(phi);
-      float z = r * cos(theta);
+      // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
+      float xDir = cos(theta) * sin(phi);
+      float yDir = sin(theta) * sin(phi);
+      float zDir = cos(phi);
+      cout << "- direction: " << xDir << ", " << yDir << ", " << zDir << endl;
 
-      // TODO: Compute vector in direction of sphere point from center of uncertainty data.
+      // Compute the center of the uncertainty data.
+      float x = (float)uncertaintyHeight / 2.0;
+      float y = (float)uncertaintyWidth / 2.0;
+      float z = (float)uncertaintyDepth / 2.0;
+      cout << "- center: " << x << ", " << y << ", " << z << endl;
 
-      // TODO: Follow this vector, sampling points. Average them.
+      // TODO: Start at the center, follow the vector outwards, sampling points. Average them.
+      double uncertaintyAccumulator = 0;
+      unsigned int numSamples = 0;
+      while (x < uncertaintyWidth && x > 0 && y < uncertaintyHeight && y > 0 && z < uncertaintyDepth && z > 0) {
+        // Sample point.
+        int xSample = floor(x);
+        int ySample = floor(y);
+        int zSample = floor(z);
+
+        itk::Index<3> index;
+        index[0] = xSample;
+        index[1] = ySample;
+        index[2] = zSample;
+
+        double sample = uncertaintyImage->GetPixelValueByIndex(index);
+
+        // Accumulate result.
+        uncertaintyAccumulator += sample;
+
+        // Count how many samples we've taken.
+        numSamples++;
+        //cout << "-- sample: " << numSamples << endl;
+
+        // Move along.
+        x += xDir;
+        y += yDir;
+        z += zDir;
+      }
+
+      double pixelValue = uncertaintyAccumulator / numSamples;
 
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
       pixelIndex[0] = r;
       pixelIndex[1] = c;
 
-      uncertaintyTexture->SetPixel(pixelIndex, rand() % 100);
+      uncertaintyTexture->SetPixel(pixelIndex, pixelValue); //rand() % 100);
     }
   }
 
