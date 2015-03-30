@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
-    <height>737</height>
+    <width>360</width>
+    <height>690</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -30,7 +30,7 @@
     <widget class="QLabel" name="label1">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
+       <pointsize>15</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -41,109 +41,133 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widgetScanName" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
+    <widget class="QWidget" name="widget_2" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
-       <widget class="QLabel" name="label1a">
+       <widget class="QWidget" name="widget1Left" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QWidget" name="widgetScanName" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label1a">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>16</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Scan:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelScanName">
+              <property name="text">
+               <string>scanLabel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widgetUncertaintyName" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label1b">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>120</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>16</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Uncertainty:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelUncertaintyName">
+              <property name="text">
+               <string>uncertaintyLabel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonSwapScanUncertainty">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="minimumSize">
+        <property name="maximumSize">
          <size>
-          <width>120</width>
-          <height>0</height>
+          <width>30</width>
+          <height>16777215</height>
          </size>
         </property>
-        <property name="font">
-         <font>
-          <pointsize>16</pointsize>
-         </font>
-        </property>
         <property name="text">
-         <string>Scan:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="labelScanName">
-        <property name="text">
-         <string>scanLabel</string>
+         <string>&lt;-&gt;</string>
         </property>
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="widgetUncertaintyName" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label1b">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>120</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>16</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Uncertainty:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="labelUncertaintyName">
-        <property name="text">
-         <string>uncertaintyLabel</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="buttonSwapScanUncertainty">
-     <property name="text">
-      <string>Scan &lt;-&gt; Uncertainty</string>
-     </property>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label2">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
+       <pointsize>15</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -163,7 +187,7 @@
       </font>
      </property>
      <property name="text">
-      <string>2D Uncertainty Threshold</string>
+      <string>2D - Uncertainty Thresholding</string>
      </property>
     </widget>
    </item>
@@ -276,14 +300,14 @@
       </font>
      </property>
      <property name="text">
-      <string>3D Generate Sphere</string>
+      <string>3D - Uncertainty Sphere</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="buttonSphere">
      <property name="text">
-      <string>Show me a sphere...</string>
+      <string>Generate Sphere</string>
      </property>
     </widget>
    </item>
@@ -291,7 +315,7 @@
     <widget class="QLabel" name="label3">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
+       <pointsize>15</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -315,22 +339,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QmitkFloatingPointSpanSlider" name="sliderBroken">
-     <property name="toolTip">
-      <string>Change transfer function window range.</string>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="tickPosition">
-      <enum>QSlider::NoTicks</enum>
-     </property>
-     <property name="tickInterval">
-      <number>1</number>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QPushButton" name="buttonResetViews">
      <property name="text">
       <string>Reset Views</string>
@@ -341,7 +349,7 @@
     <widget class="QLabel" name="label4">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
+       <pointsize>15</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -352,30 +360,36 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="buttonSetLayers">
-     <property name="text">
-      <string>Set Layers</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="buttonOverlayText">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="toolTip">
-      <string>Do image processing</string>
-     </property>
-     <property name="text">
-      <string>Overlay Text</string>
-     </property>
+    <widget class="QWidget" name="widget_3" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QPushButton" name="buttonSetLayers">
+        <property name="text">
+         <string>Set Layers</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonOverlayText">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Do image processing</string>
+        </property>
+        <property name="text">
+         <string>Overlay Text</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label5">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
+       <pointsize>15</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -431,13 +445,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>QmitkFloatingPointSpanSlider</class>
-   <extends>QSlider</extends>
-   <header location="global">QmitkFloatingPointSpanSlider.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

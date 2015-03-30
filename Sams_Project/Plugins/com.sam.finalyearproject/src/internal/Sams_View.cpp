@@ -477,8 +477,7 @@ void Sams_View::ShowMeASphere() {
   mapToSphere->PreventSeamOn();
   mapToSphere->Update();
 
-  // TODO: Generate texture.
-  //mitk::Image::Pointer textureImage = static_cast<mitk::Image*>(this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Image"))->GetData());
+  // Generate texture.
   mitk::Image::Pointer textureImage = GenerateUncertaintyTexture();
 
   // Export texture.
@@ -486,7 +485,7 @@ void Sams_View::ShowMeASphere() {
   textureNode->SetData(textureImage);
   textureNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Texture"));
   textureNode->SetProperty("layer", mitk::IntProperty::New(3));
-  textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 0.0, 0.0));
+  textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 1.0, 0.0));
   textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
   this->GetDataStorage()->Add(textureNode);
 
@@ -514,7 +513,9 @@ void Sams_View::ShowMeASphere() {
   mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(textureImage);
   surfaceNode->SetProperty("Surface.Texture", textureProperty);
   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
-  surfaceNode->SetProperty("shader", mitk::ShaderProperty::New("uniform"));
+  //surfaceNode->SetProperty("shader", mitk::ShaderProperty::New("uniform"));
+  surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
 
   this->GetDataStorage()->Add(surfaceNode);
 }
@@ -528,7 +529,7 @@ void Sams_View::GenerateCubeUncertainty() {
 }
 
 void Sams_View::GenerateSphereUncertainty() {
-  GenerateSphereUncertainty(50, 15);
+  GenerateSphereUncertainty(151, 50);
 }
 
 /**
@@ -722,7 +723,7 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   * It works by projecting a point in the center of the volume outwards, onto a sphere.
   */
 mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
-  unsigned int width = 100;
+  unsigned int width = 101;
   unsigned int height = 50;
 
   // Create a blank ITK image.
@@ -732,8 +733,8 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   start[1] = 0;
  
   TextureImageType::SizeType size;
-  size[0] = height;
-  size[1] = width;
+  size[0] = width;
+  size[1] = height;
  
   region.SetSize(size);
   region.SetIndex(start);
@@ -748,72 +749,143 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   unsigned int uncertaintyHeight = uncertaintyImage->GetDimension(0);
   unsigned int uncertaintyWidth = uncertaintyImage->GetDimension(1);
   unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
-  // cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
-
-  //double  GetPixelValueByIndex (const itk::Index< 3 > &position
+  cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
 
   // Compute texture.
   for (unsigned int r = 0; r < height; r++) {
     for (unsigned int c = 0; c < width; c++) {
-      // cout << "Computing Pixel (" << r << ", " << c << ")" << endl;
+      bool print;
+
+      if (r == 25)
+        print = true;
+      else
+        print = false;
+
+      if (print)
+        cout << "(r, c): (" << r << ", " << c << ")" << endl;
       // Compute spherical coordinates, phi, theta from pixel value.
       // Latitude
-      float theta = ((float)c / (float)width) * (2 * M_PI);
-      // cout << "- theta: " << theta << endl;
+      float theta = ((float) r / (float) height) * M_PI;
       // Longitude
-      float phi = ((float)r / (float)height) * M_PI - (M_PI / 2);
-      // cout << "- theta: " << theta << endl;
+      float phi = ((float) c / (float) width) * (2 * M_PI);
+      if (print)
+        cout << "- (theta, phi): " << "(" << theta << ", " << phi << ")" << endl;
 
       // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
-      float xDir = cos(theta) * sin(phi);
-      float yDir = sin(theta) * sin(phi);
-      float zDir = cos(phi);
-      // cout << "- direction: " << xDir << ", " << yDir << ", " << zDir << endl;
-
+      float xDir = cos(phi) * sin(theta);
+      float yDir = cos(theta);
+      float zDir = sin(phi) * sin(theta);
+      if (print)
+        cout << "- (x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
+      
+      float normalization = sqrt(pow(xDir, 2) + pow(yDir, 2) + pow(zDir, 2));
+      xDir /= normalization;
+      yDir /= normalization;
+      zDir /= normalization;
+      
+      if (print)
+        cout << "- n(x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
+      
       // Compute the center of the uncertainty data.
-      float x = (float)uncertaintyHeight / 2.0;
-      float y = (float)uncertaintyWidth / 2.0;
-      float z = (float)uncertaintyDepth / 2.0;
-      // cout << "- center: " << x << ", " << y << ", " << z << endl;
+      float x = ((float) uncertaintyHeight - 1) / 2.0;
+      float y = ((float) uncertaintyWidth - 1) / 2.0;
+      float z = ((float) uncertaintyDepth - 1) / 2.0;
+      if (print)
+        cout << "- center: " << x << ", " << y << ", " << z << endl;
 
-      // TODO: Start at the center, follow the vector outwards, sampling points. Average them.
+      // Start at the center and follow the vector outwards whilst sampling points.
       double uncertaintyAccumulator = 0;
       unsigned int numSamples = 0;
-      while (x < uncertaintyHeight && x > 0 && y < uncertaintyWidth && y > 0 && z < uncertaintyDepth && z > 0) {
-        // Sample point.
-        int xSample = floor(x);
-        int ySample = floor(y);
-        int zSample = floor(z);
+      while (x <= uncertaintyHeight - 1 && x >= 0 && y <= uncertaintyWidth - 1 && y >= 0 && z <= uncertaintyDepth - 1 && z >= 0) {
+        // Sample the neighbourhood about a point.
+        double totalAccumulator = 0.0;
+        double distanceAccumulator = 0.0;
+        for (int i = -1; i <= 1; i++) {
+          for (int j = -1; j <= 1; j++) { 
+            for (int k = -1; k <= 1; k++) {
+              int xNeighbour = round(x) + i;
+              int yNeighbour = round(y) + j;
+              int zNeighbour = round(z) + k;
 
-        itk::Index<3> index;
-        index[0] = xSample;
-        index[1] = ySample;
-        index[2] = zSample;
+              // If we're on the edge and the neighbour doesn't exist, skip it.
+              if (xNeighbour < 0 || (int) uncertaintyHeight <= xNeighbour ||
+                  yNeighbour < 0 || (int) uncertaintyWidth <= yNeighbour ||
+                  zNeighbour < 0 || (int) uncertaintyDepth <= zNeighbour) {
+                continue;
+              }
 
-        double sample = uncertaintyImage->GetPixelValueByIndex(index);
+              itk::Index<3> index;
+              index[0] = xNeighbour;
+              index[1] = yNeighbour;
+              index[2] = zNeighbour;
 
-        // Accumulate result.
-        uncertaintyAccumulator += sample;
+              float neighbourSample = uncertaintyImage->GetPixelValueByIndex(index);
 
-        // Count how many samples we've taken.
-        numSamples++;
+              float distanceToSample = 
+                sqrt(
+                  pow((x - xNeighbour), 2) +
+                  pow((y - yNeighbour), 2) + 
+                  pow((z - zNeighbour), 2)
+                );
+
+              if (distanceToSample == 0.0) {
+                totalAccumulator = neighbourSample;
+                distanceAccumulator = 1;
+                goto BREAK_ALL_LOOPS;
+              }
+
+              distanceAccumulator += 1.0 / distanceToSample;
+              totalAccumulator += neighbourSample / distanceToSample;
+            }
+          }
+        }
+        BREAK_ALL_LOOPS:
+
+        if (print) {
+          cout << "Distance Accumulator: " << distanceAccumulator << endl;
+          cout << "Total Accumulator: " << totalAccumulator << endl;
+        }
+        double sample = totalAccumulator / distanceAccumulator;
+
+        if (print)
+          cout << "-- sample: " << "(" << x << ", " << y << ", " << z << "): " << sample << endl;
+
+        // Add sample, but ignore if it is background.
+        if (sample != 0.0) {
+          // Accumulate result.
+          uncertaintyAccumulator += sample;
+
+          // Count how many samples we've taken.
+          numSamples++;
+        }
 
         // Move along.
         x += xDir;
         y += yDir;
         z += zDir;
       }
-      // cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
-      // cout << "- numSamples: " << numSamples;
 
-      double pixelValue = uncertaintyAccumulator / numSamples;
+      if (print) {
+        cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
+        cout << "- numSamples: " << numSamples << endl;
+      }
 
+      int pixelValue = round(uncertaintyAccumulator / numSamples);
+      if (print)
+        cout << "- pixel value: " << pixelValue << endl;
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
-      pixelIndex[0] = r;
-      pixelIndex[1] = c;
+      pixelIndex[0] = c;
+      pixelIndex[1] = r;
 
-      uncertaintyTexture->SetPixel(pixelIndex, pixelValue * 255);
+      if (c == 0) {
+        pixelValue = 1;
+      }
+      else if (c == round(width / 4)) {
+        pixelValue = 255;
+      }
+
+      uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
     }
   }
 
