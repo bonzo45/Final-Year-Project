@@ -54,6 +54,8 @@ class Sams_View : public QmitkAbstractView {
     void ShowMeASphere();
     void ResetViews();
     void ToggleUncertaintyThresholding(bool checked);
+    void GenerateRandomUncertainty();
+    void GenerateCubeUncertainty();
 
   protected:  
     virtual void SetFocus();
@@ -63,7 +65,7 @@ class Sams_View : public QmitkAbstractView {
     mitk::DataNode::Pointer scan;
     mitk::DataNode::Pointer uncertainty;
 
-    Ui::Sams_ViewControls m_Controls;
+    Ui::Sams_ViewControls UI;
 
   private:
     void SetScan(mitk::DataNode::Pointer scan);
@@ -72,6 +74,8 @@ class Sams_View : public QmitkAbstractView {
     void ScanPicked(bool test);
     void UncertaintyPicked(bool test);
     void BothPicked(bool test);
+    void GenerateRandomUncertainty(unsigned int size);
+    void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
     mitk::Image::Pointer GenerateUncertaintyTexture();
 
     // ITK Methods
@@ -79,7 +83,6 @@ class Sams_View : public QmitkAbstractView {
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage, float min, float max);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
-
 };
 
 #endif // Sams_View_h

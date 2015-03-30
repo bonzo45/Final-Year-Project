@@ -75,8 +75,11 @@ float maxUncertaintyThreshold = 0;
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
 
 typedef itk::Image<unsigned char, 2>  TextureImageType;
+typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
 
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
+UncertaintyImageType::Pointer cubeUncertainty;
+UncertaintyImageType::Pointer randomUncertainty;
 
 bool thresholdingEnabled = false;
 
@@ -85,18 +88,20 @@ bool thresholdingEnabled = false;
   */
 void Sams_View::CreateQtPartControl(QWidget *parent) {
   // Create Qt UI
-  m_Controls.setupUi(parent);
+  UI.setupUi(parent);
 
   // Add click handler.
-  connect(m_Controls.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
-  connect(m_Controls.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
-  connect(m_Controls.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
-  connect(m_Controls.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
-  connect(m_Controls.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
-  connect(m_Controls.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
-  connect(m_Controls.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
-  connect(m_Controls.buttonSphere, SIGNAL(clicked()), this, SLOT(ShowMeASphere()));
-  connect(m_Controls.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
+  connect(UI.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
+  connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
+  connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
+  connect(UI.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
+  connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
+  connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
+  connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(ShowMeASphere()));
+  connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
+  connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
+  connect(UI.buttonCubeUncertainty, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
 
   SetNumberOfImagesSelected(0);
 }
@@ -106,7 +111,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   */
 void Sams_View::SetFocus() {
   // Focus on the button.
-  //m_Controls.buttonOverlayText->setFocus();
+  //UI.buttonOverlayText->setFocus();
 }
 
 /**
@@ -175,39 +180,39 @@ void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
   }
 }
 
-void Sams_View::ScanPicked(bool test) {
-  if (test) {
+void Sams_View::ScanPicked(bool picked) {
+  if (picked) {
 
   }
   else {
-    m_Controls.labelScanName->setText("Pick a Scan (Ctrl + Click)");
+    UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
   }
 }
 
-void Sams_View::UncertaintyPicked(bool test) {
-  if (test) {
-    m_Controls.radioButtonEnableThreshold->setEnabled(true);
-    m_Controls.sliderMinThreshold->setEnabled(true);
-    m_Controls.sliderMaxThreshold->setEnabled(true);
-    m_Controls.buttonSphere->setEnabled(true);
+void Sams_View::UncertaintyPicked(bool picked) {
+  if (picked) {
+    UI.radioButtonEnableThreshold->setEnabled(true);
+    UI.sliderMinThreshold->setEnabled(true);
+    UI.sliderMaxThreshold->setEnabled(true);
+    UI.buttonSphere->setEnabled(true);
   }
   else {
-    m_Controls.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
-    m_Controls.radioButtonEnableThreshold->setEnabled(false);
-    m_Controls.sliderMinThreshold->setEnabled(false);
-    m_Controls.sliderMaxThreshold->setEnabled(false);
-    m_Controls.buttonSphere->setEnabled(false);
+    UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
+    UI.radioButtonEnableThreshold->setEnabled(false);
+    UI.sliderMinThreshold->setEnabled(false);
+    UI.sliderMaxThreshold->setEnabled(false);
+    UI.buttonSphere->setEnabled(false);
   }
 }
 
-void Sams_View::BothPicked(bool test) {
-  if (test) {
-    m_Controls.buttonSwapScanUncertainty->setEnabled(true);
-    m_Controls.buttonSetLayers->setEnabled(true);
+void Sams_View::BothPicked(bool picked) {
+  if (picked) {
+    UI.buttonSwapScanUncertainty->setEnabled(true);
+    UI.buttonSetLayers->setEnabled(true);
   }
   else {
-    m_Controls.buttonSwapScanUncertainty->setEnabled(false);
-    m_Controls.buttonSetLayers->setEnabled(false);
+    UI.buttonSwapScanUncertainty->setEnabled(false);
+    UI.buttonSetLayers->setEnabled(false);
   }
 }
 
@@ -323,13 +328,13 @@ void Sams_View::LowerThresholdChanged(int lower) {
   
   float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * lower + minUncertaintyIntensity;
   if (temp > maxUncertaintyThreshold) {
-    m_Controls.sliderMinThreshold->setValue(m_Controls.sliderMaxThreshold->value());
+    UI.sliderMinThreshold->setValue(UI.sliderMaxThreshold->value());
     return;
   }
   minUncertaintyThreshold = temp;
   std::ostringstream ss;
   ss << std::setprecision(2) << std::fixed << minUncertaintyThreshold;
-  m_Controls.labelSliderLeft->setText(ss.str().c_str());
+  UI.labelSliderLeft->setText(ss.str().c_str());
 
   if (thresholdingEnabled) {
     ThresholdUncertainty();
@@ -342,13 +347,13 @@ void Sams_View::LowerThresholdChanged(int lower) {
 void Sams_View::UpperThresholdChanged(int upper) {
   float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * upper + minUncertaintyIntensity;
   if (temp < minUncertaintyThreshold) {
-    m_Controls.sliderMaxThreshold->setValue(m_Controls.sliderMinThreshold->value());
+    UI.sliderMaxThreshold->setValue(UI.sliderMinThreshold->value());
     return;
   }
   maxUncertaintyThreshold = temp;
   std::ostringstream ss;
   ss << std::setprecision(2) << std::fixed << maxUncertaintyThreshold;
-  m_Controls.labelSliderRight->setText(ss.str().c_str());
+  UI.labelSliderRight->setText(ss.str().c_str());
 
   if (thresholdingEnabled) {
     ThresholdUncertainty();
@@ -385,7 +390,7 @@ void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
 
-  m_Controls.labelScanName->setText(QString::fromStdString(name));
+  UI.labelScanName->setText(QString::fromStdString(name));
 }
 
 /**
@@ -398,27 +403,27 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
-  m_Controls.labelUncertaintyName->setText(QString::fromStdString(name));
+  UI.labelUncertaintyName->setText(QString::fromStdString(name));
 
   // Calculate intensity range.
   mitk::BaseData * uncertaintyData = uncertainty->GetData();
   mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
   AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
 
-  m_Controls.sliderMinThreshold->setRange(0, 1000);
-  m_Controls.sliderMinThreshold->setValue(0);
+  UI.sliderMinThreshold->setRange(0, 1000);
+  UI.sliderMinThreshold->setValue(0);
   LowerThresholdChanged(0);
-  m_Controls.sliderMaxThreshold->setRange(0, 1000);
-  m_Controls.sliderMaxThreshold->setValue(1000);
+  UI.sliderMaxThreshold->setRange(0, 1000);
+  UI.sliderMaxThreshold->setValue(1000);
   UpperThresholdChanged(1000);
 
   // Update the labels.
   std::ostringstream ss;
   ss << std::setprecision(2) << std::fixed << minUncertaintyIntensity;
-  m_Controls.labelSliderLeftLimit->setText(ss.str().c_str());
+  UI.labelSliderLeftLimit->setText(ss.str().c_str());
   ss.str("");
   ss << std::setprecision(2) << std::fixed << maxUncertaintyIntensity;
-  m_Controls.labelSliderRightLimit->setText(ss.str().c_str());
+  UI.labelSliderRightLimit->setText(ss.str().c_str());
 }
 
 /**
@@ -510,6 +515,124 @@ void Sams_View::ShowMeASphere() {
   surfaceNode->SetProperty("shader", mitk::ShaderProperty::New("uniform"));
 
   this->GetDataStorage()->Add(surfaceNode);
+}
+
+void Sams_View::GenerateRandomUncertainty() {
+  GenerateRandomUncertainty(50);
+}
+
+void Sams_View::GenerateCubeUncertainty() {
+  GenerateCubeUncertainty(50, 10);
+}
+
+void Sams_View::GenerateRandomUncertainty(unsigned int size) {
+  // Create a blank ITK image.
+  UncertaintyImageType::RegionType region;
+  UncertaintyImageType::IndexType start;
+  start[0] = 0;
+  start[1] = 0;
+  start[2] = 0;
+ 
+  UncertaintyImageType::SizeType uncertaintySize;
+  uncertaintySize[0] = size;
+  uncertaintySize[1] = size;
+  uncertaintySize[2] = size;
+ 
+  region.SetSize(uncertaintySize);
+  region.SetIndex(start);
+
+  randomUncertainty = UncertaintyImageType::New();
+  randomUncertainty->SetRegions(region);
+  randomUncertainty->Allocate();
+
+  // Go through each voxel and set a random value.
+  for (unsigned int r = 0; r < size; r++) {
+    for (unsigned int c = 0; c < size; c++) {
+      for (unsigned int d = 0; d < size; d++) {
+        UncertaintyImageType::IndexType pixelIndex;
+        pixelIndex[0] = r;
+        pixelIndex[1] = c;
+        pixelIndex[2] = d;
+
+        randomUncertainty->SetPixel(pixelIndex, rand() % 256);
+      }
+    }
+  }
+
+  // Convert from ITK to MITK.
+  mitk::Image::Pointer mitkImage = mitk::ImportItkImage(randomUncertainty);
+  
+  mitk::DataNode::Pointer randomUncertaintyNode = mitk::DataNode::New();
+  randomUncertaintyNode->SetData(mitkImage);
+  randomUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Random Uncertainty"));
+  this->GetDataStorage()->Add(randomUncertaintyNode);
+}
+
+/**
+  * Generates uncertainty data (totalSize * totalSize * totalSize).
+  * It's zero everywhere, apart from a cube placed at the center with size cubeSize that is 1.
+  */
+void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize) {
+  // Create a blank ITK image.
+  UncertaintyImageType::RegionType region;
+  UncertaintyImageType::IndexType start;
+  start[0] = 0;
+  start[1] = 0;
+  start[2] = 0;
+ 
+  UncertaintyImageType::SizeType uncertaintySize;
+  uncertaintySize[0] = totalSize;
+  uncertaintySize[1] = totalSize;
+  uncertaintySize[2] = totalSize;
+ 
+  region.SetSize(uncertaintySize);
+  region.SetIndex(start);
+
+  cubeUncertainty = UncertaintyImageType::New();
+  cubeUncertainty->SetRegions(region);
+  cubeUncertainty->Allocate();
+
+  // Make sure the cube is within the total size.
+  if (cubeSize > totalSize) {
+    cubeSize = totalSize;
+  }
+
+  // Compute the cube location. At first to float precision, then round to pixels.
+  float halfCubeWidth = (float) cubeSize / 2.0;
+  float uncertaintyCenter = (((float) (totalSize - 1)) / 2.0);
+  unsigned int cubeStartPixel = ceil(uncertaintyCenter - halfCubeWidth);
+  unsigned int cubeEndPixel = floor(uncertaintyCenter + halfCubeWidth);
+
+  // Go through each voxel and set uncertainty according to whether it's in the cube.
+  for (unsigned int r = 0; r < totalSize; r++) {
+    for (unsigned int c = 0; c < totalSize; c++) {
+      for (unsigned int d = 0; d < totalSize; d++) {
+        UncertaintyImageType::IndexType pixelIndex;
+        pixelIndex[0] = r;
+        pixelIndex[1] = c;
+        pixelIndex[2] = d;
+
+        // If this pixel is in the cube.
+        if ((cubeStartPixel <= r) && (r <= cubeEndPixel) &&
+            (cubeStartPixel <= c) && (c <= cubeEndPixel) &&
+            (cubeStartPixel <= d) && (d <= cubeEndPixel)) {
+          cubeUncertainty->SetPixel(pixelIndex, 255);
+        }
+        // If it's not.
+        else {
+          cubeUncertainty->SetPixel(pixelIndex, 0);
+        }
+      }
+    }
+  }
+
+  // Convert from ITK to MITK.
+  mitk::Image::Pointer mitkImage = mitk::ImportItkImage(cubeUncertainty);
+  
+  mitk::DataNode::Pointer cubeUncertaintyNode = mitk::DataNode::New();
+  cubeUncertaintyNode->SetData(mitkImage);
+  cubeUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Cube of Uncertainty"));
+  this->GetDataStorage()->Add(cubeUncertaintyNode);
 }
 
 /**
@@ -608,7 +731,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
       pixelIndex[0] = r;
       pixelIndex[1] = c;
 
-      uncertaintyTexture->SetPixel(pixelIndex, pixelValue * 255); //rand() % 100);
+      uncertaintyTexture->SetPixel(pixelIndex, pixelValue * 255);
     }
   }
 
