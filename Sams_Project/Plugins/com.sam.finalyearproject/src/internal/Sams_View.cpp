@@ -80,6 +80,7 @@ typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
 UncertaintyImageType::Pointer cubeUncertainty;
 UncertaintyImageType::Pointer randomUncertainty;
+UncertaintyImageType::Pointer sphereUncertainty;
 
 bool thresholdingEnabled = false;
 
@@ -102,6 +103,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
   connect(UI.buttonCubeUncertainty, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
+  connect(UI.buttonSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
 
   SetNumberOfImagesSelected(0);
 }
@@ -525,6 +527,14 @@ void Sams_View::GenerateCubeUncertainty() {
   GenerateCubeUncertainty(50, 10);
 }
 
+void Sams_View::GenerateSphereUncertainty() {
+  GenerateSphereUncertainty(50, 15);
+}
+
+/**
+  * Generates uncertainty data (size * size * size).
+  * Each voxel is a random uncertainty value between 0 and 255.
+  */
 void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
@@ -633,6 +643,78 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   cubeUncertaintyNode->SetData(mitkImage);
   cubeUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Cube of Uncertainty"));
   this->GetDataStorage()->Add(cubeUncertaintyNode);
+}
+
+/**
+  * Generates uncertainty data (totalSize * totalSize * totalSize).
+  * It's zero everywhere, apart from a sphere of radius sphereRadius that has uncertainty 255 at the center and fades linearly to the edges.
+  */
+void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius) {
+// Create a blank ITK image.
+  UncertaintyImageType::RegionType region;
+  UncertaintyImageType::IndexType start;
+  start[0] = 0;
+  start[1] = 0;
+  start[2] = 0;
+ 
+  UncertaintyImageType::SizeType uncertaintySize;
+  uncertaintySize[0] = totalSize;
+  uncertaintySize[1] = totalSize;
+  uncertaintySize[2] = totalSize;
+ 
+  region.SetSize(uncertaintySize);
+  region.SetIndex(start);
+
+  sphereUncertainty = UncertaintyImageType::New();
+  sphereUncertainty->SetRegions(region);
+  sphereUncertainty->Allocate();
+
+  // Make sure the sphere is within the total size.
+  if (sphereRadius > totalSize) {
+    sphereRadius = totalSize;
+  }
+
+  cout << sphereRadius << "/" << totalSize << endl;
+
+  // Calculate center of sphere.
+  float sphereCenter = (float) (totalSize - 1) / 2.0;
+
+  // Go through each voxel and weight uncertainty by distance from center of sphere.
+  for (unsigned int r = 0; r < totalSize; r++) {
+    for (unsigned int c = 0; c < totalSize; c++) {
+      for (unsigned int d = 0; d < totalSize; d++) {
+        UncertaintyImageType::IndexType pixelIndex;
+        pixelIndex[0] = r;
+        pixelIndex[1] = c;
+        pixelIndex[2] = d;
+
+        // Compute distance from center.
+        float distanceFromCenter = 
+          sqrt(
+              pow(((float) r - sphereCenter), 2) +
+              pow(((float) c - sphereCenter), 2) + 
+              pow(((float) d - sphereCenter), 2)
+          );
+
+        // Get normalized 0-1 weighting.
+        float uncertaintyValue = std::max(0.0f, ((float) sphereRadius - distanceFromCenter) / (float) sphereRadius);
+
+        //cout << "Distance: " << distanceFromCenter << ", Uncertainty: " << uncertaintyValue << endl;
+
+        // Scale by 255.
+        sphereUncertainty->SetPixel(pixelIndex, uncertaintyValue * 255);
+        
+      }
+    }
+  }
+
+  // Convert from ITK to MITK.
+  mitk::Image::Pointer mitkImage = mitk::ImportItkImage(sphereUncertainty);
+  
+  mitk::DataNode::Pointer sphereUncertaintyNode = mitk::DataNode::New();
+  sphereUncertaintyNode->SetData(mitkImage);
+  sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Sphere of Uncertainty"));
+  this->GetDataStorage()->Add(sphereUncertaintyNode);
 }
 
 /**

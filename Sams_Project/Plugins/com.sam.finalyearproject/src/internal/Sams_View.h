@@ -56,6 +56,7 @@ class Sams_View : public QmitkAbstractView {
     void ToggleUncertaintyThresholding(bool checked);
     void GenerateRandomUncertainty();
     void GenerateCubeUncertainty();
+    void GenerateSphereUncertainty();
 
   protected:  
     virtual void SetFocus();
@@ -76,6 +77,7 @@ class Sams_View : public QmitkAbstractView {
     void BothPicked(bool test);
     void GenerateRandomUncertainty(unsigned int size);
     void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
+    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereSize);
     mitk::Image::Pointer GenerateUncertaintyTexture();
 
     // ITK Methods
