@@ -35,6 +35,12 @@
    <item>
     <widget class="QWidget" name="widget1Container" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_6">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label1">
         <property name="font">
@@ -184,6 +190,15 @@
    <item>
     <widget class="QWidget" name="widget2Container" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_7">
+      <property name="leftMargin">
+       <number>9</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label2">
         <property name="font">
@@ -341,6 +356,12 @@
    <item>
     <widget class="QWidget" name="widget3Container" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_8">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label3">
         <property name="font">
@@ -381,6 +402,12 @@
    <item>
     <widget class="QWidget" name="widget4Container" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_9">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label4">
         <property name="font">
@@ -434,6 +461,12 @@
    <item>
     <widget class="QWidget" name="widget5Container" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_10">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label5">
         <property name="font">
