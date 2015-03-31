@@ -33,6 +33,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkILinkedRenderWindowPart.h>
 #include <mitkIRenderingManager.h>
 #include <mitkTimeSlicedGeometry.h>
+#include <mitkNodePredicateProperty.h>
 
 // for volume rendering
 #include <mitkTransferFunction.h>
@@ -58,6 +59,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkNodePredicateDataType.h>
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
+
 // for sphere texture
 #include <itkImage.h>
 #include <mitkITKImageImport.h>
@@ -73,22 +75,35 @@ PURPOSE.  See the above copyright notices for more information.
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
+// ------------------ //
+// ---- TYPEDEFS ---- //
+// ------------------ //
+typedef itk::Image<unsigned char, 2>  TextureImageType;
+typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
+
+// ------------------------- //
+// ---- GLOBAL VARIABLES --- //
+// ------------------------- //
+
+// Uncertainty Thresholding
+mitk::DataNode::Pointer thresholdedUncertainty = 0;
+bool thresholdingEnabled = false;
 float minUncertaintyIntensity = 0;
 float maxUncertaintyIntensity = 0;
 float minUncertaintyThreshold = 0;
 float maxUncertaintyThreshold = 0;
 
-mitk::DataNode::Pointer thresholdedUncertainty = 0;
-
-typedef itk::Image<unsigned char, 2>  TextureImageType;
-typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
-
+// Uncertainty Sphere
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
+
+// Test Uncertainties
 UncertaintyImageType::Pointer cubeUncertainty;
 UncertaintyImageType::Pointer randomUncertainty;
 UncertaintyImageType::Pointer sphereUncertainty;
 
-bool thresholdingEnabled = false;
+// ----------------------- //
+// ---- IMPLEMENTATION --- //
+// ----------------------- //
 
 /**
   * Create the UI
@@ -97,30 +112,101 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // Create Qt UI
   UI.setupUi(parent);
 
-  // Add click handler.
+  // Add event handlers.
+  // 1. Select Scan & Uncertainty
   connect(UI.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
-  connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
-  connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
+
+  // 2.
+  //  a. Thresholding
   connect(UI.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
-  connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
-  connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(ShowMeASphere()));
+
+  //  b. Uncertainty Sphere
+  connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
+
+  // 3. Options
+  connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
+
+  // 4. Random
+  connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
+  connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
+  connect(UI.buttonBrainSurfaceTest, SIGNAL(clicked()), this, SLOT(BrainSurfaceTest()));
+
+  // 5. Test Uncertainties
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
   connect(UI.buttonCubeUncertainty, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
-  connect(UI.buttonBrainSurfaceTest, SIGNAL(clicked()), this, SLOT(BrainSurfaceTest()));
 
   SetNumberOfImagesSelected(0);
 }
 
 /**
-  * What to do when focus is set.
+  * What to do when the plugin window is selected.
   */
 void Sams_View::SetFocus() {
-  // Focus on the button.
-  //UI.buttonOverlayText->setFocus();
+  // Focus on something useful?
+  //    e.g. UI.buttonOverlayText->setFocus();
+}
+
+// ----------- //
+// ---- 1 ---- //
+// ----------- //
+
+/**
+  * Swaps the scan and the uncertainty.
+  */
+void Sams_View::SwapScanUncertainty() {
+  mitk::DataNode::Pointer temp = this->scan;
+  this->SetScan(this->uncertainty);
+  this->SetUncertainty(temp);
+}
+
+/**
+  * Sets the scan we're working with.
+  */
+void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
+  this->scan = scan;
+
+  mitk::BaseProperty * nameProperty = scan->GetProperty("name");
+  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
+  std::string name = nameStringProperty->GetValueAsString();
+
+  UI.labelScanName->setText(QString::fromStdString(name));
+}
+
+/**
+  * Sets the uncertainty we're working with.
+  */
+void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
+  this->uncertainty = uncertainty;
+
+  // Update Label
+  mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
+  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
+  std::string name = nameStringProperty->GetValueAsString();
+  UI.labelUncertaintyName->setText(QString::fromStdString(name));
+
+  // Calculate intensity range.
+  mitk::BaseData * uncertaintyData = uncertainty->GetData();
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+  AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
+
+  UI.sliderMinThreshold->setRange(0, 1000);
+  UI.sliderMinThreshold->setValue(0);
+  LowerThresholdChanged(0);
+  UI.sliderMaxThreshold->setRange(0, 1000);
+  UI.sliderMaxThreshold->setValue(1000);
+  UpperThresholdChanged(1000);
+
+  // Update the labels.
+  std::ostringstream ss;
+  ss << std::setprecision(2) << std::fixed << minUncertaintyIntensity;
+  UI.labelSliderLeftLimit->setText(ss.str().c_str());
+  ss.str("");
+  ss << std::setprecision(2) << std::fixed << maxUncertaintyIntensity;
+  UI.labelSliderRightLimit->setText(ss.str().c_str());
 }
 
 /**
@@ -129,38 +215,21 @@ void Sams_View::SetFocus() {
 void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
   int imagesSelected = 0;
 
-  // Go through all of the nodes, checking if one is an image.
+  // Go through all of the nodes that have been selected.
   foreach(mitk::DataNode::Pointer node, nodes) {
     // If it's an image.
     mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(node->GetData());
     if(node.IsNotNull() && image) {
       imagesSelected++;
 
-      // Get it's name.
+      // Set the first image selected to be the scan.
       if (imagesSelected == 1) {
         SetScan(node);
-
       }
+      // Set the second one to be the uncertainty.
       else if (imagesSelected == 2) {
         SetUncertainty(node);
       }
-
-      // Volume Render it!
-      node->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-      
-      // Create a transfer function.
-      mitk::TransferFunction::Pointer tf = mitk::TransferFunction::New();
-      tf->InitializeByMitkImage(image);
-
-      // Colour Transfer Function: AddRGBPoint(double x, double r, double g, double b)
-      tf->GetColorTransferFunction()->AddRGBPoint(tf->GetColorTransferFunction()->GetRange() [0], 1.0, 0.0, 0.0);
-      tf->GetColorTransferFunction()->AddRGBPoint(tf->GetColorTransferFunction()->GetRange() [1], 1.0, 1.0, 0.0);
-
-      // Opacity Transfer Function: AddPoint(double x, double y)
-      tf->GetScalarOpacityFunction()->AddPoint(0, 0);
-      tf->GetScalarOpacityFunction()->AddPoint(tf->GetColorTransferFunction()->GetRange() [1], 1);
-
-      node->SetProperty ("TransferFunction", mitk::TransferFunctionProperty::New(tf.GetPointer()));
     }
   }
 
@@ -189,6 +258,9 @@ void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
   }
 }
 
+/**
+  * Enables/Disables parts of the UI based on whether we have selected a scan.
+  */
 void Sams_View::ScanPicked(bool picked) {
   if (picked) {
 
@@ -198,6 +270,9 @@ void Sams_View::ScanPicked(bool picked) {
   }
 }
 
+/**
+  * Enables/Disables parts of the UI based on whether we have selected an uncertainty.
+  */
 void Sams_View::UncertaintyPicked(bool picked) {
   if (picked) {
     UI.radioButtonEnableThreshold->setEnabled(true);
@@ -214,6 +289,9 @@ void Sams_View::UncertaintyPicked(bool picked) {
   }
 }
 
+/**
+  * Enables/Disables parts of the UI based on whether we have selected both a scan and an uncertainty.
+  */
 void Sams_View::BothPicked(bool picked) {
   if (picked) {
     UI.buttonSwapScanUncertainty->setEnabled(true);
@@ -225,48 +303,12 @@ void Sams_View::BothPicked(bool picked) {
   }
 }
 
-/**
-  * Sets the Uncertainty to be above the Scan.
-  */
-void Sams_View::SetLayers() {
-  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
-  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
-
-  this->scan->SetProperty("layer", behindProperty);
-  this->uncertainty->SetProperty("layer", infrontProperty);
-
-  this->RequestRenderWindowUpdate();
-}
+// ------------ //
+// ---- 2a ---- //
+// ------------ //
 
 /**
-  * Show Overlay
-  */
-void Sams_View::ShowTextOverlay() {
-  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
-  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
-  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
-
-  //Create a textOverlay2D
-  mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
-  textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
-  textOverlay->SetFontSize(40);
-  textOverlay->SetColor(1,0,0); //Set text color to red
-  textOverlay->SetOpacity(1);
-
-  //The position of the Overlay can be set to a fixed coordinate on the display.
-  mitk::Point2D pos;
-  pos[0] = 10,pos[1] = 20;
-  textOverlay->SetPosition2D(pos);
-  
-  //Add the overlay to the overlayManager. It is added to all registered renderers automatically
-  overlayManager->AddOverlay(textOverlay.GetPointer());
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
-  * Toggles Thresholding
+  * Toggles thresholding
   */
 void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   if (checked) {
@@ -281,7 +323,7 @@ void Sams_View::ToggleUncertaintyThresholding(bool checked) {
 }
 
 /**
-  * Creates a copy of the uncertainty data with all values less than a threshold removed.
+  * Creates a copy of the uncertainty data with values not between minUncertaintyThreshold and maxUncertaintyThreshold removed.
   */
 void Sams_View::ThresholdUncertainty() {
   mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
@@ -331,6 +373,25 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
 }
 
 /**
+  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
+  */
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
+  
+  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+  imageCalculatorFilter->SetImage(itkImage);
+  imageCalculatorFilter->Compute();
+
+  min = imageCalculatorFilter->GetMinimum();
+  max = imageCalculatorFilter->GetMaximum();
+  cout << "(" << min << ", " << max << ")" << endl;
+
+  this->RequestRenderWindowUpdate();
+}
+
+/**
   * Display Lower Threshold
   */
 void Sams_View::LowerThresholdChanged(int lower) {
@@ -369,108 +430,14 @@ void Sams_View::UpperThresholdChanged(int upper) {
   }
 }
 
-/**
-  * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
-  */
-void Sams_View::ToggleCrosshairs(int state) {
-  // Disable Crosshairs.
-  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  if (linkedRenderWindowPart != NULL) {
-    linkedRenderWindowPart->EnableSlicingPlanes(state > 0);
-  }
-}
-
-/**
-  * Swaps the scan and the uncertainty data over.
-  */
-void Sams_View::SwapScanUncertainty() {
-  mitk::DataNode::Pointer temp = this->scan;
-  this->SetScan(this->uncertainty);
-  this->SetUncertainty(temp);
-}
-
-/**
-  * Sets the scan to work with.
-  */
-void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
-  this->scan = scan;
-
-  mitk::BaseProperty * nameProperty = scan->GetProperty("name");
-  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
-  std::string name = nameStringProperty->GetValueAsString();
-
-  UI.labelScanName->setText(QString::fromStdString(name));
-}
-
-/**
-  * Sets the uncertainty to work with.
-  */
-void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
-  this->uncertainty = uncertainty;
-
-  // Update Label
-  mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
-  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
-  std::string name = nameStringProperty->GetValueAsString();
-  UI.labelUncertaintyName->setText(QString::fromStdString(name));
-
-  // Calculate intensity range.
-  mitk::BaseData * uncertaintyData = uncertainty->GetData();
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
-  AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
-
-  UI.sliderMinThreshold->setRange(0, 1000);
-  UI.sliderMinThreshold->setValue(0);
-  LowerThresholdChanged(0);
-  UI.sliderMaxThreshold->setRange(0, 1000);
-  UI.sliderMaxThreshold->setValue(1000);
-  UpperThresholdChanged(1000);
-
-  // Update the labels.
-  std::ostringstream ss;
-  ss << std::setprecision(2) << std::fixed << minUncertaintyIntensity;
-  UI.labelSliderLeftLimit->setText(ss.str().c_str());
-  ss.str("");
-  ss << std::setprecision(2) << std::fixed << maxUncertaintyIntensity;
-  UI.labelSliderRightLimit->setText(ss.str().c_str());
-}
-
-/**
-  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
-  */
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
-  
-  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
-  imageCalculatorFilter->SetImage(itkImage);
-  imageCalculatorFilter->Compute();
-
-  min = imageCalculatorFilter->GetMinimum();
-  max = imageCalculatorFilter->GetMaximum();
-  cout << "(" << min << ", " << max << ")" << endl;
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
-  * Resets all the cameras.
-  */
-void Sams_View::ResetViews() {
-  // Compute optimal bounds.
-  const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeVisibleBoundingGeometry3D();
-
-  // Set them.
-  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
-  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
-  renderManager->InitializeViews(bounds);
-}
+// ------------ //
+// ---- 2b ---- //
+// ------------ //
 
 /**
   * Creates a sphere and maps a texture created from uncertainty to it.
   */
-void Sams_View::ShowMeASphere() {
+void Sams_View::GenerateUncertaintySphere() {
   // Create a sphere.
   vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
   sphere->SetThetaResolution(100);
@@ -526,6 +493,322 @@ void Sams_View::ShowMeASphere() {
 
   this->GetDataStorage()->Add(surfaceNode);
 }
+
+/**
+  * Generates a texture that represents the uncertainty of the uncertainty volume.
+  * It works by projecting a point in the center of the volume outwards, onto a sphere.
+  */
+mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
+  unsigned int width = 150;
+  unsigned int height = 50;
+
+  // Create a blank ITK image.
+  TextureImageType::RegionType region;
+  TextureImageType::IndexType start;
+  start[0] = 0;
+  start[1] = 0;
+ 
+  TextureImageType::SizeType size;
+  size[0] = width;
+  size[1] = height;
+ 
+  region.SetSize(size);
+  region.SetIndex(start);
+
+  uncertaintyTexture = TextureImageType::New();
+  uncertaintyTexture->SetRegions(region);
+  uncertaintyTexture->Allocate();
+
+  // Get the uncertainty data to sample.
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
+  unsigned int dimensions = uncertaintyImage->GetDimension();
+  unsigned int uncertaintyHeight = uncertaintyImage->GetDimension(0);
+  unsigned int uncertaintyWidth = uncertaintyImage->GetDimension(1);
+  unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
+  cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
+
+  // Use an image accessor to read values from the image, rather than the image itself.
+  try  {
+    mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
+    
+    // Compute texture.
+    for (unsigned int r = 0; r < height; r++) {
+      for (unsigned int c = 0; c < width; c++) {
+        bool print;
+
+        if (r == 25)
+          print = true;
+        else
+          print = false;
+
+        if (print)
+          cout << "(r, c): (" << r << ", " << c << ")" << endl;
+        // Compute spherical coordinates, phi, theta from pixel value.
+        // Latitude
+        float theta = ((float) r / (float) height) * M_PI;
+        // Longitude
+        float phi = ((float) c / (float) width) * (2 * M_PI);
+        if (print)
+          cout << "- (theta, phi): " << "(" << theta << ", " << phi << ")" << endl;
+
+        // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
+        float xDir = cos(phi) * sin(theta);
+        float yDir = cos(theta);
+        float zDir = sin(phi) * sin(theta);
+        if (print)
+          cout << "- (x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
+        
+        float normalization = sqrt(pow(xDir, 2) + pow(yDir, 2) + pow(zDir, 2));
+        xDir /= normalization;
+        yDir /= normalization;
+        zDir /= normalization;
+        
+        if (print)
+          cout << "- n(x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
+        
+        // Compute the center of the uncertainty data.
+        float x = ((float) uncertaintyHeight - 1) / 2.0;
+        float y = ((float) uncertaintyWidth - 1) / 2.0;
+        float z = ((float) uncertaintyDepth - 1) / 2.0;
+        if (print)
+          cout << "- center: " << x << ", " << y << ", " << z << endl;
+
+        // Start at the center and follow the vector outwards whilst sampling points.
+        double uncertaintyAccumulator = 0;
+        unsigned int numSamples = 0;
+        while (x <= uncertaintyHeight - 1 && x >= 0 && y <= uncertaintyWidth - 1 && y >= 0 && z <= uncertaintyDepth - 1 && z >= 0) {
+          // Sample the neighbourhood about a point.
+          double totalAccumulator = 0.0;
+          double distanceAccumulator = 0.0;
+          for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) { 
+              for (int k = -1; k <= 1; k++) {
+                int xNeighbour = round(x) + i;
+                int yNeighbour = round(y) + j;
+                int zNeighbour = round(z) + k;
+
+                // If we're on the edge and the neighbour doesn't exist, skip it.
+                if (xNeighbour < 0 || (int) uncertaintyHeight <= xNeighbour ||
+                    yNeighbour < 0 || (int) uncertaintyWidth <= yNeighbour ||
+                    zNeighbour < 0 || (int) uncertaintyDepth <= zNeighbour) {
+                  continue;
+                }
+
+                itk::Index<3> index;
+                index[0] = xNeighbour;
+                index[1] = yNeighbour;
+                index[2] = zNeighbour;
+
+                float neighbourSample = readAccess.GetPixelByIndex(index);
+
+                float distanceToSample = 
+                  sqrt(
+                    pow((x - xNeighbour), 2) +
+                    pow((y - yNeighbour), 2) + 
+                    pow((z - zNeighbour), 2)
+                  );
+
+                if (distanceToSample == 0.0) {
+                  totalAccumulator = neighbourSample;
+                  distanceAccumulator = 1;
+                  goto BREAK_ALL_LOOPS;
+                }
+
+                distanceAccumulator += 1.0 / distanceToSample;
+                totalAccumulator += neighbourSample / distanceToSample;
+              }
+            }
+          }
+          BREAK_ALL_LOOPS:
+
+          if (print) {
+            cout << "Distance Accumulator: " << distanceAccumulator << endl;
+            cout << "Total Accumulator: " << totalAccumulator << endl;
+          }
+          double sample = totalAccumulator / distanceAccumulator;
+
+          if (print)
+            cout << "-- sample: " << "(" << x << ", " << y << ", " << z << "): " << sample << endl;
+
+          // Add sample, but ignore if it is background.
+          if (sample != 0.0) {
+            // Accumulate result.
+            uncertaintyAccumulator += sample;
+
+            // Count how many samples we've taken.
+            numSamples++;
+          }
+
+          // Move along.
+          x += xDir;
+          y += yDir;
+          z += zDir;
+        }
+
+        if (print) {
+          cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
+          cout << "- numSamples: " << numSamples << endl;
+        }
+
+        int pixelValue = round(uncertaintyAccumulator / numSamples);
+        if (print)
+          cout << "- pixel value: " << pixelValue << endl;
+        // Set texture value.
+        TextureImageType::IndexType pixelIndex;
+        pixelIndex[0] = c;
+        pixelIndex[1] = r;
+
+        if (c == 0) {
+          pixelValue = 1;
+        }
+        else if (c == round(width / 4)) {
+          pixelValue = 255;
+        }
+
+        uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
+      }
+    }
+
+    // Convert from ITK to MITK.
+    mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
+    return mitkImage;
+  }
+  catch (mitk::Exception & e) {
+    cerr << "Hmmm... it appears we can't get access to the uncertainty image." << e << endl;
+    return NULL;
+  }
+}
+
+// ----------- //
+// ---- 3 ---- //
+// ----------- //
+
+/**
+  * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
+  */
+void Sams_View::ToggleCrosshairs(int state) {
+  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  if (linkedRenderWindowPart != NULL) {
+    linkedRenderWindowPart->EnableSlicingPlanes(state > 0);
+  }
+}
+
+/**
+  * Resets all the cameras. Works, but doesn't call reinit on all the datanodes (which it appears 'Reset Views' does...)
+  */
+void Sams_View::ResetViews() {
+  // Get all DataNode's that are visible.
+  mitk::NodePredicateProperty::Pointer isVisible = mitk::NodePredicateProperty::New("visible", mitk::BoolProperty::New(true));
+  mitk::DataStorage::SetOfObjects::ConstPointer visibleObjects = this->GetDataStorage()->GetSubset(isVisible);
+
+  // Compute bounding box for them.
+  const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeBoundingGeometry3D(visibleObjects);
+
+  // OLD: Compute optimal bounds.
+  //   const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeVisibleBoundingGeometry3D();
+
+  // Set them.
+  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
+  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
+  renderManager->InitializeViews(bounds);
+
+  this->RequestRenderWindowUpdate();
+}
+
+// ----------- //
+// ---- 4 ---- //
+// ----------- //
+
+/**
+  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
+  */
+void Sams_View::SetLayers() {
+  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
+  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
+
+  this->scan->SetProperty("layer", behindProperty);
+  this->uncertainty->SetProperty("layer", infrontProperty);
+
+  this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Puts some useless text on the render windows.
+  */
+void Sams_View::ShowTextOverlay() {
+  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
+  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
+  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
+
+  //Create a textOverlay2D
+  mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
+  textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
+  textOverlay->SetFontSize(40);
+  textOverlay->SetColor(1,0,0); //Set text color to red
+  textOverlay->SetOpacity(1);
+
+  //The position of the Overlay can be set to a fixed coordinate on the display.
+  mitk::Point2D pos;
+  pos[0] = 10,pos[1] = 20;
+  textOverlay->SetPosition2D(pos);
+  
+  //Add the overlay to the overlayManager. It is added to all registered renderers automatically
+  overlayManager->AddOverlay(textOverlay.GetPointer());
+
+  this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Takes a surface and maps the uncertainty onto it based on the normal vector.
+  */
+void Sams_View::BrainSurfaceTest() {
+  // Get the surface.
+  mitk::DataNode::Pointer brainModelNode = this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Surface"));
+  if (brainModelNode == (void*)NULL) {
+    cout << "No Surface Found." << endl;
+    return;
+  }
+
+  // Cast it to an MITK surface.
+  mitk::BaseData * brainModelData = brainModelNode->GetData();
+  mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelData);
+
+  // Extract the vtkPolyData.
+  vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();
+
+  // Randomly colour each point: red, green or blue.
+  unsigned char red[3] = {255, 0, 0};
+  unsigned char green[3] = {0, 255, 0};
+  unsigned char blue[3] = {0, 0, 255};
+ 
+  // Generate a list of colours - one for each point.
+  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetNumberOfComponents(3);
+  colors->SetName ("Colors");
+  for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
+    int random = rand() % 3;
+    switch (random) {
+      case 0:
+        colors->InsertNextTupleValue(red);
+        break;
+      case 1:
+        colors->InsertNextTupleValue(green);
+        break;
+      case 2:
+        colors->InsertNextTupleValue(blue);
+        break;
+    }
+  }
+  
+  // Set the colours to be the scalar value of each point.
+  brainModelVtk->GetPointData()->SetScalars(colors);
+  cout << "Well, that works." << endl;
+}
+
+// ----------- //
+// ---- 5 ---- //
+// ----------- //
 
 void Sams_View::GenerateRandomUncertainty() {
   GenerateRandomUncertainty(50);
@@ -723,236 +1006,4 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   sphereUncertaintyNode->SetData(mitkImage);
   sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Sphere of Uncertainty"));
   this->GetDataStorage()->Add(sphereUncertaintyNode);
-}
-
-/**
-  * Generates a texture that represents the uncertainty of the uncertainty volume.
-  * It works by projecting a point in the center of the volume outwards, onto a sphere.
-  */
-mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
-  unsigned int width = 150;
-  unsigned int height = 50;
-
-  // Create a blank ITK image.
-  TextureImageType::RegionType region;
-  TextureImageType::IndexType start;
-  start[0] = 0;
-  start[1] = 0;
- 
-  TextureImageType::SizeType size;
-  size[0] = width;
-  size[1] = height;
- 
-  region.SetSize(size);
-  region.SetIndex(start);
-
-  uncertaintyTexture = TextureImageType::New();
-  uncertaintyTexture->SetRegions(region);
-  uncertaintyTexture->Allocate();
-
-  // Get the uncertainty data to sample.
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
-  unsigned int dimensions = uncertaintyImage->GetDimension();
-  unsigned int uncertaintyHeight = uncertaintyImage->GetDimension(0);
-  unsigned int uncertaintyWidth = uncertaintyImage->GetDimension(1);
-  unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
-  cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
-
-  // Use an image accessor to read values from the image, rather than the image itself.
-  try  {
-    mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
-    
-    // Compute texture.
-    for (unsigned int r = 0; r < height; r++) {
-      for (unsigned int c = 0; c < width; c++) {
-        bool print;
-
-        if (r == 25)
-          print = true;
-        else
-          print = false;
-
-        if (print)
-          cout << "(r, c): (" << r << ", " << c << ")" << endl;
-        // Compute spherical coordinates, phi, theta from pixel value.
-        // Latitude
-        float theta = ((float) r / (float) height) * M_PI;
-        // Longitude
-        float phi = ((float) c / (float) width) * (2 * M_PI);
-        if (print)
-          cout << "- (theta, phi): " << "(" << theta << ", " << phi << ")" << endl;
-
-        // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
-        float xDir = cos(phi) * sin(theta);
-        float yDir = cos(theta);
-        float zDir = sin(phi) * sin(theta);
-        if (print)
-          cout << "- (x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
-        
-        float normalization = sqrt(pow(xDir, 2) + pow(yDir, 2) + pow(zDir, 2));
-        xDir /= normalization;
-        yDir /= normalization;
-        zDir /= normalization;
-        
-        if (print)
-          cout << "- n(x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
-        
-        // Compute the center of the uncertainty data.
-        float x = ((float) uncertaintyHeight - 1) / 2.0;
-        float y = ((float) uncertaintyWidth - 1) / 2.0;
-        float z = ((float) uncertaintyDepth - 1) / 2.0;
-        if (print)
-          cout << "- center: " << x << ", " << y << ", " << z << endl;
-
-        // Start at the center and follow the vector outwards whilst sampling points.
-        double uncertaintyAccumulator = 0;
-        unsigned int numSamples = 0;
-        while (x <= uncertaintyHeight - 1 && x >= 0 && y <= uncertaintyWidth - 1 && y >= 0 && z <= uncertaintyDepth - 1 && z >= 0) {
-          // Sample the neighbourhood about a point.
-          double totalAccumulator = 0.0;
-          double distanceAccumulator = 0.0;
-          for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) { 
-              for (int k = -1; k <= 1; k++) {
-                int xNeighbour = round(x) + i;
-                int yNeighbour = round(y) + j;
-                int zNeighbour = round(z) + k;
-
-                // If we're on the edge and the neighbour doesn't exist, skip it.
-                if (xNeighbour < 0 || (int) uncertaintyHeight <= xNeighbour ||
-                    yNeighbour < 0 || (int) uncertaintyWidth <= yNeighbour ||
-                    zNeighbour < 0 || (int) uncertaintyDepth <= zNeighbour) {
-                  continue;
-                }
-
-                itk::Index<3> index;
-                index[0] = xNeighbour;
-                index[1] = yNeighbour;
-                index[2] = zNeighbour;
-
-                float neighbourSample = readAccess.GetPixelByIndex(index);
-
-                float distanceToSample = 
-                  sqrt(
-                    pow((x - xNeighbour), 2) +
-                    pow((y - yNeighbour), 2) + 
-                    pow((z - zNeighbour), 2)
-                  );
-
-                if (distanceToSample == 0.0) {
-                  totalAccumulator = neighbourSample;
-                  distanceAccumulator = 1;
-                  goto BREAK_ALL_LOOPS;
-                }
-
-                distanceAccumulator += 1.0 / distanceToSample;
-                totalAccumulator += neighbourSample / distanceToSample;
-              }
-            }
-          }
-          BREAK_ALL_LOOPS:
-
-          if (print) {
-            cout << "Distance Accumulator: " << distanceAccumulator << endl;
-            cout << "Total Accumulator: " << totalAccumulator << endl;
-          }
-          double sample = totalAccumulator / distanceAccumulator;
-
-          if (print)
-            cout << "-- sample: " << "(" << x << ", " << y << ", " << z << "): " << sample << endl;
-
-          // Add sample, but ignore if it is background.
-          if (sample != 0.0) {
-            // Accumulate result.
-            uncertaintyAccumulator += sample;
-
-            // Count how many samples we've taken.
-            numSamples++;
-          }
-
-          // Move along.
-          x += xDir;
-          y += yDir;
-          z += zDir;
-        }
-
-        if (print) {
-          cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
-          cout << "- numSamples: " << numSamples << endl;
-        }
-
-        int pixelValue = round(uncertaintyAccumulator / numSamples);
-        if (print)
-          cout << "- pixel value: " << pixelValue << endl;
-        // Set texture value.
-        TextureImageType::IndexType pixelIndex;
-        pixelIndex[0] = c;
-        pixelIndex[1] = r;
-
-        if (c == 0) {
-          pixelValue = 1;
-        }
-        else if (c == round(width / 4)) {
-          pixelValue = 255;
-        }
-
-        uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
-      }
-    }
-
-    // Convert from ITK to MITK.
-    mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
-    return mitkImage;
-  }
-  catch (mitk::Exception & e) {
-    cerr << "Hmmm... it appears we can't get access to the uncertainty image." << e << endl;
-    return NULL;
-  }
-}
-
-/**
-  * Takes a surface and maps the uncertainty onto it based on the normal vector.
-  */
-void Sams_View::BrainSurfaceTest() {
-  // Get the surface.
-  mitk::DataNode::Pointer brainModelNode = this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Surface"));
-  if (brainModelNode == (void*)NULL) {
-    cout << "No Surface Found." << endl;
-    return;
-  }
-
-  // Cast it to an MITK surface.
-  mitk::BaseData * brainModelData = brainModelNode->GetData();
-  mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelData);
-
-  // Extract the vtkPolyData.
-  vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();
-
-  // Randomly colour each point: red, green or blue.
-  unsigned char red[3] = {255, 0, 0};
-  unsigned char green[3] = {0, 255, 0};
-  unsigned char blue[3] = {0, 0, 255};
- 
-  // Generate a list of colours - one for each point.
-  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  colors->SetNumberOfComponents(3);
-  colors->SetName ("Colors");
-  for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
-    int random = rand() % 3;
-    switch (random) {
-      case 0:
-        colors->InsertNextTupleValue(red);
-        break;
-      case 1:
-        colors->InsertNextTupleValue(green);
-        break;
-      case 2:
-        colors->InsertNextTupleValue(blue);
-        break;
-    }
-  }
-  
-  // Set the colours to be the scalar value of each point.
-  brainModelVtk->GetPointData()->SetScalars(colors);
-  cout << "Well, that works." << endl;
 }

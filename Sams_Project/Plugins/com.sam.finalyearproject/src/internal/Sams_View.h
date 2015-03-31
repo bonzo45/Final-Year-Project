@@ -51,7 +51,7 @@ class Sams_View : public QmitkAbstractView {
     void ThresholdUncertainty();
     void LowerThresholdChanged(int lower);
     void UpperThresholdChanged(int upper);
-    void ShowMeASphere();
+    void GenerateUncertaintySphere();
     void ResetViews();
     void ToggleUncertaintyThresholding(bool checked);
     void GenerateRandomUncertainty();
