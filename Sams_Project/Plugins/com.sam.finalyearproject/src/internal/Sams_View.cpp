@@ -65,6 +65,11 @@ PURPOSE.  See the above copyright notices for more information.
 #include <cmath>
 #include <mitkShaderProperty.h>
 
+// for model mapping
+#include <vtkIdList.h>
+#include <vtkCellArray.h>
+#include <vtkMath.h>
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 float minUncertaintyIntensity = 0;
@@ -104,6 +109,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
   connect(UI.buttonCubeUncertainty, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
+  connect(UI.buttonBrainSurfaceTest, SIGNAL(clicked()), this, SLOT(BrainSurfaceTest()));
 
   SetNumberOfImagesSelected(0);
 }
@@ -892,4 +898,63 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   // Convert from ITK to MITK.
   mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
   return mitkImage;
+}
+
+void Sams_View::BrainSurfaceTest() {
+  // Get any surface from the data store.
+  mitk::DataNode::Pointer brainModelNode = this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Surface"));
+  if (brainModelNode == (void*)NULL) {
+    cout << "No Surface Found." << endl;
+    return;
+  }
+
+  // Cast it to an MITK surface.
+  mitk::BaseData * brainModelData = brainModelNode->GetData();
+  mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelData);
+
+  // Get the VTK poly data.
+  vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();
+
+  // Print some random stats.
+  cout << "Let's have a look!" << endl;
+  cout << "- vertices: " << brainModelVtk->GetNumberOfVerts() << endl;
+  cout << "- lines: " << brainModelVtk->GetNumberOfLines() << endl;
+  cout << "- polygons: " << brainModelVtk->GetNumberOfPolys() << endl;
+  cout << "- strips: " << brainModelVtk->GetNumberOfStrips() << endl;
+  cout << "- points: " << brainModelVtk->GetNumberOfPoints() << endl;
+
+  // Generate a list of colours, one for each point.
+  unsigned char red[3] = {255, 0, 0};
+  unsigned char green[3] = {0, 255, 0};
+  unsigned char blue[3] = {0, 0, 255};
+ 
+  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetNumberOfComponents(3);
+  colors->SetName ("Colors");
+ 
+  for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
+    colors->InsertNextTupleValue(red);
+  }
+  
+  // Add the colours to the 'Point Data'
+  brainModelVtk->GetPointData()->SetScalars(colors);
+  cout << "Well, that works." << endl;
+
+    // // Get the actual polygons.
+  // vtkCellArray * brainPolygons = brainModelVtk->GetPolys();
+  
+  // // Iterate through them.
+  // brainPolygons->InitTraversal();
+  // vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+  // unsigned int counter = 1;
+  // while (brainPolygons->GetNextCell(idList)) {
+  //   // cout << "Polygon " << counter << " has " << idList->GetNumberOfIds() << " vertices: ";
+    
+  //   // for(vtkIdType pointId = 0; pointId < idList->GetNumberOfIds(); pointId++) {
+  //   //   cout << idList->GetId(pointId) << ", ";
+  //   // }
+
+  //   // counter++;
+  //   // cout << endl;
+  // }
 }

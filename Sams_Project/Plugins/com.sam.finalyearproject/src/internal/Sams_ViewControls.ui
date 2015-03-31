@@ -418,6 +418,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="buttonBrainSurfaceTest">
+           <property name="text">
+            <string>BRAIN!</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>

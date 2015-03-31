@@ -57,6 +57,7 @@ class Sams_View : public QmitkAbstractView {
     void GenerateRandomUncertainty();
     void GenerateCubeUncertainty();
     void GenerateSphereUncertainty();
+    void BrainSurfaceTest();
 
   protected:  
     virtual void SetFocus();
