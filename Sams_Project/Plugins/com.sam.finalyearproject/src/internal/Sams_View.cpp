@@ -474,7 +474,7 @@ void Sams_View::ShowMeASphere() {
   // Create a VTK texture map.
   vtkSmartPointer<vtkTextureMapToSphere> mapToSphere = vtkSmartPointer<vtkTextureMapToSphere>::New();
   mapToSphere->SetInputConnection(sphere->GetOutputPort());
-  mapToSphere->PreventSeamOn();
+  mapToSphere->PreventSeamOff();
   mapToSphere->Update();
 
   // Generate texture.
@@ -510,10 +510,10 @@ void Sams_View::ShowMeASphere() {
   mitk::DataNode::Pointer surfaceNode = mitk::DataNode::New();
   surfaceNode->SetData(surfaceToPutTextureOn);
   surfaceNode->SetProperty("name", mitk::StringProperty::New("Uncertainty Sphere"));
+
   mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(textureImage);
   surfaceNode->SetProperty("Surface.Texture", textureProperty);
   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
-  //surfaceNode->SetProperty("shader", mitk::ShaderProperty::New("uniform"));
   surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
 
@@ -529,7 +529,7 @@ void Sams_View::GenerateCubeUncertainty() {
 }
 
 void Sams_View::GenerateSphereUncertainty() {
-  GenerateSphereUncertainty(151, 50);
+  GenerateSphereUncertainty(50, 30);
 }
 
 /**
@@ -723,7 +723,7 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   * It works by projecting a point in the center of the volume outwards, onto a sphere.
   */
 mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
-  unsigned int width = 101;
+  unsigned int width = 150;
   unsigned int height = 50;
 
   // Create a blank ITK image.
