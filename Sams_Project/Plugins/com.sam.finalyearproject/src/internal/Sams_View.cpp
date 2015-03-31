@@ -64,6 +64,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <cstdlib>
 #include <cmath>
 #include <mitkShaderProperty.h>
+#include <mitkImagePixelReadAccessor.h>
 
 // for model mapping
 #include <vtkIdList.h>
@@ -757,147 +758,156 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
   cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
 
-  // Compute texture.
-  for (unsigned int r = 0; r < height; r++) {
-    for (unsigned int c = 0; c < width; c++) {
-      bool print;
+  // Use an image accessor to read values from the image, rather than the image itself.
+  try  {
+    mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
+    
+    // Compute texture.
+    for (unsigned int r = 0; r < height; r++) {
+      for (unsigned int c = 0; c < width; c++) {
+        bool print;
 
-      if (r == 25)
-        print = true;
-      else
-        print = false;
-
-      if (print)
-        cout << "(r, c): (" << r << ", " << c << ")" << endl;
-      // Compute spherical coordinates, phi, theta from pixel value.
-      // Latitude
-      float theta = ((float) r / (float) height) * M_PI;
-      // Longitude
-      float phi = ((float) c / (float) width) * (2 * M_PI);
-      if (print)
-        cout << "- (theta, phi): " << "(" << theta << ", " << phi << ")" << endl;
-
-      // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
-      float xDir = cos(phi) * sin(theta);
-      float yDir = cos(theta);
-      float zDir = sin(phi) * sin(theta);
-      if (print)
-        cout << "- (x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
-      
-      float normalization = sqrt(pow(xDir, 2) + pow(yDir, 2) + pow(zDir, 2));
-      xDir /= normalization;
-      yDir /= normalization;
-      zDir /= normalization;
-      
-      if (print)
-        cout << "- n(x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
-      
-      // Compute the center of the uncertainty data.
-      float x = ((float) uncertaintyHeight - 1) / 2.0;
-      float y = ((float) uncertaintyWidth - 1) / 2.0;
-      float z = ((float) uncertaintyDepth - 1) / 2.0;
-      if (print)
-        cout << "- center: " << x << ", " << y << ", " << z << endl;
-
-      // Start at the center and follow the vector outwards whilst sampling points.
-      double uncertaintyAccumulator = 0;
-      unsigned int numSamples = 0;
-      while (x <= uncertaintyHeight - 1 && x >= 0 && y <= uncertaintyWidth - 1 && y >= 0 && z <= uncertaintyDepth - 1 && z >= 0) {
-        // Sample the neighbourhood about a point.
-        double totalAccumulator = 0.0;
-        double distanceAccumulator = 0.0;
-        for (int i = -1; i <= 1; i++) {
-          for (int j = -1; j <= 1; j++) { 
-            for (int k = -1; k <= 1; k++) {
-              int xNeighbour = round(x) + i;
-              int yNeighbour = round(y) + j;
-              int zNeighbour = round(z) + k;
-
-              // If we're on the edge and the neighbour doesn't exist, skip it.
-              if (xNeighbour < 0 || (int) uncertaintyHeight <= xNeighbour ||
-                  yNeighbour < 0 || (int) uncertaintyWidth <= yNeighbour ||
-                  zNeighbour < 0 || (int) uncertaintyDepth <= zNeighbour) {
-                continue;
-              }
-
-              itk::Index<3> index;
-              index[0] = xNeighbour;
-              index[1] = yNeighbour;
-              index[2] = zNeighbour;
-
-              float neighbourSample = uncertaintyImage->GetPixelValueByIndex(index);
-
-              float distanceToSample = 
-                sqrt(
-                  pow((x - xNeighbour), 2) +
-                  pow((y - yNeighbour), 2) + 
-                  pow((z - zNeighbour), 2)
-                );
-
-              if (distanceToSample == 0.0) {
-                totalAccumulator = neighbourSample;
-                distanceAccumulator = 1;
-                goto BREAK_ALL_LOOPS;
-              }
-
-              distanceAccumulator += 1.0 / distanceToSample;
-              totalAccumulator += neighbourSample / distanceToSample;
-            }
-          }
-        }
-        BREAK_ALL_LOOPS:
-
-        if (print) {
-          cout << "Distance Accumulator: " << distanceAccumulator << endl;
-          cout << "Total Accumulator: " << totalAccumulator << endl;
-        }
-        double sample = totalAccumulator / distanceAccumulator;
+        if (r == 25)
+          print = true;
+        else
+          print = false;
 
         if (print)
-          cout << "-- sample: " << "(" << x << ", " << y << ", " << z << "): " << sample << endl;
+          cout << "(r, c): (" << r << ", " << c << ")" << endl;
+        // Compute spherical coordinates, phi, theta from pixel value.
+        // Latitude
+        float theta = ((float) r / (float) height) * M_PI;
+        // Longitude
+        float phi = ((float) c / (float) width) * (2 * M_PI);
+        if (print)
+          cout << "- (theta, phi): " << "(" << theta << ", " << phi << ")" << endl;
 
-        // Add sample, but ignore if it is background.
-        if (sample != 0.0) {
-          // Accumulate result.
-          uncertaintyAccumulator += sample;
+        // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
+        float xDir = cos(phi) * sin(theta);
+        float yDir = cos(theta);
+        float zDir = sin(phi) * sin(theta);
+        if (print)
+          cout << "- (x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
+        
+        float normalization = sqrt(pow(xDir, 2) + pow(yDir, 2) + pow(zDir, 2));
+        xDir /= normalization;
+        yDir /= normalization;
+        zDir /= normalization;
+        
+        if (print)
+          cout << "- n(x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
+        
+        // Compute the center of the uncertainty data.
+        float x = ((float) uncertaintyHeight - 1) / 2.0;
+        float y = ((float) uncertaintyWidth - 1) / 2.0;
+        float z = ((float) uncertaintyDepth - 1) / 2.0;
+        if (print)
+          cout << "- center: " << x << ", " << y << ", " << z << endl;
 
-          // Count how many samples we've taken.
-          numSamples++;
+        // Start at the center and follow the vector outwards whilst sampling points.
+        double uncertaintyAccumulator = 0;
+        unsigned int numSamples = 0;
+        while (x <= uncertaintyHeight - 1 && x >= 0 && y <= uncertaintyWidth - 1 && y >= 0 && z <= uncertaintyDepth - 1 && z >= 0) {
+          // Sample the neighbourhood about a point.
+          double totalAccumulator = 0.0;
+          double distanceAccumulator = 0.0;
+          for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) { 
+              for (int k = -1; k <= 1; k++) {
+                int xNeighbour = round(x) + i;
+                int yNeighbour = round(y) + j;
+                int zNeighbour = round(z) + k;
+
+                // If we're on the edge and the neighbour doesn't exist, skip it.
+                if (xNeighbour < 0 || (int) uncertaintyHeight <= xNeighbour ||
+                    yNeighbour < 0 || (int) uncertaintyWidth <= yNeighbour ||
+                    zNeighbour < 0 || (int) uncertaintyDepth <= zNeighbour) {
+                  continue;
+                }
+
+                itk::Index<3> index;
+                index[0] = xNeighbour;
+                index[1] = yNeighbour;
+                index[2] = zNeighbour;
+
+                float neighbourSample = readAccess.GetPixelByIndex(index);
+
+                float distanceToSample = 
+                  sqrt(
+                    pow((x - xNeighbour), 2) +
+                    pow((y - yNeighbour), 2) + 
+                    pow((z - zNeighbour), 2)
+                  );
+
+                if (distanceToSample == 0.0) {
+                  totalAccumulator = neighbourSample;
+                  distanceAccumulator = 1;
+                  goto BREAK_ALL_LOOPS;
+                }
+
+                distanceAccumulator += 1.0 / distanceToSample;
+                totalAccumulator += neighbourSample / distanceToSample;
+              }
+            }
+          }
+          BREAK_ALL_LOOPS:
+
+          if (print) {
+            cout << "Distance Accumulator: " << distanceAccumulator << endl;
+            cout << "Total Accumulator: " << totalAccumulator << endl;
+          }
+          double sample = totalAccumulator / distanceAccumulator;
+
+          if (print)
+            cout << "-- sample: " << "(" << x << ", " << y << ", " << z << "): " << sample << endl;
+
+          // Add sample, but ignore if it is background.
+          if (sample != 0.0) {
+            // Accumulate result.
+            uncertaintyAccumulator += sample;
+
+            // Count how many samples we've taken.
+            numSamples++;
+          }
+
+          // Move along.
+          x += xDir;
+          y += yDir;
+          z += zDir;
         }
 
-        // Move along.
-        x += xDir;
-        y += yDir;
-        z += zDir;
-      }
+        if (print) {
+          cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
+          cout << "- numSamples: " << numSamples << endl;
+        }
 
-      if (print) {
-        cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
-        cout << "- numSamples: " << numSamples << endl;
-      }
+        int pixelValue = round(uncertaintyAccumulator / numSamples);
+        if (print)
+          cout << "- pixel value: " << pixelValue << endl;
+        // Set texture value.
+        TextureImageType::IndexType pixelIndex;
+        pixelIndex[0] = c;
+        pixelIndex[1] = r;
 
-      int pixelValue = round(uncertaintyAccumulator / numSamples);
-      if (print)
-        cout << "- pixel value: " << pixelValue << endl;
-      // Set texture value.
-      TextureImageType::IndexType pixelIndex;
-      pixelIndex[0] = c;
-      pixelIndex[1] = r;
+        if (c == 0) {
+          pixelValue = 1;
+        }
+        else if (c == round(width / 4)) {
+          pixelValue = 255;
+        }
 
-      if (c == 0) {
-        pixelValue = 1;
+        uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
       }
-      else if (c == round(width / 4)) {
-        pixelValue = 255;
-      }
-
-      uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
     }
-  }
 
-  // Convert from ITK to MITK.
-  mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
-  return mitkImage;
+    // Convert from ITK to MITK.
+    mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
+    return mitkImage;
+  }
+  catch (mitk::Exception & e) {
+    cerr << "Hmmm... it appears we can't get access to the uncertainty image." << e << endl;
+    return NULL;
+  }
 }
 
 /**
