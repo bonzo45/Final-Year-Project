@@ -72,6 +72,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkIdList.h>
 #include <vtkCellArray.h>
 #include <vtkMath.h>
+#include <vtkFloatArray.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -489,6 +490,7 @@ void Sams_View::GenerateUncertaintySphere() {
   surfaceNode->SetProperty("Surface.Texture", textureProperty);
   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
   surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
 
   this->GetDataStorage()->Add(surfaceNode);
@@ -770,6 +772,12 @@ void Sams_View::BrainSurfaceTest() {
     return;
   }
 
+  // Stop the specular in the rendering.
+  brainModelNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  brainModelNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
+  brainModelNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+  brainModelNode->SetProperty("scalar visibility", mitk::BoolProperty::New(true));
+
   // Cast it to an MITK surface.
   mitk::BaseData * brainModelData = brainModelNode->GetData();
   mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelData);
@@ -777,32 +785,55 @@ void Sams_View::BrainSurfaceTest() {
   // Extract the vtkPolyData.
   vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();
 
-  // Randomly colour each point: red, green or blue.
-  unsigned char red[3] = {255, 0, 0};
-  unsigned char green[3] = {0, 255, 0};
-  unsigned char blue[3] = {0, 0, 255};
- 
-  // Generate a list of colours - one for each point.
+  // From this we can the array containing all the normals.
+  vtkSmartPointer<vtkFloatArray> normals = vtkFloatArray::SafeDownCast(brainModelVtk->GetPointData()->GetNormals());
+  if (!normals) {
+    cerr << "Couldn't seem to find any normals." << endl;
+    return;
+  }
+
+  // Generate a list of colours - one for each point - based on the normal at that point.
   vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetNumberOfComponents(3);
-  colors->SetName ("Colors");
+  colors->SetName ("Colors");  
   for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
-    int random = rand() % 3;
-    switch (random) {
-      case 0:
-        colors->InsertNextTupleValue(red);
-        break;
-      case 1:
-        colors->InsertNextTupleValue(green);
-        break;
-      case 2:
-        colors->InsertNextTupleValue(blue);
-        break;
-    }
+    // Get the normal at point i.
+    double normalAtPoint[3];
+    normals->GetTuple(i, normalAtPoint);
+
+    // Set colour to be the normal x, y, z (multiplied by 255)
+    unsigned char normalColour[3] = {round((normalAtPoint[0] + 1.0) * 255 / 2), 0, 0}; //round((normalAtPoint[1] + 1.0) * 255 / 2), round((normalAtPoint[2] + 1.0) * 255 / 2)};
+    colors->InsertNextTupleValue(normalColour);
   }
+
+  // // Randomly colour each point: red, green or blue.
+  // unsigned char red[3] = {255, 0, 0};
+  // unsigned char green[3] = {0, 255, 0};
+  // unsigned char blue[3] = {0, 0, 255};
+ 
+  // Generate a list of colours - one for each point.
+  // vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  // colors->SetNumberOfComponents(3);
+  // colors->SetName ("Colors");
+  // for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
+
+    // int random = rand() % 3;
+    // switch (random) {
+    //   case 0:
+    //     colors->InsertNextTupleValue(red);
+    //     break;
+    //   case 1:
+    //     colors->InsertNextTupleValue(green);
+    //     break;
+    //   case 2:
+    //     colors->InsertNextTupleValue(blue);
+    //     break;
+    // }
+  //}
   
   // Set the colours to be the scalar value of each point.
   brainModelVtk->GetPointData()->SetScalars(colors);
+  
   cout << "Well, that works." << endl;
 }
 
