@@ -900,8 +900,11 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   return mitkImage;
 }
 
+/**
+  * Takes a surface and maps the uncertainty onto it based on the normal vector.
+  */
 void Sams_View::BrainSurfaceTest() {
-  // Get any surface from the data store.
+  // Get the surface.
   mitk::DataNode::Pointer brainModelNode = this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Surface"));
   if (brainModelNode == (void*)NULL) {
     cout << "No Surface Found." << endl;
@@ -912,49 +915,34 @@ void Sams_View::BrainSurfaceTest() {
   mitk::BaseData * brainModelData = brainModelNode->GetData();
   mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelData);
 
-  // Get the VTK poly data.
+  // Extract the vtkPolyData.
   vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();
 
-  // Print some random stats.
-  cout << "Let's have a look!" << endl;
-  cout << "- vertices: " << brainModelVtk->GetNumberOfVerts() << endl;
-  cout << "- lines: " << brainModelVtk->GetNumberOfLines() << endl;
-  cout << "- polygons: " << brainModelVtk->GetNumberOfPolys() << endl;
-  cout << "- strips: " << brainModelVtk->GetNumberOfStrips() << endl;
-  cout << "- points: " << brainModelVtk->GetNumberOfPoints() << endl;
-
-  // Generate a list of colours, one for each point.
+  // Randomly colour each point: red, green or blue.
   unsigned char red[3] = {255, 0, 0};
   unsigned char green[3] = {0, 255, 0};
   unsigned char blue[3] = {0, 0, 255};
  
+  // Generate a list of colours - one for each point.
   vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetNumberOfComponents(3);
   colors->SetName ("Colors");
- 
   for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
-    colors->InsertNextTupleValue(red);
+    int random = rand() % 3;
+    switch (random) {
+      case 0:
+        colors->InsertNextTupleValue(red);
+        break;
+      case 1:
+        colors->InsertNextTupleValue(green);
+        break;
+      case 2:
+        colors->InsertNextTupleValue(blue);
+        break;
+    }
   }
   
-  // Add the colours to the 'Point Data'
+  // Set the colours to be the scalar value of each point.
   brainModelVtk->GetPointData()->SetScalars(colors);
   cout << "Well, that works." << endl;
-
-    // // Get the actual polygons.
-  // vtkCellArray * brainPolygons = brainModelVtk->GetPolys();
-  
-  // // Iterate through them.
-  // brainPolygons->InitTraversal();
-  // vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
-  // unsigned int counter = 1;
-  // while (brainPolygons->GetNextCell(idList)) {
-  //   // cout << "Polygon " << counter << " has " << idList->GetNumberOfIds() << " vertices: ";
-    
-  //   // for(vtkIdType pointId = 0; pointId < idList->GetNumberOfIds(); pointId++) {
-  //   //   cout << idList->GetId(pointId) << ", ";
-  //   // }
-
-  //   // counter++;
-  //   // cout << endl;
-  // }
 }
