@@ -26,6 +26,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 // Stuff I've included.
 #include <mitkImage.h>
+#include <vtkVector.h>
 
 /*!
   \brief Sams_View
@@ -80,6 +81,7 @@ class Sams_View : public QmitkAbstractView {
     void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
     void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereSize);
     mitk::Image::Pointer GenerateUncertaintyTexture();
+    int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
 
     // ITK Methods
     template <typename TPixel, unsigned int VImageDimension>

@@ -86,7 +86,12 @@ typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
 // ---- GLOBAL VARIABLES --- //
 // ------------------------- //
 
-// Uncertainty Thresholding
+// Uncertainty dimensions.
+unsigned int uncertaintyHeight;
+unsigned int uncertaintyWidth;
+unsigned int uncertaintyDepth;
+
+// 2a. Uncertainty Thresholding
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
 bool thresholdingEnabled = false;
 float minUncertaintyIntensity = 0;
@@ -94,10 +99,10 @@ float maxUncertaintyIntensity = 0;
 float minUncertaintyThreshold = 0;
 float maxUncertaintyThreshold = 0;
 
-// Uncertainty Sphere
+// 2b. Uncertainty Sphere
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
 
-// Test Uncertainties
+// 5. Test Uncertainties
 UncertaintyImageType::Pointer cubeUncertainty;
 UncertaintyImageType::Pointer randomUncertainty;
 UncertaintyImageType::Pointer sphereUncertainty;
@@ -151,6 +156,22 @@ void Sams_View::SetFocus() {
   //    e.g. UI.buttonOverlayText->setFocus();
 }
 
+vtkVector<float, 3> vectorAdd(vtkVector<float, 3> a, vtkVector<float, 3> b) {
+  vtkVector<float, 3> c = vtkVector<float, 3>();
+  c[0] = a[0] + b[0];
+  c[1] = a[1] + b[1];
+  c[2] = a[2] + b[2];
+  return c;
+}
+
+vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b) {
+  vtkVector<float, 3> c = vtkVector<float, 3>();
+  c[0] = a[0] - b[0];
+  c[1] = a[1] - b[1];
+  c[2] = a[2] - b[2];
+  return c;
+}
+
 // ----------- //
 // ---- 1 ---- //
 // ----------- //
@@ -183,15 +204,19 @@ void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
 void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   this->uncertainty = uncertainty;
 
-  // Update Label
+  // Update name label.
   mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
   UI.labelUncertaintyName->setText(QString::fromStdString(name));
 
-  // Calculate intensity range.
-  mitk::BaseData * uncertaintyData = uncertainty->GetData();
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+  // Calculate dimensions.
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
+  uncertaintyHeight = uncertaintyImage->GetDimension(0);
+  uncertaintyWidth = uncertaintyImage->GetDimension(1);
+  uncertaintyDepth = uncertaintyImage->GetDimension(2);
+
+  // 2a. Thresholding - Calculate Intensity Range
   AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
 
   UI.sliderMinThreshold->setRange(0, 1000);
@@ -201,7 +226,7 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   UI.sliderMaxThreshold->setValue(1000);
   UpperThresholdChanged(1000);
 
-  // Update the labels.
+  // Update thresholding sliders.
   std::ostringstream ss;
   ss << std::setprecision(2) << std::fixed << minUncertaintyIntensity;
   UI.labelSliderLeftLimit->setText(ss.str().c_str());
@@ -521,163 +546,135 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   uncertaintyTexture->SetRegions(region);
   uncertaintyTexture->Allocate();
 
-  // Get the uncertainty data to sample.
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
-  unsigned int dimensions = uncertaintyImage->GetDimension();
-  unsigned int uncertaintyHeight = uncertaintyImage->GetDimension(0);
-  unsigned int uncertaintyWidth = uncertaintyImage->GetDimension(1);
-  unsigned int uncertaintyDepth = uncertaintyImage->GetDimension(2);
-  cout << dimensions << "D: " << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << endl;
+  // Compute center of uncertainty data.
+  vtkVector<float, 3> center = vtkVector<float, 3>();
+  center[0] = ((float) uncertaintyHeight - 1) / 2.0;
+  center[1] = ((float) uncertaintyWidth - 1) / 2.0;
+  center[2] = ((float) uncertaintyDepth - 1) / 2.0;
 
-  // Use an image accessor to read values from the image, rather than the image itself.
+  // Compute texture.
+  for (unsigned int r = 0; r < height; r++) {
+    for (unsigned int c = 0; c < width; c++) {
+      // Compute spherical coordinates: phi (longitude) & theta (latitude).
+      float theta = ((float) r / (float) height) * M_PI;
+      float phi = ((float) c / (float) width) * (2 * M_PI);
+      
+      // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
+      vtkVector<float, 3> direction = vtkVector<float, 3>();
+      direction[0] = cos(phi) * sin(theta);
+      direction[1] = cos(theta);
+      direction[2] = sin(phi) * sin(theta);
+      direction.Normalize();
+
+      // Sample the uncertainty data.
+      int pixelValue = SampleUncertainty(center, direction);
+
+      // Set texture value.
+      TextureImageType::IndexType pixelIndex;
+      pixelIndex[0] = c;
+      pixelIndex[1] = r;
+
+      uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
+    }
+  }
+
+  // Convert from ITK to MITK.
+  mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
+  return mitkImage;
+}
+
+/**
+  * Returns the average uncertainty along a vector in the uncertainty.
+  * startPosition - the vector to begin tracing from
+  * direction - the vector of the direction to trace in
+  */
+int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
+  // Use an image accessor to read values from the uncertainty.
   try  {
+    mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
     mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
-    
-    // Compute texture.
-    for (unsigned int r = 0; r < height; r++) {
-      for (unsigned int c = 0; c < width; c++) {
-        bool print;
 
-        if (r == 25)
-          print = true;
-        else
-          print = false;
+    // Start at the startPosition, moving along.
+    vtkVector<float, 3> position = vtkVector<float, 3>(startPosition);
 
-        if (print)
-          cout << "(r, c): (" << r << ", " << c << ")" << endl;
-        // Compute spherical coordinates, phi, theta from pixel value.
-        // Latitude
-        float theta = ((float) r / (float) height) * M_PI;
-        // Longitude
-        float phi = ((float) c / (float) width) * (2 * M_PI);
-        if (print)
-          cout << "- (theta, phi): " << "(" << theta << ", " << phi << ")" << endl;
+    double uncertaintyAccumulator = 0;
+    unsigned int numSamples = 0;
+    while (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
+           0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
+           0 <= position[2] && position[2] <= uncertaintyDepth - 1) {
+      // Linearly interpolate the uncertainty at this position using all neighbouring voxels.
+      double interpolationAccumulator = 0.0;
+      double distanceAccumulator = 0.0;
+      for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) { 
+          for (int k = -1; k <= 1; k++) {
+            // Get the position of the neighbour.
+            vtkVector<float, 3> neighbour = vtkVector<float, 3>();
+            neighbour[0] = round(position[0] + i);
+            neighbour[1] = round(position[1] + j);
+            neighbour[2] = round(position[2] + k);
 
-        // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
-        float xDir = cos(phi) * sin(theta);
-        float yDir = cos(theta);
-        float zDir = sin(phi) * sin(theta);
-        if (print)
-          cout << "- (x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
-        
-        float normalization = sqrt(pow(xDir, 2) + pow(yDir, 2) + pow(zDir, 2));
-        xDir /= normalization;
-        yDir /= normalization;
-        zDir /= normalization;
-        
-        if (print)
-          cout << "- n(x, y, z): " << "(" << xDir << ", " << yDir << ", " << zDir << ")" << endl;
-        
-        // Compute the center of the uncertainty data.
-        float x = ((float) uncertaintyHeight - 1) / 2.0;
-        float y = ((float) uncertaintyWidth - 1) / 2.0;
-        float z = ((float) uncertaintyDepth - 1) / 2.0;
-        if (print)
-          cout << "- center: " << x << ", " << y << ", " << z << endl;
-
-        // Start at the center and follow the vector outwards whilst sampling points.
-        double uncertaintyAccumulator = 0;
-        unsigned int numSamples = 0;
-        while (x <= uncertaintyHeight - 1 && x >= 0 && y <= uncertaintyWidth - 1 && y >= 0 && z <= uncertaintyDepth - 1 && z >= 0) {
-          // Sample the neighbourhood about a point.
-          double totalAccumulator = 0.0;
-          double distanceAccumulator = 0.0;
-          for (int i = -1; i <= 1; i++) {
-            for (int j = -1; j <= 1; j++) { 
-              for (int k = -1; k <= 1; k++) {
-                int xNeighbour = round(x) + i;
-                int yNeighbour = round(y) + j;
-                int zNeighbour = round(z) + k;
-
-                // If we're on the edge and the neighbour doesn't exist, skip it.
-                if (xNeighbour < 0 || (int) uncertaintyHeight <= xNeighbour ||
-                    yNeighbour < 0 || (int) uncertaintyWidth <= yNeighbour ||
-                    zNeighbour < 0 || (int) uncertaintyDepth <= zNeighbour) {
-                  continue;
-                }
-
-                itk::Index<3> index;
-                index[0] = xNeighbour;
-                index[1] = yNeighbour;
-                index[2] = zNeighbour;
-
-                float neighbourSample = readAccess.GetPixelByIndex(index);
-
-                float distanceToSample = 
-                  sqrt(
-                    pow((x - xNeighbour), 2) +
-                    pow((y - yNeighbour), 2) + 
-                    pow((z - zNeighbour), 2)
-                  );
-
-                if (distanceToSample == 0.0) {
-                  totalAccumulator = neighbourSample;
-                  distanceAccumulator = 1;
-                  goto BREAK_ALL_LOOPS;
-                }
-
-                distanceAccumulator += 1.0 / distanceToSample;
-                totalAccumulator += neighbourSample / distanceToSample;
-              }
+            // If the neighbour doesn't exist (we're on the edge), skip it.
+            if (neighbour[0] < 0.0f || uncertaintyHeight <= neighbour[0] ||
+                neighbour[1] < 0.0f || uncertaintyWidth <= neighbour[1] ||
+                neighbour[2] < 0.0f || uncertaintyDepth <= neighbour[2]) {
+              continue;
             }
+
+            // Get the uncertainty of the neighbour.
+            itk::Index<3> index;
+            index[0] = neighbour[0];
+            index[1] = neighbour[1];
+            index[2] = neighbour[2];
+            float neighbourUncertainty = readAccess.GetPixelByIndex(index);
+
+            // Get the distance to this neighbour (to weight by)
+            vtkVector<float, 3> difference = vectorSubtract(position, neighbour);
+            double distanceToSample = difference.Norm();
+              // sqrt(
+              //   pow((x - xNeighbour), 2) +
+              //   pow((y - yNeighbour), 2) + 
+              //   pow((z - zNeighbour), 2)
+              // );
+
+            // If the distance turns out to be zero, we have perfectly hit the sample.
+            //  to avoid division by zero we take this value and ignore the rest.
+            if (distanceToSample == 0.0) {
+              interpolationAccumulator = neighbourUncertainty;
+              distanceAccumulator = 1;
+              goto BREAK_ALL_LOOPS;
+            }
+
+            // Otherwise weight the uncertainty by the inverse distance and add the inverse distance to the total weight.
+            distanceAccumulator += 1.0 / distanceToSample;
+            interpolationAccumulator += neighbourUncertainty / distanceToSample;
           }
-          BREAK_ALL_LOOPS:
-
-          if (print) {
-            cout << "Distance Accumulator: " << distanceAccumulator << endl;
-            cout << "Total Accumulator: " << totalAccumulator << endl;
-          }
-          double sample = totalAccumulator / distanceAccumulator;
-
-          if (print)
-            cout << "-- sample: " << "(" << x << ", " << y << ", " << z << "): " << sample << endl;
-
-          // Add sample, but ignore if it is background.
-          if (sample != 0.0) {
-            // Accumulate result.
-            uncertaintyAccumulator += sample;
-
-            // Count how many samples we've taken.
-            numSamples++;
-          }
-
-          // Move along.
-          x += xDir;
-          y += yDir;
-          z += zDir;
         }
-
-        if (print) {
-          cout << "- uncertaintyAccumulator: " << uncertaintyAccumulator << endl;
-          cout << "- numSamples: " << numSamples << endl;
-        }
-
-        int pixelValue = round(uncertaintyAccumulator / numSamples);
-        if (print)
-          cout << "- pixel value: " << pixelValue << endl;
-        // Set texture value.
-        TextureImageType::IndexType pixelIndex;
-        pixelIndex[0] = c;
-        pixelIndex[1] = r;
-
-        if (c == 0) {
-          pixelValue = 1;
-        }
-        else if (c == round(width / 4)) {
-          pixelValue = 255;
-        }
-
-        uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
       }
+      BREAK_ALL_LOOPS:
+
+      // Interpolate the actual sample.
+      double interpolatedSample = interpolationAccumulator / distanceAccumulator;
+
+      // Include sample if it's not background.
+      if (interpolatedSample != 0.0) {
+        uncertaintyAccumulator += interpolatedSample;
+        numSamples++;
+      }
+
+      // Move along.
+      position = vectorAdd(position, direction);
+      // x += direction[0];
+      // y += direction[1];
+      // z += direction[2];
     }
 
-    // Convert from ITK to MITK.
-    mitk::Image::Pointer mitkImage = mitk::ImportItkImage(uncertaintyTexture);
-    return mitkImage;
+    return round(uncertaintyAccumulator / numSamples);
   }
+
   catch (mitk::Exception & e) {
-    cerr << "Hmmm... it appears we can't get access to the uncertainty image." << e << endl;
-    return NULL;
+    cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't unsigned char? (I've assumed it is)" << e << endl;
+    return -1;
   }
 }
 
