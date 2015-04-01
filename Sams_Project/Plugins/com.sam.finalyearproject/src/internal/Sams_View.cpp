@@ -139,6 +139,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
   connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
   connect(UI.buttonBrainSurfaceTest, SIGNAL(clicked()), this, SLOT(BrainSurfaceTest()));
+  connect(UI.buttonSphereSurface, SIGNAL(clicked()), this, SLOT(GenerateSphereSurface()));
 
   // 5. Test Uncertainties
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
@@ -155,6 +156,10 @@ void Sams_View::SetFocus() {
   // Focus on something useful?
   //    e.g. UI.buttonOverlayText->setFocus();
 }
+
+// ---------------------------------------------------------- //
+// ---- I really shouldn't have to have written these... ---- //
+// ---------------------------------------------------------- //
 
 vtkVector<float, 3> vectorAdd(vtkVector<float, 3> a, vtkVector<float, 3> b) {
   vtkVector<float, 3> c = vtkVector<float, 3>();
@@ -786,14 +791,22 @@ void Sams_View::BrainSurfaceTest() {
   colors->SetNumberOfComponents(3);
   colors->SetName ("Colors");  
   for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
-    // TODO: Get the position of point i
-    vtkVector<float, 3> position = vtkVector<float, 3>(0.0f);
+    // Get the position of point i
+    double positionOfPoint[3];
+    brainModelVtk->GetPoint(i, positionOfPoint);
+    vtkVector<float, 3> position = vtkVector<float, 3>();
+    position[0] = positionOfPoint[0];
+    position[1] = positionOfPoint[1];
+    position[2] = positionOfPoint[2];
 
-    // TODO: Alternately, here's the center.
-    vtkVector<float, 3> center = vtkVector<float, 3>();
-    center[0] = ((float) uncertaintyHeight - 1) / 2.0;
-    center[1] = ((float) uncertaintyWidth - 1) / 2.0;
-    center[2] = ((float) uncertaintyDepth - 1) / 2.0;
+    // // TODO: Alternately, here's the center.
+    // vtkVector<float, 3> center = vtkVector<float, 3>();
+    // center[0] = ((float) uncertaintyHeight - 1) / 2.0;
+    // center[1] = ((float) uncertaintyWidth - 1) / 2.0;
+    // center[2] = ((float) uncertaintyDepth - 1) / 2.0;
+
+    // TODO: Scale the position of point i (some kind of registration step)
+    // Aaaaaaaaah!
 
     // Get the normal of point i
     double normalAtPoint[3];
@@ -804,7 +817,7 @@ void Sams_View::BrainSurfaceTest() {
     normal[2] = normalAtPoint[2];
 
     // Use the position and normal to sample the uncertainty data.
-    int intensity = SampleUncertainty(center, normal);
+    int intensity = SampleUncertainty(position, normal);
 
     // Set the colour to be a grayscale version of this sampling.
     unsigned char normalColour[3] = {intensity, intensity, intensity};
@@ -815,6 +828,31 @@ void Sams_View::BrainSurfaceTest() {
   brainModelVtk->GetPointData()->SetScalars(colors);
   
   cout << "Well, that works." << endl;
+}
+
+void Sams_View::GenerateSphereSurface() {
+  // Create a simple (VTK) sphere.
+  vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+  sphere->SetThetaResolution(100);
+  sphere->SetPhiResolution(100);
+  sphere->SetRadius(20.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer sphereSurface = mitk::Surface::New();
+  sphereSurface->SetVtkPolyData(static_cast<vtkPolyData*>(sphere->GetOutput()));
+
+  // Store it as a DataNode.
+  mitk::DataNode::Pointer sphereNode = mitk::DataNode::New();
+  sphereNode->SetData(sphereSurface);
+  sphereNode->SetProperty("name", mitk::StringProperty::New("Sphere Surface"));
+  sphereNode->SetProperty("layer", mitk::IntProperty::New(3));
+  sphereNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  sphereNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
+  sphereNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+
+  this->GetDataStorage()->Add(sphereNode);
 }
 
 // ----------- //

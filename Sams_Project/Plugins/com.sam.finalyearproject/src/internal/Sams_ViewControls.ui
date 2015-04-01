@@ -452,6 +452,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="buttonSphereSurface">
+           <property name="text">
+            <string>Sphere</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
