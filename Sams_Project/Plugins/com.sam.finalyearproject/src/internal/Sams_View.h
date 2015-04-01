@@ -58,8 +58,10 @@ class Sams_View : public QmitkAbstractView {
     void GenerateRandomUncertainty();
     void GenerateCubeUncertainty();
     void GenerateSphereUncertainty();
+    void GenerateQuadrantSphereUncertainty();
     void BrainSurfaceTest();
     void GenerateSphereSurface();
+
 
   protected:  
     virtual void SetFocus();
@@ -80,7 +82,7 @@ class Sams_View : public QmitkAbstractView {
     void BothPicked(bool test);
     void GenerateRandomUncertainty(unsigned int size);
     void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
-    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereSize);
+    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
     mitk::Image::Pointer GenerateUncertaintyTexture();
     int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
 

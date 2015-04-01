@@ -145,6 +145,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
   connect(UI.buttonCubeUncertainty, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
+  connect(UI.buttonQuadrantSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
 
   SetNumberOfImagesSelected(0);
 }
@@ -884,6 +885,10 @@ void Sams_View::GenerateSphereUncertainty() {
   GenerateSphereUncertainty(50, 30);
 }
 
+void Sams_View::GenerateQuadrantSphereUncertainty() {
+  GenerateSphereUncertainty(50, 12.5, vtkVector<float, 3>(12.5));
+}
+
 /**
   * Generates uncertainty data (size * size * size).
   * Each voxel is a random uncertainty value between 0 and 255.
@@ -1002,7 +1007,7 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   * Generates uncertainty data (totalSize * totalSize * totalSize).
   * It's zero everywhere, apart from a sphere of radius sphereRadius that has uncertainty 255 at the center and fades linearly to the edges.
   */
-void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius) {
+void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
 // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1022,15 +1027,12 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   sphereUncertainty->SetRegions(region);
   sphereUncertainty->Allocate();
 
-  // Make sure the sphere is within the total size.
-  if (sphereRadius > totalSize) {
-    sphereRadius = totalSize;
+  // If the center is not specified (-1) in any dimension, make it the center.
+  for (unsigned int i = 0; i < 3; i++) {
+    if (sphereCenter[i] == -1.0f) {
+      sphereCenter[i] = (float) (totalSize - 1) / 2.0;
+    }
   }
-
-  cout << sphereRadius << "/" << totalSize << endl;
-
-  // Calculate center of sphere.
-  float sphereCenter = (float) (totalSize - 1) / 2.0;
 
   // Go through each voxel and weight uncertainty by distance from center of sphere.
   for (unsigned int r = 0; r < totalSize; r++) {
@@ -1041,22 +1043,20 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
         pixelIndex[1] = c;
         pixelIndex[2] = d;
 
+        vtkVector<float, 3> position = vtkVector<float, 3>();
+        position[0] = r;
+        position[1] = c;
+        position[2] = d;
+
         // Compute distance from center.
-        float distanceFromCenter = 
-          sqrt(
-              pow(((float) r - sphereCenter), 2) +
-              pow(((float) c - sphereCenter), 2) + 
-              pow(((float) d - sphereCenter), 2)
-          );
+        vtkVector<float, 3> difference = vectorSubtract(position, sphereCenter);
+        float distanceFromCenter = difference.Norm();
 
         // Get normalized 0-1 weighting.
         float uncertaintyValue = std::max(0.0f, ((float) sphereRadius - distanceFromCenter) / (float) sphereRadius);
 
-        //cout << "Distance: " << distanceFromCenter << ", Uncertainty: " << uncertaintyValue << endl;
-
         // Scale by 255.
         sphereUncertainty->SetPixel(pixelIndex, uncertaintyValue * 255);
-        
       }
     }
   }
