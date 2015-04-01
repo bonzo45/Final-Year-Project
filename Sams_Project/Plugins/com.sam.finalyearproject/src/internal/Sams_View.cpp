@@ -552,7 +552,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   center[1] = ((float) uncertaintyWidth - 1) / 2.0;
   center[2] = ((float) uncertaintyDepth - 1) / 2.0;
 
-  // Compute texture.
+  // For each pixel in the texture, sample the uncertainty data.
   for (unsigned int r = 0; r < height; r++) {
     for (unsigned int c = 0; c < width; c++) {
       // Compute spherical coordinates: phi (longitude) & theta (latitude).
@@ -631,11 +631,6 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
             // Get the distance to this neighbour (to weight by)
             vtkVector<float, 3> difference = vectorSubtract(position, neighbour);
             double distanceToSample = difference.Norm();
-              // sqrt(
-              //   pow((x - xNeighbour), 2) +
-              //   pow((y - yNeighbour), 2) + 
-              //   pow((z - zNeighbour), 2)
-              // );
 
             // If the distance turns out to be zero, we have perfectly hit the sample.
             //  to avoid division by zero we take this value and ignore the rest.
@@ -664,9 +659,6 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
 
       // Move along.
       position = vectorAdd(position, direction);
-      // x += direction[0];
-      // y += direction[1];
-      // z += direction[2];
     }
 
     return round(uncertaintyAccumulator / numSamples);
@@ -794,39 +786,30 @@ void Sams_View::BrainSurfaceTest() {
   colors->SetNumberOfComponents(3);
   colors->SetName ("Colors");  
   for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
-    // Get the normal at point i.
+    // TODO: Get the position of point i
+    vtkVector<float, 3> position = vtkVector<float, 3>(0.0f);
+
+    // TODO: Alternately, here's the center.
+    vtkVector<float, 3> center = vtkVector<float, 3>();
+    center[0] = ((float) uncertaintyHeight - 1) / 2.0;
+    center[1] = ((float) uncertaintyWidth - 1) / 2.0;
+    center[2] = ((float) uncertaintyDepth - 1) / 2.0;
+
+    // Get the normal of point i
     double normalAtPoint[3];
     normals->GetTuple(i, normalAtPoint);
+    vtkVector<float, 3> normal = vtkVector<float, 3>();
+    normal[0] = normalAtPoint[0];
+    normal[1] = normalAtPoint[1];
+    normal[2] = normalAtPoint[2];
 
-    // Set colour to be the normal x, y, z (multiplied by 255)
-    unsigned char normalColour[3] = {round((normalAtPoint[0] + 1.0) * 255 / 2), 0, 0}; //round((normalAtPoint[1] + 1.0) * 255 / 2), round((normalAtPoint[2] + 1.0) * 255 / 2)};
+    // Use the position and normal to sample the uncertainty data.
+    int intensity = SampleUncertainty(center, normal);
+
+    // Set the colour to be a grayscale version of this sampling.
+    unsigned char normalColour[3] = {intensity, intensity, intensity};
     colors->InsertNextTupleValue(normalColour);
   }
-
-  // // Randomly colour each point: red, green or blue.
-  // unsigned char red[3] = {255, 0, 0};
-  // unsigned char green[3] = {0, 255, 0};
-  // unsigned char blue[3] = {0, 0, 255};
- 
-  // Generate a list of colours - one for each point.
-  // vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  // colors->SetNumberOfComponents(3);
-  // colors->SetName ("Colors");
-  // for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
-
-    // int random = rand() % 3;
-    // switch (random) {
-    //   case 0:
-    //     colors->InsertNextTupleValue(red);
-    //     break;
-    //   case 1:
-    //     colors->InsertNextTupleValue(green);
-    //     break;
-    //   case 2:
-    //     colors->InsertNextTupleValue(blue);
-    //     break;
-    // }
-  //}
   
   // Set the colours to be the scalar value of each point.
   brainModelVtk->GetPointData()->SetScalars(colors);
