@@ -798,6 +798,10 @@ void Sams_View::BrainSurfaceTest() {
   double zMin = bounds[4];
   double zMax = bounds[5];
   double zRange = zMax - zMin;
+  cout << "Ranges:" << endl;
+  cout << "x: (" << xMin << ", " << xMax << ") - " << xRange << endl;
+  cout << "y: (" << yMin << ", " << yMax << ") - " << yRange << endl;
+  cout << "z: (" << zMin << ", " << zMax << ") - " << zRange << endl;
 
   // Generate a list of colours, one for each point, based on the normal at that point.
   vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -811,23 +815,25 @@ void Sams_View::BrainSurfaceTest() {
     // TODO: Better registration step. Unfortunately MITK appears not to be able to do pointwise registration between surface and image.
     // Simple scaling. Normalise the point to 0-1 based on the bounding box of the surface. Scale by uncertainty volume size.
     vtkVector<float, 3> position = vtkVector<float, 3>();
-    position[0] = ((positionOfPoint[0] - xMin) / xRange) * uncertaintyHeight;
-    position[1] = ((positionOfPoint[1] - yMin) / yRange) * uncertaintyWidth;
-    position[2] = ((positionOfPoint[2] - zMin) / zRange) * uncertaintyDepth;
+    position[0] = ((positionOfPoint[0] - xMin) / xRange) * (uncertaintyHeight - 1);
+    position[1] = ((positionOfPoint[1] - yMin) / yRange) * (uncertaintyWidth - 1);
+    position[2] = ((positionOfPoint[2] - zMin) / zRange) * (uncertaintyDepth - 1);
 
     // Get the normal of point i
     double normalAtPoint[3];
     normals->GetTuple(i, normalAtPoint);
     vtkVector<float, 3> normal = vtkVector<float, 3>();
-    normal[0] = normalAtPoint[0];
-    normal[1] = normalAtPoint[1];
-    normal[2] = normalAtPoint[2];
+    normal[0] = -normalAtPoint[0];
+    normal[1] = -normalAtPoint[1];
+    normal[2] = -normalAtPoint[2];
 
     // Use the position and normal to sample the uncertainty data.
     int intensity = SampleUncertainty(position, normal);
 
+    cout << "Intensity from (" << position[0] << ", " << position[1] << ", " << position[2] << ") -> (" << normal[0] << ", " << normal[1] << ", " << normal[2] << ") is " << intensity <<   "." << endl;
+
     // Set the colour to be a grayscale version of this sampling.
-    unsigned char normalColour[3] = {intensity, intensity, intensity};
+    unsigned char normalColour[3] = {static_cast<unsigned char>(intensity), static_cast<unsigned char>(intensity), static_cast<unsigned char>(intensity)};
     colors->InsertNextTupleValue(normalColour);
   }
   
@@ -840,9 +846,9 @@ void Sams_View::BrainSurfaceTest() {
 void Sams_View::GenerateSphereSurface() {
   // Create a simple (VTK) sphere.
   vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-  sphere->SetThetaResolution(100);
-  sphere->SetPhiResolution(100);
-  sphere->SetRadius(100.0);
+  sphere->SetThetaResolution(50);
+  sphere->SetPhiResolution(150);
+  sphere->SetRadius(20.0);
   sphere->SetCenter(0, 0, 0);
   sphere->Update();
 
