@@ -786,7 +786,20 @@ void Sams_View::BrainSurfaceTest() {
     return;
   }
 
-  // Generate a list of colours - one for each point - based on the normal at that point.
+  // Compute the bounding box of the surface (for simple registration between surface and uncertainty volume)
+  double bounds[6];
+  brainModelVtk->GetBounds(bounds); // NOTE: Apparently this isn't thread safe.
+  double xMin = bounds[0];
+  double xMax = bounds[1];
+  double xRange = xMax - xMin;
+  double yMin = bounds[2];
+  double yMax = bounds[3];
+  double yRange = yMax - yMin;
+  double zMin = bounds[4];
+  double zMax = bounds[5];
+  double zRange = zMax - zMin;
+
+  // Generate a list of colours, one for each point, based on the normal at that point.
   vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetNumberOfComponents(3);
   colors->SetName ("Colors");  
@@ -794,19 +807,13 @@ void Sams_View::BrainSurfaceTest() {
     // Get the position of point i
     double positionOfPoint[3];
     brainModelVtk->GetPoint(i, positionOfPoint);
+
+    // TODO: Better registration step. Unfortunately MITK appears not to be able to do pointwise registration between surface and image.
+    // Simple scaling. Normalise the point to 0-1 based on the bounding box of the surface. Scale by uncertainty volume size.
     vtkVector<float, 3> position = vtkVector<float, 3>();
-    position[0] = positionOfPoint[0];
-    position[1] = positionOfPoint[1];
-    position[2] = positionOfPoint[2];
-
-    // // TODO: Alternately, here's the center.
-    // vtkVector<float, 3> center = vtkVector<float, 3>();
-    // center[0] = ((float) uncertaintyHeight - 1) / 2.0;
-    // center[1] = ((float) uncertaintyWidth - 1) / 2.0;
-    // center[2] = ((float) uncertaintyDepth - 1) / 2.0;
-
-    // TODO: Scale the position of point i (some kind of registration step)
-    // Aaaaaaaaah!
+    position[0] = ((positionOfPoint[0] - xMin) / xRange) * uncertaintyHeight;
+    position[1] = ((positionOfPoint[1] - yMin) / yRange) * uncertaintyWidth;
+    position[2] = ((positionOfPoint[2] - zMin) / zRange) * uncertaintyDepth;
 
     // Get the normal of point i
     double normalAtPoint[3];
@@ -835,7 +842,7 @@ void Sams_View::GenerateSphereSurface() {
   vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
   sphere->SetThetaResolution(100);
   sphere->SetPhiResolution(100);
-  sphere->SetRadius(20.0);
+  sphere->SetRadius(100.0);
   sphere->SetCenter(0, 0, 0);
   sphere->Update();
 
