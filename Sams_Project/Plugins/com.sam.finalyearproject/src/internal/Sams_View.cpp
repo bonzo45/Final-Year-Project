@@ -614,7 +614,7 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
     // Starting at 'startPosition' move in 'direction' in unit steps, taking samples.
     vtkVector<float, 3> position = vtkVector<float, 3>(startPosition);
 
-    double uncertaintyAccumulator = 0;
+    double uncertaintyAccumulator = 0.0;
     unsigned int numSamples = 0;
     while (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
            0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
@@ -659,6 +659,13 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
             index[2] = neighbour[2];
             float neighbourUncertainty = readAccess.GetPixelByIndex(index);
 
+            // If the uncertainty of the neighbour is 0, skip it.
+            if (std::abs(neighbourUncertainty) < 0.0001) {
+              if (print)
+                cout << "-- SKIPPED NEIGHBOUR" << endl;
+              continue;
+            }
+
             // Get the distance to this neighbour
             vtkVector<float, 3> difference = vectorSubtract(position, neighbour);
             double distanceToSample = difference.Norm();
@@ -682,8 +689,8 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       }
       BREAK_ALL_LOOPS:
 
-      // Interpolate all the values sample.
-      double interpolatedSample = interpolationTotalAccumulator / interpolationDistanceAccumulator;
+      // Interpolate the values. If there were no valid samples, set it to zero.
+      double interpolatedSample = (interpolationTotalAccumulator == 0.0) ? 0 : interpolationTotalAccumulator / interpolationDistanceAccumulator;
 
       if (print) 
         cout << "- Combined Sample: " << interpolatedSample << " (from total=" << interpolationTotalAccumulator << " and distance=" << interpolationDistanceAccumulator << ")" <<endl;
