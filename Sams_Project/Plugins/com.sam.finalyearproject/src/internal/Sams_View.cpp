@@ -50,6 +50,9 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkBinaryThresholdImageFilter.h>
 #include <mitkImageCast.h>
 #include <itkMinimumMaximumImageCalculator.h>
+// #include <itkFFTShiftImageFilter.h>
+
+//#include <itkGrayscaleErodeImageFilter.h>
 
 // for sphere
 #include <vtkSphereSource.h>
@@ -77,6 +80,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include <cmath> // for abs
 #include <algorithm> // for min/max
 
+#include <itkSubtractImageFilter.h>
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 // ------------------ //
@@ -101,6 +106,8 @@ float minUncertaintyIntensity = 0;
 float maxUncertaintyIntensity = 0;
 float minUncertaintyThreshold = 0;
 float maxUncertaintyThreshold = 0;
+
+mitk::DataNode::Pointer erodedUncertainty = 0;
 
 // 2b. Uncertainty Sphere
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
@@ -131,8 +138,12 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
 
-  //  b. Uncertainty Sphere
+  //  b. Texture Mapping
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
+
+  //  c. Surface Mapping
+  connect(UI.buttonSphereSurface, SIGNAL(clicked()), this, SLOT(GenerateSphereSurface()));
+  connect(UI.buttonSurfaceMapping, SIGNAL(clicked()), this, SLOT(SurfaceMapping()));
 
   // 3. Options
   connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
@@ -141,8 +152,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // 4. Random
   connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
   connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
-  connect(UI.buttonBrainSurfaceTest, SIGNAL(clicked()), this, SLOT(BrainSurfaceTest()));
-  connect(UI.buttonSphereSurface, SIGNAL(clicked()), this, SLOT(GenerateSphereSurface()));
 
   // 5. Test Uncertainties
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
@@ -161,9 +170,9 @@ void Sams_View::SetFocus() {
   //    e.g. UI.buttonOverlayText->setFocus();
 }
 
-// ---------------------------------------------------------- //
-// ---- I really shouldn't have to have written these... ---- //
-// ---------------------------------------------------------- //
+// ------------------------------------------------------- //
+// ---- I really shouldn't have had to write these... ---- //
+// ------------------------------------------------------- //
 
 vtkVector<float, 3> vectorAdd(vtkVector<float, 3> a, vtkVector<float, 3> b) {
   vtkVector<float, 3> c = vtkVector<float, 3>();
@@ -465,6 +474,57 @@ void Sams_View::UpperThresholdChanged(int upper) {
   }
 }
 
+void Sams_View::ErodeUncertainty() {
+  mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
+  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+
+  AccessByItk(uncertaintyImage, ItkErodeUncertainty);
+}
+
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+
+  // Create the erosion kernel, this describes how the data is eroded.
+  typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(5);
+  structuringElement.CreateStructuringElement();
+ 
+  // Create an erosion filter, using the kernel. It returns a binary 0/1 (this pixel should or should not be eroded)
+  typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
+  typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
+  erodeFilter->SetInput(itkImage);
+  erodeFilter->SetKernel(structuringElement);
+
+  // Then we use a subtract filter to subtract those pixels that the erosion filter suggests.
+  typedef itk::SubtractImageFilter<ImageType> SubtractType;
+  typename SubtractType::Pointer diff = SubtractType::New();
+  diff->SetInput1(itkImage);
+  diff->SetInput2(erodeFilter->GetOutput());
+  diff->Update();
+
+  // Convert to MITK
+  ImageType * erodedImage = diff->GetOutput();
+  mitk::Image::Pointer resultImage;
+  mitk::CastToMitkImage(erodedImage, resultImage);
+
+  // Wrap it up in a DataNode
+  if (erodedUncertainty) {
+    this->GetDataStorage()->Remove(erodedUncertainty);
+  }
+
+  erodedUncertainty = mitk::DataNode::New();
+  erodedUncertainty->SetData(resultImage);
+  erodedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Eroded"));
+  erodedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  erodedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
+  this->GetDataStorage()->Add(erodedUncertainty);
+
+  this->RequestRenderWindowUpdate();
+}
+
 // ------------ //
 // ---- 2b ---- //
 // ------------ //
@@ -716,90 +776,14 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
   }
 }
 
-// ----------- //
-// ---- 3 ---- //
-// ----------- //
-
-/**
-  * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
-  */
-void Sams_View::ToggleCrosshairs(int state) {
-  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  if (linkedRenderWindowPart != NULL) {
-    linkedRenderWindowPart->EnableSlicingPlanes(state > 0);
-  }
-}
-
-/**
-  * Resets all the cameras. Works, but doesn't call reinit on all the datanodes (which it appears 'Reset Views' does...)
-  */
-void Sams_View::ResetViews() {
-  // Get all DataNode's that are visible.
-  mitk::NodePredicateProperty::Pointer isVisible = mitk::NodePredicateProperty::New("visible", mitk::BoolProperty::New(true));
-  mitk::DataStorage::SetOfObjects::ConstPointer visibleObjects = this->GetDataStorage()->GetSubset(isVisible);
-
-  // Compute bounding box for them.
-  const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeBoundingGeometry3D(visibleObjects);
-
-  // OLD: Compute optimal bounds.
-  //   const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeVisibleBoundingGeometry3D();
-
-  // Set them.
-  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
-  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
-  renderManager->InitializeViews(bounds);
-
-  this->RequestRenderWindowUpdate();
-}
-
-// ----------- //
-// ---- 4 ---- //
-// ----------- //
-
-/**
-  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
-  */
-void Sams_View::SetLayers() {
-  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
-  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
-
-  this->scan->SetProperty("layer", behindProperty);
-  this->uncertainty->SetProperty("layer", infrontProperty);
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
-  * Puts some useless text on the render windows.
-  */
-void Sams_View::ShowTextOverlay() {
-  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
-  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
-  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
-
-  //Create a textOverlay2D
-  mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
-  textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
-  textOverlay->SetFontSize(40);
-  textOverlay->SetColor(1,0,0); //Set text color to red
-  textOverlay->SetOpacity(1);
-
-  //The position of the Overlay can be set to a fixed coordinate on the display.
-  mitk::Point2D pos;
-  pos[0] = 10,pos[1] = 20;
-  textOverlay->SetPosition2D(pos);
-  
-  //Add the overlay to the overlayManager. It is added to all registered renderers automatically
-  overlayManager->AddOverlay(textOverlay.GetPointer());
-
-  this->RequestRenderWindowUpdate();
-}
+// ------------ //
+// ---- 2c ---- //
+// ------------ //
 
 /**
   * Takes a surface and maps the uncertainty onto it based on the normal vector.
   */
-void Sams_View::BrainSurfaceTest() {
+void Sams_View::SurfaceMapping() {
   // Get the surface.
   mitk::DataNode::Pointer brainModelNode = this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Surface"));
   if (brainModelNode == (void*)NULL) {
@@ -907,6 +891,86 @@ void Sams_View::GenerateSphereSurface() {
   sphereNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
 
   this->GetDataStorage()->Add(sphereNode);
+}
+
+// ----------- //
+// ---- 3 ---- //
+// ----------- //
+
+/**
+  * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
+  */
+void Sams_View::ToggleCrosshairs(int state) {
+  mitk::ILinkedRenderWindowPart* linkedRenderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  if (linkedRenderWindowPart != NULL) {
+    linkedRenderWindowPart->EnableSlicingPlanes(state > 0);
+  }
+}
+
+/**
+  * Resets all the cameras. Works, but doesn't call reinit on all the datanodes (which it appears 'Reset Views' does...)
+  */
+void Sams_View::ResetViews() {
+  // Get all DataNode's that are visible.
+  mitk::NodePredicateProperty::Pointer isVisible = mitk::NodePredicateProperty::New("visible", mitk::BoolProperty::New(true));
+  mitk::DataStorage::SetOfObjects::ConstPointer visibleObjects = this->GetDataStorage()->GetSubset(isVisible);
+
+  // Compute bounding box for them.
+  const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeBoundingGeometry3D(visibleObjects);
+
+  // OLD: Compute optimal bounds.
+  //   const mitk::TimeGeometry::Pointer bounds = this->GetDataStorage()->ComputeVisibleBoundingGeometry3D();
+
+  // Set them.
+  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
+  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
+  renderManager->InitializeViews(bounds);
+
+  this->RequestRenderWindowUpdate();
+}
+
+// ----------- //
+// ---- 4 ---- //
+// ----------- //
+
+/**
+  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
+  */
+void Sams_View::SetLayers() {
+  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
+  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
+
+  this->scan->SetProperty("layer", behindProperty);
+  this->uncertainty->SetProperty("layer", infrontProperty);
+
+  this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Puts some useless text on the render windows.
+  */
+void Sams_View::ShowTextOverlay() {
+  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
+  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
+  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
+
+  //Create a textOverlay2D
+  mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
+  textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
+  textOverlay->SetFontSize(40);
+  textOverlay->SetColor(1,0,0); //Set text color to red
+  textOverlay->SetOpacity(1);
+
+  //The position of the Overlay can be set to a fixed coordinate on the display.
+  mitk::Point2D pos;
+  pos[0] = 10,pos[1] = 20;
+  textOverlay->SetPosition2D(pos);
+  
+  //Add the overlay to the overlayManager. It is added to all registered renderers automatically
+  overlayManager->AddOverlay(textOverlay.GetPointer());
+
+  this->RequestRenderWindowUpdate();
 }
 
 // ----------- //

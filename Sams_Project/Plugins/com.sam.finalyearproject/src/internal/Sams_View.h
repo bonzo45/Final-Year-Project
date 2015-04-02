@@ -27,6 +27,9 @@ PURPOSE.  See the above copyright notices for more information.
 // Stuff I've included.
 #include <mitkImage.h>
 #include <vtkVector.h>
+#include "itkBinaryBallStructuringElement.h"
+#include "itkGrayscaleErodeImageFilter.h"
+
 
 /*!
   \brief Sams_View
@@ -45,23 +48,37 @@ class Sams_View : public QmitkAbstractView {
     virtual void CreateQtPartControl(QWidget *parent);
 
   protected slots:
+    // 1
     void SwapScanUncertainty();
-    void ShowTextOverlay();
-    void ToggleCrosshairs(int state);
-    void SetLayers();
+
+    // 2
+    //  a
     void ThresholdUncertainty();
+    void ToggleUncertaintyThresholding(bool checked);    
     void LowerThresholdChanged(int lower);
     void UpperThresholdChanged(int upper);
+    void ErodeUncertainty();
+
+    //  b
     void GenerateUncertaintySphere();
+
+    //  c
+    void GenerateSphereSurface();
+    void SurfaceMapping();
+
+    // 3
+    void ToggleCrosshairs(int state);
     void ResetViews();
-    void ToggleUncertaintyThresholding(bool checked);
+
+    // 4
+    void ShowTextOverlay();
+    void SetLayers();
+
+    // 5
     void GenerateRandomUncertainty();
     void GenerateCubeUncertainty();
     void GenerateSphereUncertainty();
     void GenerateQuadrantSphereUncertainty();
-    void BrainSurfaceTest();
-    void GenerateSphereSurface();
-
 
   protected:  
     virtual void SetFocus();
@@ -74,23 +91,38 @@ class Sams_View : public QmitkAbstractView {
     Ui::Sams_ViewControls UI;
 
   private:
+    // 1
     void SetScan(mitk::DataNode::Pointer scan);
     void SetUncertainty(mitk::DataNode::Pointer uncertainty);
     void SetNumberOfImagesSelected(int imagesSelected);
     void ScanPicked(bool test);
     void UncertaintyPicked(bool test);
     void BothPicked(bool test);
-    void GenerateRandomUncertainty(unsigned int size);
-    void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
-    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
-    mitk::Image::Pointer GenerateUncertaintyTexture();
-    int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
 
-    // ITK Methods
+    // 2
+    //  a
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage, float min, float max);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
+    void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage);
+
+
+    //  b
+    mitk::Image::Pointer GenerateUncertaintyTexture();
+    int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
+
+    //  c
+
+    // 3
+
+    // 4
+
+    // 5
+    void GenerateRandomUncertainty(unsigned int size);
+    void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
+    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
 };
 
 #endif // Sams_View_h
