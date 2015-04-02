@@ -590,17 +590,26 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
 }
 
 /**
+  * Custom comparator. Given a pair (position, distance), returns true if a is closer than b.
+  */
+bool SortPairsByDistanceAscending(std::pair<vtkVector<float, 3>, double> a, std::pair<vtkVector<float, 3>, double> b) {
+  return a.second < b.second;
+}
+
+/**
   * Returns the average uncertainty along a vector in the uncertainty.
   * startPosition - the vector to begin tracing from
   * direction - the vector of the direction to trace in
+  * numInterpolationSamples - the number of nearest neighbours to interpolate each sample by
   */
-int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
+int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction, unsigned int numInterpolationSamples) {
   // Use an image accessor to read values from the uncertainty.
   try  {
+    // See if the uncertainty data is available to be read.
     mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
     mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
 
-    // Start at the startPosition, moving along.
+    // Starting at 'startPosition' move in 'direction' in unit steps, taking samples.
     vtkVector<float, 3> position = vtkVector<float, 3>(startPosition);
 
     double uncertaintyAccumulator = 0;
@@ -608,54 +617,87 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
     while (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
            0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
            0 <= position[2] && position[2] <= uncertaintyDepth - 1) {
-      // Linearly interpolate the uncertainty at this position using all neighbouring voxels.
-      double interpolationAccumulator = 0.0;
-      double distanceAccumulator = 0.0;
-      for (int i = -1; i <= 1; i++) {
-        for (int j = -1; j <= 1; j++) { 
-          for (int k = -1; k <= 1; k++) {
+      double interpolationTotalAccumulator = 0.0;
+      double interpolationDistanceAccumulator = 0.0;
+
+      // We're going to interpolate this point by looking at the numInterpolationSamples nearest neighbours.
+      float layersToConsider = cbrt(numInterpolationSamples + 1);
+      int bound = ceil(layersToConsider);
+      if (bound % 2 == 0) {
+        bound++;
+      }
+      int range = (bound - 1) / 2;
+
+      //cout << numInterpolationSamples << "-NN, bound = " << bound << ", range = " << range << "." << endl;
+
+      std::list <std::pair <vtkVector<float, 3>, double> > shortlist;
+
+      // Build a list of possible samples.
+      for (int i = -range; i <= range; i++) {
+        for (int j = -range; j <= range; j++) { 
+          for (int k = -range; k <= range; k++) {
             // Get the position of the neighbour.
             vtkVector<float, 3> neighbour = vtkVector<float, 3>();
             neighbour[0] = round(position[0] + i);
             neighbour[1] = round(position[1] + j);
             neighbour[2] = round(position[2] + k);
 
-            // If the neighbour doesn't exist (we're on the edge), skip it.
+            // If the neighbour doesn't exist (we're over the edge), skip it.
             if (neighbour[0] < 0.0f || uncertaintyHeight <= neighbour[0] ||
                 neighbour[1] < 0.0f || uncertaintyWidth <= neighbour[1] ||
                 neighbour[2] < 0.0f || uncertaintyDepth <= neighbour[2]) {
               continue;
             }
 
-            // Get the uncertainty of the neighbour.
-            itk::Index<3> index;
-            index[0] = neighbour[0];
-            index[1] = neighbour[1];
-            index[2] = neighbour[2];
-            float neighbourUncertainty = readAccess.GetPixelByIndex(index);
-
-            // Get the distance to this neighbour (to weight by)
+            // Get the distance to this neighbour
             vtkVector<float, 3> difference = vectorSubtract(position, neighbour);
             double distanceToSample = difference.Norm();
 
-            // If the distance turns out to be zero, we have perfectly hit the sample.
-            //  to avoid division by zero we take this value and ignore the rest.
+            // Add the neighbours position and distance to a short list.
+            std::pair<vtkVector<float, 3>, double> neighbourAndDistance(neighbour, distanceToSample);
+
+            // If the distance turns out to be zero, we have a perfect match. Ignore all other samples.
             if (distanceToSample == 0.0) {
-              interpolationAccumulator = neighbourUncertainty;
-              distanceAccumulator = 1;
+              shortlist.clear();
+              shortlist.push_back(neighbourAndDistance);
               goto BREAK_ALL_LOOPS;
             }
 
-            // Otherwise weight the uncertainty by the inverse distance and add the inverse distance to the total weight.
-            distanceAccumulator += 1.0 / distanceToSample;
-            interpolationAccumulator += neighbourUncertainty / distanceToSample;
+            // Otherwise, add it in with the rest.
+            shortlist.push_back(neighbourAndDistance);
           }
         }
       }
       BREAK_ALL_LOOPS:
 
-      // Interpolate the actual sample.
-      double interpolatedSample = interpolationAccumulator / distanceAccumulator;
+      // Sort them, closest first.
+      shortlist.sort(SortPairsByDistanceAscending);
+
+      // Interpolate from the closest numInterpolationSamples samples.
+      unsigned int samplesTaken = 0;
+      for (std::list<std::pair<vtkVector<float, 3>, double> >::iterator it = shortlist.begin(); it != shortlist.end(); it++) {
+        std::pair<vtkVector<float, 3>, double> neighbourAndDistance = *it;
+
+        // Read the uncertainty of the neighbour.
+        itk::Index<3> index;
+        index[0] = neighbourAndDistance.first[0];
+        index[1] = neighbourAndDistance.first[1];
+        index[2] = neighbourAndDistance.first[2];
+        float neighbourUncertainty = readAccess.GetPixelByIndex(index);
+
+        // Accumulate
+        interpolationTotalAccumulator += neighbourUncertainty / neighbourAndDistance.second;
+        interpolationDistanceAccumulator += 1.0 / neighbourAndDistance.second;
+        
+        // If we've had enough samples, stop.
+        samplesTaken++;
+        if (samplesTaken >= numInterpolationSamples) {
+          break;
+        }
+      }
+
+      // Interpolate all the values sample.
+      double interpolatedSample = interpolationTotalAccumulator / interpolationDistanceAccumulator;
 
       // Include sample if it's not background.
       if (interpolatedSample != 0.0) {

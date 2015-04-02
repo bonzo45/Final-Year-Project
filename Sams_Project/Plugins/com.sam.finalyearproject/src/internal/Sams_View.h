@@ -84,7 +84,7 @@ class Sams_View : public QmitkAbstractView {
     void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
     void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
     mitk::Image::Pointer GenerateUncertaintyTexture();
-    int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
+    int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction, unsigned int numInterpolationSamples = 4);
 
     // ITK Methods
     template <typename TPixel, unsigned int VImageDimension>
