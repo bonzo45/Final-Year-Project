@@ -74,6 +74,9 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkMath.h>
 #include <vtkFloatArray.h>
 
+#include <cmath> // for abs
+#include <algorithm> // for min/max
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 // ------------------ //
@@ -575,6 +578,10 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
       // Sample the uncertainty data.
       int pixelValue = SampleUncertainty(center, direction);
 
+      if (c == 75 && r == 25) {
+        cout << "75, 25 has direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ") and value " << pixelValue << endl;
+      }
+
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
       pixelIndex[0] = c;
@@ -590,19 +597,14 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
 }
 
 /**
-  * Custom comparator. Given a pair (position, distance), returns true if a is closer than b.
-  */
-bool SortPairsByDistanceAscending(std::pair<vtkVector<float, 3>, double> a, std::pair<vtkVector<float, 3>, double> b) {
-  return a.second < b.second;
-}
-
-/**
   * Returns the average uncertainty along a vector in the uncertainty.
   * startPosition - the vector to begin tracing from
   * direction - the vector of the direction to trace in
-  * numInterpolationSamples - the number of nearest neighbours to interpolate each sample by
   */
-int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction, unsigned int numInterpolationSamples) {
+int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
+  bool print = ((std::abs(direction[0] - -1.0f) < 0.000001f) && ((std::abs(direction[1]) < 0.000001f) && (std::abs(direction[2]) < 0.000001f)));
+  if (print)
+    cout << "Found Troublesome Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << endl;
   // Use an image accessor to read values from the uncertainty.
   try  {
     // See if the uncertainty data is available to be read.
@@ -620,22 +622,21 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       double interpolationTotalAccumulator = 0.0;
       double interpolationDistanceAccumulator = 0.0;
 
-      // We're going to interpolate this point by looking at the numInterpolationSamples nearest neighbours.
-      float layersToConsider = cbrt(numInterpolationSamples + 1);
-      int bound = ceil(layersToConsider);
-      if (bound % 2 == 0) {
-        bound++;
+      // We're going to interpolate this point by looking at the 8 nearest neighbours. 
+      int xSampleRange = (round(position[0]) < position[0])? 1 : -1;
+      int ySampleRange = (round(position[1]) < position[1])? 1 : -1;
+      int zSampleRange = (round(position[2]) < position[2])? 1 : -1;
+
+      if (print) {
+        cout << "- Range for Sample: " << xSampleRange << ", " << ySampleRange << ", " << zSampleRange << endl;
       }
-      int range = (bound - 1) / 2;
 
-      //cout << numInterpolationSamples << "-NN, bound = " << bound << ", range = " << range << "." << endl;
-
-      std::list <std::pair <vtkVector<float, 3>, double> > shortlist;
-
-      // Build a list of possible samples.
-      for (int i = -range; i <= range; i++) {
-        for (int j = -range; j <= range; j++) { 
-          for (int k = -range; k <= range; k++) {
+      // Loop through the 8 samples.
+      for (int i = std::min(xSampleRange, 0); i <= std::max(xSampleRange, 0); i++) {
+        for (int j = std::min(ySampleRange, 0); j <= std::max(ySampleRange, 0); j++) { 
+          for (int k = std::min(zSampleRange, 0); k <= std::max(zSampleRange, 0); k++) {
+            if (print)
+              cout << "-- i: " << i << ", j: " << j << ", k: " << k << endl;
             // Get the position of the neighbour.
             vtkVector<float, 3> neighbour = vtkVector<float, 3>();
             neighbour[0] = round(position[0] + i);
@@ -646,58 +647,46 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
             if (neighbour[0] < 0.0f || uncertaintyHeight <= neighbour[0] ||
                 neighbour[1] < 0.0f || uncertaintyWidth <= neighbour[1] ||
                 neighbour[2] < 0.0f || uncertaintyDepth <= neighbour[2]) {
+              if (print)
+                cout << "-- SKIPPED NEIGHBOUR" << endl;
               continue;
             }
+
+            // Read the uncertainty of the neighbour.
+            itk::Index<3> index;
+            index[0] = neighbour[0];
+            index[1] = neighbour[1];
+            index[2] = neighbour[2];
+            float neighbourUncertainty = readAccess.GetPixelByIndex(index);
 
             // Get the distance to this neighbour
             vtkVector<float, 3> difference = vectorSubtract(position, neighbour);
             double distanceToSample = difference.Norm();
 
-            // Add the neighbours position and distance to a short list.
-            std::pair<vtkVector<float, 3>, double> neighbourAndDistance(neighbour, distanceToSample);
-
             // If the distance turns out to be zero, we have a perfect match. Ignore all other samples.
-            if (distanceToSample == 0.0) {
-              shortlist.clear();
-              shortlist.push_back(neighbourAndDistance);
+            if (std::abs(distanceToSample) < 0.0001) {
+              interpolationTotalAccumulator = neighbourUncertainty;
+              interpolationDistanceAccumulator = 1;
+              if (print)
+                cout << "-- Distance is zero. - (" << i << ", " << j << ", " << k << ") - " << interpolationTotalAccumulator << endl;
               goto BREAK_ALL_LOOPS;
             }
 
-            // Otherwise, add it in with the rest.
-            shortlist.push_back(neighbourAndDistance);
+            if (print)
+              cout << "-- Interpolation Sample: Uncertainty: " << neighbourUncertainty << ", Distance: " << distanceToSample << endl;
+            // Accumulate
+            interpolationTotalAccumulator += neighbourUncertainty / distanceToSample;
+            interpolationDistanceAccumulator += 1.0 / distanceToSample;
           }
         }
       }
       BREAK_ALL_LOOPS:
 
-      // Sort them, closest first.
-      shortlist.sort(SortPairsByDistanceAscending);
-
-      // Interpolate from the closest numInterpolationSamples samples.
-      unsigned int samplesTaken = 0;
-      for (std::list<std::pair<vtkVector<float, 3>, double> >::iterator it = shortlist.begin(); it != shortlist.end(); it++) {
-        std::pair<vtkVector<float, 3>, double> neighbourAndDistance = *it;
-
-        // Read the uncertainty of the neighbour.
-        itk::Index<3> index;
-        index[0] = neighbourAndDistance.first[0];
-        index[1] = neighbourAndDistance.first[1];
-        index[2] = neighbourAndDistance.first[2];
-        float neighbourUncertainty = readAccess.GetPixelByIndex(index);
-
-        // Accumulate
-        interpolationTotalAccumulator += neighbourUncertainty / neighbourAndDistance.second;
-        interpolationDistanceAccumulator += 1.0 / neighbourAndDistance.second;
-        
-        // If we've had enough samples, stop.
-        samplesTaken++;
-        if (samplesTaken >= numInterpolationSamples) {
-          break;
-        }
-      }
-
       // Interpolate all the values sample.
       double interpolatedSample = interpolationTotalAccumulator / interpolationDistanceAccumulator;
+
+      if (print) 
+        cout << "- Combined Sample: " << interpolatedSample << " (from total=" << interpolationTotalAccumulator << " and distance=" << interpolationDistanceAccumulator << ")" <<endl;
 
       // Include sample if it's not background.
       if (interpolatedSample != 0.0) {
@@ -708,6 +697,8 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       // Move along.
       position = vectorAdd(position, direction);
     }
+    if (print) 
+      cout << "Returning " << round(uncertaintyAccumulator / numSamples) << " - acc = " << uncertaintyAccumulator << " - num = " << numSamples << endl; 
 
     return round(uncertaintyAccumulator / numSamples);
   }
