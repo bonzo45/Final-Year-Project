@@ -27,8 +27,8 @@ PURPOSE.  See the above copyright notices for more information.
 // Stuff I've included.
 #include <mitkImage.h>
 #include <vtkVector.h>
-#include "itkBinaryBallStructuringElement.h"
-#include "itkGrayscaleErodeImageFilter.h"
+// #include "itkBinaryBallStructuringElement.h"
+// #include "itkGrayscaleErodeImageFilter.h"
 
 
 /*!
@@ -58,6 +58,7 @@ class Sams_View : public QmitkAbstractView {
     void LowerThresholdChanged(int lower);
     void UpperThresholdChanged(int upper);
     void ErodeUncertainty();
+    void TopTenPercent();
 
     //  b
     void GenerateUncertaintySphere();
@@ -107,7 +108,8 @@ class Sams_View : public QmitkAbstractView {
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage, float min, float max);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage);
-
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkTopTenPercent(itk::Image<TPixel, VImageDimension>* itkImage);
 
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();

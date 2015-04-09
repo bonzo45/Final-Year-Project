@@ -51,6 +51,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkImageCast.h>
 #include <itkMinimumMaximumImageCalculator.h>
 // #include <itkFFTShiftImageFilter.h>
+#include "itkImageToHistogramFilter.h"
 
 //#include <itkGrayscaleErodeImageFilter.h>
 
@@ -137,6 +138,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(UI.button10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
 
   //  b. Texture Mapping
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
@@ -523,6 +525,52 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
   this->GetDataStorage()->Add(erodedUncertainty);
 
   this->RequestRenderWindowUpdate();
+}
+
+void TopTenPercent() {
+  mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
+  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+
+  AccessByItk(uncertaintyImage, ItkErodeUncertainty);
+}
+
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkTopTenPercent(itk::Image<TPixel, VImageDimension>* itkImage) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
+
+  // Customise the filter.
+  ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
+  lowerBound.Fill(0.0f);
+ 
+  ImageToHistogramFilterType::HistogramType::MeasurementVectorType upperBound(binsPerDimension);
+  upperBound.Fill(1.0f) ;
+ 
+  ImageToHistogramFilterType::HistogramType::SizeType size(MeasurementVectorSize);
+  size.Fill(100);
+
+  // Create the filter.
+  ImageToHistogramFilterType::Pointer imageToHistogramFilter = ImageToHistogramFilterType::New();
+  imageToHistogramFilter->SetInput(image);
+  imageToHistogramFilter->SetHistogramBinMinimum(lowerBound);
+  imageToHistogramFilter->SetHistogramBinMaximum(upperBound);
+  imageToHistogramFilter->SetHistogramSize(size);
+  imageToHistogramFilter->Update();
+
+  // Get the resultant histogram.
+  ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
+
+  // TODO: Extract the top 10 percent.
+  std::cout << "Frequency = ";
+  for(unsigned int i = 0; i < histogram->GetSize()[0]; ++i) {
+    std::cout << histogram->GetFrequency(i) << " ";
+  }
+  std::cout << std::endl;
+
+  // TODO: Filter the uncertainty to only show the top 10%.
+  // LowerThresholdChanged(???);
+  // UpperThresholdChanged(???);
 }
 
 // ------------ //
