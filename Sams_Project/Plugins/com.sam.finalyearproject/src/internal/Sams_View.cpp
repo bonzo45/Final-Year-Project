@@ -438,7 +438,8 @@ void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float
 }
 
 /**
-  * Display Lower Threshold
+  * Set Lower Threshold (called by sliders)
+  * - lower is between 0 and 1000
   */
 void Sams_View::LowerThresholdChanged(int lower) {
   
@@ -458,7 +459,8 @@ void Sams_View::LowerThresholdChanged(int lower) {
 }
 
 /**
-  * Display Upper Threshold
+  * Set Upper Threshold (called by sliders)
+    * - upper is between 0 and 1000
   */
 void Sams_View::UpperThresholdChanged(int upper) {
   float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * upper + minUncertaintyIntensity;
@@ -476,6 +478,20 @@ void Sams_View::UpperThresholdChanged(int upper) {
   }
 }
 
+void Sams_View::SetLowerThreshold(float lower) {
+  int sliderValue = round((lower - minUncertaintyIntensity) / ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000));
+  sliderValue = std::min(sliderValue, 1000);
+  sliderValue = std::max(sliderValue, 0);
+  LowerThresholdChanged(sliderValue);
+}
+
+void Sams_View::SetUpperThreshold(float upper) {
+  int sliderValue = round((upper - minUncertaintyIntensity) / ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000));
+  sliderValue = std::min(sliderValue, 1000);
+  sliderValue = std::max(sliderValue, 0);
+  UpperThresholdChanged(sliderValue);
+}
+
 void Sams_View::ErodeUncertainty() {
   mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
   mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
@@ -486,91 +502,109 @@ void Sams_View::ErodeUncertainty() {
 
 template <typename TPixel, unsigned int VImageDimension>
 void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  // typedef itk::Image<TPixel, VImageDimension> ImageType;
 
-  // Create the erosion kernel, this describes how the data is eroded.
-  typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(5);
-  structuringElement.CreateStructuringElement();
+  // // Create the erosion kernel, this describes how the data is eroded.
+  // typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
+  // StructuringElementType structuringElement;
+  // structuringElement.SetRadius(5);
+  // structuringElement.CreateStructuringElement();
  
-  // Create an erosion filter, using the kernel. It returns a binary 0/1 (this pixel should or should not be eroded)
-  typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
-  typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
-  erodeFilter->SetInput(itkImage);
-  erodeFilter->SetKernel(structuringElement);
+  // // Create an erosion filter, using the kernel. It returns a binary 0/1 (this pixel should or should not be eroded)
+  // typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
+  // typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
+  // erodeFilter->SetInput(itkImage);
+  // erodeFilter->SetKernel(structuringElement);
 
-  // Then we use a subtract filter to subtract those pixels that the erosion filter suggests.
-  typedef itk::SubtractImageFilter<ImageType> SubtractType;
-  typename SubtractType::Pointer diff = SubtractType::New();
-  diff->SetInput1(itkImage);
-  diff->SetInput2(erodeFilter->GetOutput());
-  diff->Update();
+  // // Then we use a subtract filter to subtract those pixels that the erosion filter suggests.
+  // typedef itk::SubtractImageFilter<ImageType> SubtractType;
+  // typename SubtractType::Pointer diff = SubtractType::New();
+  // diff->SetInput1(itkImage);
+  // diff->SetInput2(erodeFilter->GetOutput());
+  // diff->Update();
 
-  // Convert to MITK
-  ImageType * erodedImage = diff->GetOutput();
-  mitk::Image::Pointer resultImage;
-  mitk::CastToMitkImage(erodedImage, resultImage);
+  // // Convert to MITK
+  // ImageType * erodedImage = diff->GetOutput();
+  // mitk::Image::Pointer resultImage;
+  // mitk::CastToMitkImage(erodedImage, resultImage);
 
-  // Wrap it up in a DataNode
-  if (erodedUncertainty) {
-    this->GetDataStorage()->Remove(erodedUncertainty);
-  }
+  // // Wrap it up in a DataNode
+  // if (erodedUncertainty) {
+  //   this->GetDataStorage()->Remove(erodedUncertainty);
+  // }
 
-  erodedUncertainty = mitk::DataNode::New();
-  erodedUncertainty->SetData(resultImage);
-  erodedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Eroded"));
-  erodedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  erodedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
-  this->GetDataStorage()->Add(erodedUncertainty);
+  // erodedUncertainty = mitk::DataNode::New();
+  // erodedUncertainty->SetData(resultImage);
+  // erodedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Eroded"));
+  // erodedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  // erodedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
+  // this->GetDataStorage()->Add(erodedUncertainty);
 
-  this->RequestRenderWindowUpdate();
+  // this->RequestRenderWindowUpdate();
 }
 
-void TopTenPercent() {
+void Sams_View::TopTenPercent() {
   mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
   mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
   mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
 
-  AccessByItk(uncertaintyImage, ItkErodeUncertainty);
+  // Get the pixel value corresponding to 10%.
+  int lowerThreshold;
+  int upperThreshold;
+  AccessByItk_2(uncertaintyImage, ItkTopTenPercent, lowerThreshold, upperThreshold);
+  
+  // Filter the uncertainty to only show the top 10%.
+  SetLowerThreshold(lowerThreshold);
+  SetUpperThreshold(upperThreshold);
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkTopTenPercent(itk::Image<TPixel, VImageDimension>* itkImage) {
+void Sams_View::ItkTopTenPercent(itk::Image<TPixel, VImageDimension>* itkImage, int & lowerThreshold, int & upperThreshold) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
 
+  const unsigned int measurementComponents = 1; // Grayscale
+  const unsigned int binsPerDimension = 256;
+
   // Customise the filter.
-  ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
-  lowerBound.Fill(0.0f);
+  typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
+  lowerBound.Fill(0);
  
-  ImageToHistogramFilterType::HistogramType::MeasurementVectorType upperBound(binsPerDimension);
-  upperBound.Fill(1.0f) ;
+  typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType upperBound(binsPerDimension);
+  upperBound.Fill(255) ;
  
-  ImageToHistogramFilterType::HistogramType::SizeType size(MeasurementVectorSize);
-  size.Fill(100);
+  typename ImageToHistogramFilterType::HistogramType::SizeType size(measurementComponents);
+  size.Fill(binsPerDimension);
 
   // Create the filter.
-  ImageToHistogramFilterType::Pointer imageToHistogramFilter = ImageToHistogramFilterType::New();
-  imageToHistogramFilter->SetInput(image);
+  typename ImageToHistogramFilterType::Pointer imageToHistogramFilter = ImageToHistogramFilterType::New();
+  imageToHistogramFilter->SetInput(itkImage);
   imageToHistogramFilter->SetHistogramBinMinimum(lowerBound);
   imageToHistogramFilter->SetHistogramBinMaximum(upperBound);
   imageToHistogramFilter->SetHistogramSize(size);
   imageToHistogramFilter->Update();
 
-  // Get the resultant histogram.
-  ImageToHistogramFilterType::HistogramType* histogram = imageToHistogramFilter->GetOutput();
+  // Get the resultant histogram. It has a bucket for each pixel intensity (0-255).
+  typename ImageToHistogramFilterType::HistogramType * histogram = imageToHistogramFilter->GetOutput();
 
-  // TODO: Extract the top 10 percent.
-  std::cout << "Frequency = ";
-  for(unsigned int i = 0; i < histogram->GetSize()[0]; ++i) {
-    std::cout << histogram->GetFrequency(i) << " ";
+  // We know that in total there are uncertaintyX * uncertaintyY * uncertaintyZ pixels.
+  typename ImageType::RegionType region = itkImage->GetLargestPossibleRegion();
+  typename ImageType::SizeType regionSize = region.GetSize();
+  unsigned int totalPixels = regionSize[0] * regionSize[1] * regionSize[2];  
+
+  std::cout << "Total: " << totalPixels << " pixels." << std::endl;
+
+  // The 10% threshold is therefore at 0.1 * total. Go through the histogram (effectively compute CDF) until we reach this.
+  unsigned int pixelCount = 0;
+  unsigned int i = 0;
+  while ((pixelCount < totalPixels * 0.1) && (i < 256)) {
+    pixelCount += histogram->GetFrequency(i);
+    i++;
   }
-  std::cout << std::endl;
 
-  // TODO: Filter the uncertainty to only show the top 10%.
-  // LowerThresholdChanged(???);
-  // UpperThresholdChanged(???);
+  // 'Return' the threshold values.
+  lowerThreshold = 0;
+  upperThreshold = i;
 }
 
 // ------------ //
