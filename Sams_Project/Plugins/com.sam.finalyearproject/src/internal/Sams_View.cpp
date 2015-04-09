@@ -138,7 +138,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
-  connect(UI.button10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
+  connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(int)), this, SLOT(TopXPercent(int)));
+  connect(UI.buttonTop1Percent, SIGNAL(clicked()), this, SLOT(TopOnePercent()));
+  connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
+  connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
 
   //  b. Texture Mapping
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
@@ -239,12 +242,8 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
   // 2a. Thresholding - Calculate Intensity Range
   AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
 
-  UI.sliderMinThreshold->setRange(0, 1000);
-  UI.sliderMinThreshold->setValue(0);
-  LowerThresholdChanged(0);
-  UI.sliderMaxThreshold->setRange(0, 1000);
-  UI.sliderMaxThreshold->setValue(1000);
-  UpperThresholdChanged(1000);
+  SetLowerThreshold(minUncertaintyIntensity);
+  SetUpperThreshold(maxUncertaintyIntensity);
 
   // Update thresholding sliders.
   std::ostringstream ss;
@@ -387,6 +386,13 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
   
+  // Check if we're ignoring zeros.
+  if (UI.checkBoxIgnoreZeros->isChecked()) {
+    cout << "Ignoring Zeros: " << min << " vs. " << FLT_MIN << endl;
+    min = std::max(1.0f, min);
+    max = std::max(1.0f, max);
+  }
+
   // Create a thresholder.
   typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
   thresholdFilter->SetInput(itkImage);
@@ -482,6 +488,8 @@ void Sams_View::SetLowerThreshold(float lower) {
   int sliderValue = round((lower - minUncertaintyIntensity) / ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000));
   sliderValue = std::min(sliderValue, 1000);
   sliderValue = std::max(sliderValue, 0);
+
+  UI.sliderMinThreshold->setValue(sliderValue);
   LowerThresholdChanged(sliderValue);
 }
 
@@ -489,6 +497,8 @@ void Sams_View::SetUpperThreshold(float upper) {
   int sliderValue = round((upper - minUncertaintyIntensity) / ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000));
   sliderValue = std::min(sliderValue, 1000);
   sliderValue = std::max(sliderValue, 0);
+
+  UI.sliderMaxThreshold->setValue(sliderValue);
   UpperThresholdChanged(sliderValue);
 }
 
@@ -543,7 +553,25 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
   // this->RequestRenderWindowUpdate();
 }
 
+void Sams_View::TopOnePercent() {
+  int percentage = 1;
+  TopXPercent(percentage);
+  UI.spinBoxTopXPercent->setValue(percentage);
+}
+
+void Sams_View::TopFivePercent() {
+  int percentage = 5;
+  TopXPercent(percentage);
+  UI.spinBoxTopXPercent->setValue(percentage);
+}
+
 void Sams_View::TopTenPercent() {
+  int percentage = 10;
+  TopXPercent(percentage);
+  UI.spinBoxTopXPercent->setValue(percentage);
+}
+
+void Sams_View::TopXPercent(int percentage) {
   mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
   mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
   mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
@@ -551,15 +579,16 @@ void Sams_View::TopTenPercent() {
   // Get the pixel value corresponding to 10%.
   int lowerThreshold;
   int upperThreshold;
-  AccessByItk_2(uncertaintyImage, ItkTopTenPercent, lowerThreshold, upperThreshold);
+  AccessByItk_3(uncertaintyImage, ItkTopXPercent, percentage / 100.0f, lowerThreshold, upperThreshold);
   
   // Filter the uncertainty to only show the top 10%.
   SetLowerThreshold(lowerThreshold);
   SetUpperThreshold(upperThreshold);
 }
 
+
 template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkTopTenPercent(itk::Image<TPixel, VImageDimension>* itkImage, int & lowerThreshold, int & upperThreshold) {
+void Sams_View::ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, float percentage, int & lowerThreshold, int & upperThreshold) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
 
@@ -592,12 +621,18 @@ void Sams_View::ItkTopTenPercent(itk::Image<TPixel, VImageDimension>* itkImage, 
   typename ImageType::SizeType regionSize = region.GetSize();
   unsigned int totalPixels = regionSize[0] * regionSize[1] * regionSize[2];  
 
+  // If we're ignoring zero values then the total gets reduced. The histogram entry gets zeroed as well.
+  if (UI.checkBoxIgnoreZeros->isChecked()) {
+    totalPixels -= histogram->GetFrequency(0);
+    histogram->SetFrequency(0, 0);
+  }
+
   std::cout << "Total: " << totalPixels << " pixels." << std::endl;
 
   // The 10% threshold is therefore at 0.1 * total. Go through the histogram (effectively compute CDF) until we reach this.
   unsigned int pixelCount = 0;
   unsigned int i = 0;
-  while ((pixelCount < totalPixels * 0.1) && (i < 256)) {
+  while ((pixelCount < totalPixels * percentage) && (i < 256)) {
     pixelCount += histogram->GetFrequency(i);
     i++;
   }
