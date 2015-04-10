@@ -282,6 +282,12 @@ void Sams_View::ConfirmSelection() {
   // Move sliders to start/end.
   SetLowerThreshold(0.0);
   SetUpperThreshold(1.0);
+
+  // Enable visualisations.
+  UI.tab2a->setEnabled(true);
+  UI.tab2b->setEnabled(true);
+  UI.tab2c->setEnabled(true);
+  UI.buttonSetLayers->setEnabled(true);
 }
 
 /**
@@ -425,10 +431,6 @@ void Sams_View::BothSelected(bool picked) {
   if (picked) {
     UI.buttonConfirmSelection->setEnabled(true);
     UI.buttonSwapScanUncertainty->setEnabled(true);
-    UI.tab2a->setEnabled(true);
-    UI.tab2b->setEnabled(true);
-    UI.tab2c->setEnabled(true);
-    UI.buttonSetLayers->setEnabled(true);
   }
   else {
     UI.buttonConfirmSelection->setEnabled(false);
