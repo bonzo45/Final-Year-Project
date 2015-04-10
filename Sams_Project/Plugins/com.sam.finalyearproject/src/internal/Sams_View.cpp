@@ -36,8 +36,9 @@ PURPOSE.  See the above copyright notices for more information.
 #include <cstdlib>
 
 // 1
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkInvertIntensityImageFilter.h"
+#include <itkRescaleIntensityImageFilter.h>
+#include <itkInvertIntensityImageFilter.h>
+#include <itkChangeInformationImageFilter.h>
 
 // 2
 //  a. Thresholding
@@ -45,7 +46,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkBinaryThresholdImageFilter.h>
 #include <mitkImageCast.h>
 #include <itkMinimumMaximumImageCalculator.h>
-#include "itkImageToHistogramFilter.h"
+#include <itkImageToHistogramFilter.h>
 
 //  a. Volume Rendering
 #include <mitkTransferFunction.h>
@@ -334,13 +335,26 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     invertedMitkImage = normalizedMitkImage;
   }
 
+  // New Plan: Get the origin, bla bla bla etc from the scan in one move.
+  // Then pass them through to the uncertainty on the second. Will the types match? Probably not.
+  // Could normalize the image. Not the best, will probably lose some critical MRI information.
+  // ----- TODO ----- /
+  // Align it to the scan.
+  //  Cast the normalized scan to an ITK image. We know it's a <double, 3> (we just normalized it) so we can do this.
+  itk::SmartPointer< itk::Image<double, 3> > uncertaintyItk;
+  mitk::CastToItkImage(invertedMitkImage, uncertaintyItk); 
+  //  Align this image to the scan (which we don't know the exact type of so we use the access method)
+  mitk::Image::Pointer alignedMitkImage;
+  AccessByItk_1(scan, ItkAlignTo, uncertaintyItk, alignedMitkImage);
+  // -- END TODO ---- /
+
   // Save completed version. (if it already exists, replace it.)
   preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", node);
   if (preprocessedUncertainty) {
     this->GetDataStorage()->Remove(preprocessedUncertainty);
   }
   preprocessedUncertainty = mitk::DataNode::New();
-  preprocessedUncertainty->SetData(invertedMitkImage);
+  preprocessedUncertainty->SetData(alignedMitkImage);
   preprocessedUncertainty->SetProperty("name", mitk::StringProperty::New("Preprocessed"));
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   this->GetDataStorage()->Add(preprocessedUncertainty, node);
@@ -374,6 +388,25 @@ void Sams_View::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkIma
   invertIntensityFilter->SetInput(itkImage);
   invertIntensityFilter->SetMaximum(1.0);
   invertIntensityFilter->Update();
+
+  // Convert to MITK
+  ImageType * invertedImage = invertIntensityFilter->GetOutput();
+  mitk::CastToMitkImage(invertedImage, result);
+}
+
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkAlignTo(itk::Image<TPixel, VImageDimension>* scan, itk::Image<double, 3> uncertainty, mitk::Image::Pointer & result) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::ChangeInformationImageFilter<ImageType> ChangeInformationImageFilterType;
+ 
+  // Use the...
+
+  // Align the image.
+  typename ChangeInformationImageFilter::Pointer changeInformationFilter = ChangeInformationImageFilterType::New();
+  changeInformationFilter->SetInput(uncertainty);
+  changeInformationFilter->UseReferenceImageOn();
+  changeInformationFilter->SetReferenceImage(scan)
+  changeInformationFilter->Update();
 
   // Convert to MITK
   ImageType * invertedImage = invertIntensityFilter->GetOutput();
