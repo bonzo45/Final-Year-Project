@@ -451,12 +451,10 @@ void Sams_View::BothSelected(bool picked) {
   */
 void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   if (checked) {
-    cout << "Checked." << endl;
     thresholdingEnabled = true;
     ThresholdUncertainty();
   }
   else {
-    cout << "NOT Checked." << endl;
     thresholdingEnabled = false;
   }
 }
@@ -465,14 +463,14 @@ void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   * Creates a copy of the uncertainty data with values not between lowerThreshold and upperThreshold removed.
   */
 void Sams_View::ThresholdUncertainty() {
-  mitk::DataNode::Pointer uncertaintyNode = preprocessedUncertainty;
-  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+  // Get the uncertainty image.
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
 
+  // Threshold it.
   mitk::Image::Pointer thresholdedImage;
   AccessByItk_3(uncertaintyImage, ItkThresholdUncertainty, lowerThreshold, upperThreshold, thresholdedImage);
 
-    // Wrap it up in a Data Node
+  // Save it. (replace if it already exists)
   if (thresholdedUncertainty) {
     this->GetDataStorage()->Remove(thresholdedUncertainty);
   }
@@ -493,15 +491,15 @@ void Sams_View::ThresholdUncertainty() {
   * Uses ITK to do the thresholding.
   */
 template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, float min, float max, mitk::Image::Pointer & result) {
+void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
   
   // Check if we're ignoring zeros.
   if (UI.checkBoxIgnoreZeros->isChecked()) {
-    cout << "Ignoring Zeros: " << min << " vs. " << FLT_MIN << endl;
-    min = std::max(1.0f, min);
-    max = std::max(1.0f, max);
+    double epsilon = DBL_MIN;
+    min = std::max(epsilon, min);
+    max = std::max(epsilon, max);
   }
 
   // Create a thresholder.
@@ -519,30 +517,10 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
 }
 
 /**
-  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
-  */
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
-  
-  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
-  imageCalculatorFilter->SetImage(itkImage);
-  imageCalculatorFilter->Compute();
-
-  min = imageCalculatorFilter->GetMinimum();
-  max = imageCalculatorFilter->GetMaximum();
-  cout << "(" << min << ", " << max << ")" << endl;
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
   * Set Lower Threshold (called by sliders)
   * - lower is between 0 and 1000
   */
 void Sams_View::LowerThresholdChanged(int lower) {
-  
   float temp = (1.0 / 1000) * lower;
   if (temp > upperThreshold) {
     UI.sliderMinThreshold->setValue(UI.sliderMaxThreshold->value());
@@ -578,6 +556,9 @@ void Sams_View::UpperThresholdChanged(int upper) {
   }
 }
 
+/**
+  * Sets the lower threshold to be a float value (between 0.0 and 1.0)
+  */
 void Sams_View::SetLowerThreshold(float lower) {
   int sliderValue = round(lower * 1000);
   sliderValue = std::min(sliderValue, 1000);
@@ -587,6 +568,9 @@ void Sams_View::SetLowerThreshold(float lower) {
   LowerThresholdChanged(sliderValue);
 }
 
+/**
+  * Sets the upper threshold to be a float value (between 0.0 and 1.0)
+  */
 void Sams_View::SetUpperThreshold(float upper) {
   int sliderValue = round(upper * 1000);
   sliderValue = std::min(sliderValue, 1000);
@@ -594,57 +578,6 @@ void Sams_View::SetUpperThreshold(float upper) {
 
   UI.sliderMaxThreshold->setValue(sliderValue);
   UpperThresholdChanged(sliderValue);
-}
-
-void Sams_View::ErodeUncertainty() {
-  mitk::DataNode::Pointer uncertaintyNode = uncertainty;
-  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
-
-  AccessByItk(uncertaintyImage, ItkErodeUncertainty);
-}
-
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage) {
-  // typedef itk::Image<TPixel, VImageDimension> ImageType;
-
-  // // Create the erosion kernel, this describes how the data is eroded.
-  // typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
-  // StructuringElementType structuringElement;
-  // structuringElement.SetRadius(5);
-  // structuringElement.CreateStructuringElement();
- 
-  // // Create an erosion filter, using the kernel. It returns a binary 0/1 (this pixel should or should not be eroded)
-  // typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
-  // typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
-  // erodeFilter->SetInput(itkImage);
-  // erodeFilter->SetKernel(structuringElement);
-
-  // // Then we use a subtract filter to subtract those pixels that the erosion filter suggests.
-  // typedef itk::SubtractImageFilter<ImageType> SubtractType;
-  // typename SubtractType::Pointer diff = SubtractType::New();
-  // diff->SetInput1(itkImage);
-  // diff->SetInput2(erodeFilter->GetOutput());
-  // diff->Update();
-
-  // // Convert to MITK
-  // ImageType * erodedImage = diff->GetOutput();
-  // mitk::Image::Pointer resultImage;
-  // mitk::CastToMitkImage(erodedImage, resultImage);
-
-  // // Wrap it up in a DataNode
-  // if (erodedUncertainty) {
-  //   this->GetDataStorage()->Remove(erodedUncertainty);
-  // }
-
-  // erodedUncertainty = mitk::DataNode::New();
-  // erodedUncertainty->SetData(resultImage);
-  // erodedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Eroded"));
-  // erodedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  // erodedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
-  // this->GetDataStorage()->Add(erodedUncertainty);
-
-  // this->RequestRenderWindowUpdate();
 }
 
 void Sams_View::TopOnePercent() {
@@ -665,6 +598,11 @@ void Sams_View::TopTenPercent() {
   UI.spinBoxTopXPercent->setValue(percentage);
 }
 
+/**
+  * Shows the the worst uncertainty.
+  *   percentage - between 0 and 100
+  *   e.g. percentage = 10 will create a threshold to show the worst 10% of uncertainty.
+  */
 void Sams_View::TopXPercent(int percentage) {
   mitk::DataNode::Pointer uncertaintyNode = preprocessedUncertainty;
   mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
@@ -686,14 +624,14 @@ void Sams_View::ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, fl
   typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
 
   const unsigned int measurementComponents = 1; // Grayscale
-  const unsigned int binsPerDimension = 256;
+  const unsigned int binsPerDimension = 1000;
 
   // Customise the filter.
   typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
-  lowerBound.Fill(0);
+  lowerBound.Fill(0.0);
  
   typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType upperBound(binsPerDimension);
-  upperBound.Fill(255) ;
+  upperBound.Fill(1.0);
  
   typename ImageToHistogramFilterType::HistogramType::SizeType size(measurementComponents);
   size.Fill(binsPerDimension);
@@ -1382,4 +1320,27 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   sphereUncertaintyNode->SetData(mitkImage);
   sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Sphere of Uncertainty"));
   this->GetDataStorage()->Add(sphereUncertaintyNode);
+}
+
+/* -------------------- */
+/* ---- DEPRECATED ---- */
+/* -------------------- */
+
+/**
+  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
+  */
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
+  
+  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+  imageCalculatorFilter->SetImage(itkImage);
+  imageCalculatorFilter->Compute();
+
+  min = imageCalculatorFilter->GetMinimum();
+  max = imageCalculatorFilter->GetMaximum();
+  cout << "(" << min << ", " << max << ")" << endl;
+
+  this->RequestRenderWindowUpdate();
 }
