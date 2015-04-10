@@ -104,13 +104,13 @@ class Sams_View : public QmitkAbstractView {
 
     // 2
     //  a
-    void SetLowerThreshold(float);
-    void SetUpperThreshold(float);
+    void SetLowerThreshold(double);
+    void SetUpperThreshold(double);
 
     template <typename TPixel, unsigned int VImageDimension>
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, float percentage, int & lowerThreshold, int & upperThreshold);
+    void ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold);
 
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
