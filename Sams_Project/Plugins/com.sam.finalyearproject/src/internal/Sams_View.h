@@ -61,6 +61,7 @@ class Sams_View : public QmitkAbstractView {
     void TopFivePercent();
     void TopTenPercent();
     void TopXPercent(int percentage);
+    void OverlayThreshold();
 
     //  b
     void GenerateUncertaintySphere();
@@ -75,7 +76,6 @@ class Sams_View : public QmitkAbstractView {
 
     // 4
     void ShowTextOverlay();
-    void SetLayers();
 
     // 5
     void GenerateRandomUncertainty();

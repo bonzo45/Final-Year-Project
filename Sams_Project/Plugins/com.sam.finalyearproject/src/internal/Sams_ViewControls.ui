@@ -313,6 +313,36 @@
            <widget class="QWidget" name="widget_4" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_10">
              <item>
+              <widget class="QCheckBox" name="checkBoxEnableThreshold">
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Enable</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_3">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxIgnoreZeros">
+               <property name="text">
+                <string>Ignore Zeros</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -326,15 +356,9 @@
               </spacer>
              </item>
              <item>
-              <widget class="QCheckBox" name="checkBoxEnableThreshold">
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>16777215</height>
-                </size>
-               </property>
+              <widget class="QPushButton" name="buttonOverlayThreshold">
                <property name="text">
-                <string>Enable</string>
+                <string>Overlay</string>
                </property>
               </widget>
              </item>
@@ -529,23 +553,6 @@
               </widget>
              </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="checkBoxIgnoreZeros">
-            <property name="text">
-             <string>Ignore Zeros</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonErode">
-            <property name="text">
-             <string>Erode</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -746,13 +753,6 @@
       <item>
        <widget class="QWidget" name="widget4SubContainer" native="true">
         <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QPushButton" name="buttonSetLayers">
-           <property name="text">
-            <string>Set Layers</string>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QPushButton" name="buttonOverlayText">
            <property name="enabled">

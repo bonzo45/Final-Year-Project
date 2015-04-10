@@ -157,7 +157,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
   // 4. Random
-  connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
+  connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
   connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
 
   // 5. Test Uncertainties
@@ -290,7 +290,7 @@ void Sams_View::ConfirmSelection() {
   UI.tab2a->setEnabled(true);
   UI.tab2b->setEnabled(true);
   UI.tab2c->setEnabled(true);
-  UI.buttonSetLayers->setEnabled(true);
+  UI.buttonOverlayThreshold->setEnabled(true);
 }
 
 /**
@@ -466,7 +466,7 @@ void Sams_View::BothSelected(bool picked) {
     UI.tab2a->setEnabled(false);
     UI.tab2b->setEnabled(false);
     UI.tab2c->setEnabled(false);
-    UI.buttonSetLayers->setEnabled(false);
+    UI.buttonOverlayThreshold->setEnabled(false);
   }
 }
 
@@ -723,6 +723,57 @@ void Sams_View::ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, do
   // 'Return' the threshold values.
   lowerThreshold = 0.0;
   upperThreshold = (double) i / (double) binsPerDimension;
+}
+
+/**
+  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
+  */
+void Sams_View::OverlayThreshold() {
+  // Make Scan and Thresholded Visible
+  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
+  
+  // Scan -> Visible.
+  if (scan) {
+    scan->SetProperty("visible", propertyTrue);
+  }
+
+  // Thresholded Uncertainty -> Visible.
+  if (thresholdedUncertainty) {
+    thresholdedUncertainty->SetProperty("visible", propertyTrue);
+  }
+
+  // Put Scan behind Thresholded Uncertainty
+  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
+  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
+  if (scan) {
+    scan->SetProperty("layer", behindProperty);
+  }
+
+  if (thresholdedUncertainty) {
+    thresholdedUncertainty->SetProperty("layer", infrontProperty);  
+  }
+  
+  // Everything else is invisible.
+  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+
+  // Uncertainty -> Invisible.
+  if (uncertainty) {
+    uncertainty->SetProperty("visible", propertyFalse);
+  }
+
+  // Normalized -> Invisible.
+  mitk::DataNode::Pointer normalizedNode = this->GetDataStorage()->GetNamedDerivedNode("Normalized", uncertainty);
+  if (normalizedNode) {
+    normalizedNode->SetProperty("visible", propertyFalse);
+  }
+
+  // Preprocessed -> Invisible.
+  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", uncertainty);
+  if (preprocessedUncertainty) {
+    preprocessedUncertainty->SetProperty("visible", propertyFalse);
+  }
+
+  this->RequestRenderWindowUpdate();
 }
 
 // ------------ //
@@ -1134,19 +1185,6 @@ void Sams_View::ResetViews() {
 // ----------- //
 
 /**
-  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
-  */
-void Sams_View::SetLayers() {
-  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
-  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
-
-  scan->SetProperty("layer", behindProperty);
-  uncertainty->SetProperty("layer", infrontProperty);
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
   * Puts some useless text on the render windows.
   */
 void Sams_View::ShowTextOverlay() {
@@ -1288,11 +1326,11 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
         if ((cubeStartPixel <= r) && (r <= cubeEndPixel) &&
             (cubeStartPixel <= c) && (c <= cubeEndPixel) &&
             (cubeStartPixel <= d) && (d <= cubeEndPixel)) {
-          cubeUncertainty->SetPixel(pixelIndex, 255);
+          cubeUncertainty->SetPixel(pixelIndex, 1);
         }
         // If it's not.
         else {
-          cubeUncertainty->SetPixel(pixelIndex, 0);
+          cubeUncertainty->SetPixel(pixelIndex, 255);
         }
       }
     }
@@ -1357,9 +1395,9 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
         float distanceFromCenter = difference.Norm();
 
         // Get normalized 0-1 weighting.
-        float uncertaintyValue = std::max(0.0f, ((float) sphereRadius - distanceFromCenter) / (float) sphereRadius);
+        float uncertaintyValue = 1 - std::max(0.0f, ((float) sphereRadius - distanceFromCenter) / (float) sphereRadius);
 
-        // Scale by 255.
+        // Scale by 255. Don't allow 0 (undefined uncertainty).
         sphereUncertainty->SetPixel(pixelIndex, uncertaintyValue * 255);
       }
     }
