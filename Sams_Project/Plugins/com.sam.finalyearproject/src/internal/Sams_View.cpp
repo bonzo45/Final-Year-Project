@@ -15,51 +15,43 @@ PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
+#include "Sams_View.h"
+
 // Blueberry
 #include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
 
-// Qmitk
-#include "Sams_View.h"
-
 // Qt
 #include <QMessageBox>
+
+// General
+#include <mitkBaseProperty.h>
+#include <mitkIRenderWindowPart.h>
+#include <mitkILinkedRenderWindowPart.h>
+#include <mitkIRenderingManager.h>
+#include <mitkNodePredicateProperty.h>
+
+#include <cmath> // for abs
+#include <algorithm> // for min/max
+#include <cstdlib>
 
 // 1
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkInvertIntensityImageFilter.h"
 
-// Stuff I've included.
-#include <mitkBaseProperty.h>
-
-// for interacting with the render window
-#include <mitkIRenderWindowPart.h>
-#include <mitkILinkedRenderWindowPart.h>
-#include <mitkIRenderingManager.h>
-#include <mitkTimeSlicedGeometry.h>
-#include <mitkNodePredicateProperty.h>
-
-// for volume rendering
-#include <mitkTransferFunction.h>
-#include <mitkTransferFunctionProperty.h>
-
-// Operation 'Overlay'
-#include <mitkBaseRenderer.h>
-#include <QmitkRenderWindow.h>
-#include <mitkOverlayManager.h>
-#include <mitkTextOverlay2D.h>
-
-// for thresholding
+// 2
+//  a. Thresholding
 #include <mitkImageAccessByItk.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <mitkImageCast.h>
 #include <itkMinimumMaximumImageCalculator.h>
-// #include <itkFFTShiftImageFilter.h>
 #include "itkImageToHistogramFilter.h"
 
-//#include <itkGrayscaleErodeImageFilter.h>
+//  a. Volume Rendering
+#include <mitkTransferFunction.h>
+#include <mitkTransferFunctionProperty.h>
 
-// for sphere
+//  b. Sphere Texture
 #include <vtkSphereSource.h>
 #include <vtkTextureMapToSphere.h>
 #include <mitkSurface.h>
@@ -67,25 +59,23 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkNodePredicateDataType.h>
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
-
-// for sphere texture
 #include <itkImage.h>
 #include <mitkITKImageImport.h>
-#include <cstdlib>
-#include <cmath>
 #include <mitkShaderProperty.h>
 #include <mitkImagePixelReadAccessor.h>
 
-// for model mapping
+//  c. Surface Mapping
 #include <vtkIdList.h>
 #include <vtkCellArray.h>
 #include <vtkMath.h>
 #include <vtkFloatArray.h>
 
-#include <cmath> // for abs
-#include <algorithm> // for min/max
-
-#include <itkSubtractImageFilter.h>
+// 4
+// - Overlay
+#include <mitkBaseRenderer.h>
+#include <QmitkRenderWindow.h>
+#include <mitkOverlayManager.h>
+#include <mitkTextOverlay2D.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -139,6 +129,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // Add event handlers.
   // 1. Select Scan & Uncertainty
+  connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
   connect(UI.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
 
   // 2.
@@ -208,18 +199,41 @@ vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b)
 // ----------- //
 
 /**
-  * Swaps the scan and the uncertainty.
+  * What to do when a data node or selection changes.
   */
-void Sams_View::SwapScanUncertainty() {
-  mitk::DataNode::Pointer temp = scan;
-  this->SetScan(uncertainty);
-  this->SetUncertainty(temp);
+void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
+  int imagesSelected = 0;
+
+  // Go through all of the nodes that have been selected.
+  foreach(mitk::DataNode::Pointer node, nodes) {
+    // If it's null, ignore it.
+    if (node.IsNull()) {
+      continue;
+    }
+
+    // If it's an image.
+    mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(node->GetData());
+    if(image) {
+      imagesSelected++;
+
+      // Set the first image selected to be the scan.
+      if (imagesSelected == 1) {
+        SelectScan(node);
+      }
+      // Set the second one to be the uncertainty.
+      else if (imagesSelected == 2) {
+        SelectUncertainty(node);
+      }
+    }
+  }
+
+  SetNumberOfImagesSelected(imagesSelected);
 }
 
 /**
   * Sets the scan to work with.
   */
-void Sams_View::SetScan(mitk::DataNode::Pointer scanNode) {
+void Sams_View::SelectScan(mitk::DataNode::Pointer scanNode) {
   scan = scanNode;
 
   // Update name label.
@@ -230,9 +244,9 @@ void Sams_View::SetScan(mitk::DataNode::Pointer scanNode) {
 }
 
 /**
-  * Sets the uncertainty to work with. Does some preprocessing including normalization and inversion (optional).
+  * Sets the uncertainty to work with.
   */
-void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
+void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
   // Store a reference to the uncertainty DataNode.
   uncertainty = uncertaintyNode;
 
@@ -241,18 +255,20 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
   mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
   std::string name = nameStringProperty->GetValueAsString();
   UI.labelUncertaintyName->setText(QString::fromStdString(name));
+}
 
+/**
+  * Once the scan and uncertainty have been picked and the user confirms they are correct, we do some pre-processing on the data.
+  */
+void Sams_View::ConfirmSelection() {
   // Calculate dimensions.
   mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
   uncertaintyHeight = uncertaintyImage->GetDimension(0);
   uncertaintyWidth = uncertaintyImage->GetDimension(1);
   uncertaintyDepth = uncertaintyImage->GetDimension(2);
 
-  // Preprocess uncertainty. (if we haven't already)
-  mitk::DataNode * preprocessed = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", uncertainty);
-  if (!preprocessed) {
-    PreprocessNode(uncertainty);
-  }
+  // Preprocess uncertainty.
+  PreprocessNode(uncertainty);
 
   // 2a. Thresholding
   // Update min/max values.
@@ -268,6 +284,19 @@ void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
   SetUpperThreshold(1.0);
 }
 
+/**
+  * Swaps the scan and the uncertainty.
+  */
+void Sams_View::SwapScanUncertainty() {
+  mitk::DataNode::Pointer temp = scan;
+  this->SelectScan(uncertainty);
+  this->SelectUncertainty(temp);
+}
+
+/**
+  * Normalizes and Inverts (if enabled) a node.
+  * Saves intermediate steps and result as a child node of the one given.
+  */
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   // Get image from node.
   mitk::Image::Pointer mitkImage = dynamic_cast<mitk::Image*>(node->GetData());
@@ -276,8 +305,12 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   mitk::Image::Pointer normalizedMitkImage;
   AccessByItk_1(mitkImage, ItkNormalizeUncertainty, normalizedMitkImage);
 
-  // Save normalized version.
-  mitk::DataNode::Pointer normalizedNode = mitk::DataNode::New();
+  // Save normalized version. (if it already exists, replace it.)
+  mitk::DataNode::Pointer normalizedNode = this->GetDataStorage()->GetNamedDerivedNode("Normalized", node);
+  if (normalizedNode) {
+    this->GetDataStorage()->Remove(normalizedNode);
+  }
+  normalizedNode = mitk::DataNode::New();
   normalizedNode->SetData(normalizedMitkImage);
   normalizedNode->SetProperty("name", mitk::StringProperty::New("Normalized"));
   normalizedNode->SetProperty("volumerendering", mitk::BoolProperty::New(true));
@@ -285,14 +318,18 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
 
   // Invert it. (if enabled)
   mitk::Image::Pointer invertedMitkImage;
-  if (true) {
+  if (UI.checkBoxInversionEnabled->isChecked()) {
     AccessByItk_1(normalizedMitkImage, ItkInvertUncertainty, invertedMitkImage);
   }
   else {
     invertedMitkImage = normalizedMitkImage;
   }
 
-  // Save completed versino.
+  // Save completed version. (if it already exists, replace it.)
+  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", node);
+  if (preprocessedUncertainty) {
+    this->GetDataStorage()->Remove(preprocessedUncertainty);
+  }
   preprocessedUncertainty = mitk::DataNode::New();
   preprocessedUncertainty->SetData(invertedMitkImage);
   preprocessedUncertainty->SetProperty("name", mitk::StringProperty::New("Preprocessed"));
@@ -335,58 +372,31 @@ void Sams_View::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkIma
 }
 
 /**
-  * What to do when a data node or selection changes.
-  */
-void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
-  int imagesSelected = 0;
-
-  // Go through all of the nodes that have been selected.
-  foreach(mitk::DataNode::Pointer node, nodes) {
-    // If it's an image.
-    mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(node->GetData());
-    if(node.IsNotNull() && image) {
-      imagesSelected++;
-
-      // Set the first image selected to be the scan.
-      if (imagesSelected == 1) {
-        SetScan(node);
-      }
-      // Set the second one to be the uncertainty.
-      else if (imagesSelected == 2) {
-        SetUncertainty(node);
-      }
-    }
-  }
-
-  SetNumberOfImagesSelected(imagesSelected);
-}
-
-/**
   * Updates the UI to reflect the number of images selected.
   * Shows messages, disables buttons etc.
   */
 void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
   if (imagesSelected == 0) {
-    ScanPicked(false);
-    UncertaintyPicked(false);
-    BothPicked(false);
+    ScanSelected(false);
+    UncertaintySelected(false);
+    BothSelected(false);
   }
   else if (imagesSelected == 1) {
-    ScanPicked(true);
-    UncertaintyPicked(false);
-    BothPicked(false);
+    ScanSelected(true);
+    UncertaintySelected(false);
+    BothSelected(false);
   }
   else {
-    ScanPicked(true);
-    UncertaintyPicked(true);
-    BothPicked(true);
+    ScanSelected(true);
+    UncertaintySelected(true);
+    BothSelected(true);
   }
 }
 
 /**
   * Enables/Disables parts of the UI based on whether we have selected a scan.
   */
-void Sams_View::ScanPicked(bool picked) {
+void Sams_View::ScanSelected(bool picked) {
   if (picked) {
 
   }
@@ -398,32 +408,34 @@ void Sams_View::ScanPicked(bool picked) {
 /**
   * Enables/Disables parts of the UI based on whether we have selected an uncertainty.
   */
-void Sams_View::UncertaintyPicked(bool picked) {
+void Sams_View::UncertaintySelected(bool picked) {
   if (picked) {
-    UI.radioButtonEnableThreshold->setEnabled(true);
-    UI.sliderMinThreshold->setEnabled(true);
-    UI.sliderMaxThreshold->setEnabled(true);
-    UI.buttonSphere->setEnabled(true);
+    UI.checkBoxInversionEnabled->setVisible(true);
   }
   else {
     UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
-    UI.radioButtonEnableThreshold->setEnabled(false);
-    UI.sliderMinThreshold->setEnabled(false);
-    UI.sliderMaxThreshold->setEnabled(false);
-    UI.buttonSphere->setEnabled(false);
+    UI.checkBoxInversionEnabled->setVisible(false);
   }
 }
 
 /**
   * Enables/Disables parts of the UI based on whether we have selected both a scan and an uncertainty.
   */
-void Sams_View::BothPicked(bool picked) {
+void Sams_View::BothSelected(bool picked) {
   if (picked) {
+    UI.buttonConfirmSelection->setEnabled(true);
     UI.buttonSwapScanUncertainty->setEnabled(true);
+    UI.tab2a->setEnabled(true);
+    UI.tab2b->setEnabled(true);
+    UI.tab2c->setEnabled(true);
     UI.buttonSetLayers->setEnabled(true);
   }
   else {
+    UI.buttonConfirmSelection->setEnabled(false);
     UI.buttonSwapScanUncertainty->setEnabled(false);
+    UI.tab2a->setEnabled(false);
+    UI.tab2b->setEnabled(false);
+    UI.tab2c->setEnabled(false);
     UI.buttonSetLayers->setEnabled(false);
   }
 }

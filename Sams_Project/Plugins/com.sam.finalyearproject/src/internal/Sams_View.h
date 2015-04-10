@@ -49,6 +49,7 @@ class Sams_View : public QmitkAbstractView {
 
   protected slots:
     // 1
+    void ConfirmSelection();
     void SwapScanUncertainty();
 
     // 2
@@ -92,17 +93,18 @@ class Sams_View : public QmitkAbstractView {
 
   private:
     // 1
-    void SetScan(mitk::DataNode::Pointer scan);
-    void SetUncertainty(mitk::DataNode::Pointer uncertainty);
+    void SelectScan(mitk::DataNode::Pointer scan);
+    void SelectUncertainty(mitk::DataNode::Pointer uncertainty);
     void SetNumberOfImagesSelected(int imagesSelected);
-    void ScanPicked(bool test);
-    void UncertaintyPicked(bool test);
-    void BothPicked(bool test);
+    void ScanSelected(bool test);
+    void UncertaintySelected(bool test);
+    void BothSelected(bool test);
+
+    void PreprocessNode(mitk::DataNode::Pointer node);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
-    void PreprocessNode(mitk::DataNode::Pointer node);
 
     // 2
     //  a
