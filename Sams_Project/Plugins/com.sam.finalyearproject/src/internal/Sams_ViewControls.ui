@@ -291,7 +291,7 @@
               </spacer>
              </item>
              <item>
-              <widget class="QRadioButton" name="radioButtonEnableThreshold">
+              <widget class="QCheckBox" name="checkBoxEnableThreshold">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
