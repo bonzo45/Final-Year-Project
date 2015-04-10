@@ -131,6 +131,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // 1. Select Scan & Uncertainty
   connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
   connect(UI.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
+  connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
+  connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
 
   // 2.
   //  a. Thresholding
@@ -405,10 +407,22 @@ void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
   */
 void Sams_View::ScanSelected(bool picked) {
   if (picked) {
+    UI.checkBoxScanVisible->setVisible(true);
 
+    // Update the visibility checkbox to match the visibility of the scan we've picked.
+    mitk::BoolProperty * scanVisible = dynamic_cast<mitk::BoolProperty *>(scan->GetProperty("visible"));
+    if (scanVisible) {
+      if (scanVisible->GetValue()) {
+        UI.checkBoxScanVisible->setChecked(true);
+      }
+      else {
+        UI.checkBoxScanVisible->setChecked(false);
+      }
+    }
   }
   else {
     UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
+    UI.checkBoxScanVisible->setVisible(false);
   }
 }
 
@@ -417,10 +431,23 @@ void Sams_View::ScanSelected(bool picked) {
   */
 void Sams_View::UncertaintySelected(bool picked) {
   if (picked) {
+    UI.checkBoxUncertaintyVisible->setVisible(true);
     UI.checkBoxInversionEnabled->setVisible(true);
+
+    // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
+    mitk::BoolProperty * uncertaintyVisible = dynamic_cast<mitk::BoolProperty *>(uncertainty->GetProperty("visible"));
+    if (uncertaintyVisible) {
+      if (uncertaintyVisible->GetValue()) {
+        UI.checkBoxUncertaintyVisible->setChecked(true);
+      }
+      else {
+        UI.checkBoxUncertaintyVisible->setChecked(false);
+      }
+    }
   }
   else {
     UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
+    UI.checkBoxUncertaintyVisible->setVisible(false);
     UI.checkBoxInversionEnabled->setVisible(false);
   }
 }
@@ -441,6 +468,32 @@ void Sams_View::BothSelected(bool picked) {
     UI.tab2c->setEnabled(false);
     UI.buttonSetLayers->setEnabled(false);
   }
+}
+
+void Sams_View::ToggleScanVisible(bool checked) {
+  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
+  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+  if (checked) {
+    scan->SetProperty("visible", propertyTrue);
+  }
+  else {
+    scan->SetProperty("visible", propertyFalse);
+  }
+  
+  this->RequestRenderWindowUpdate();  
+}
+
+void Sams_View::ToggleUncertaintyVisible(bool checked) {
+  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
+  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+  if (checked) {
+    uncertainty->SetProperty("visible", propertyTrue);
+  }
+  else {
+    uncertainty->SetProperty("visible", propertyFalse);
+  }
+
+  this->RequestRenderWindowUpdate();
 }
 
 // ------------ //

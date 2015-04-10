@@ -48,6 +48,8 @@ class Sams_View : public QmitkAbstractView {
     // 1
     void ConfirmSelection();
     void SwapScanUncertainty();
+    void ToggleScanVisible(bool checked);
+    void ToggleUncertaintyVisible(bool checked);
 
     // 2
     //  a

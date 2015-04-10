@@ -97,10 +97,32 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="labelScanName">
-              <property name="text">
-               <string>scanLabel</string>
-              </property>
+             <widget class="QWidget" name="widget1Scan" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <property name="margin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="checkBoxScanVisible">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelScanName">
+                 <property name="text">
+                  <string>scanLabel</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
@@ -133,11 +155,24 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_5" native="true">
+             <widget class="QWidget" name="widget1Uncertainty" native="true">
               <layout class="QHBoxLayout" name="horizontalLayout_2">
                <property name="margin">
                 <number>0</number>
                </property>
+               <item>
+                <widget class="QCheckBox" name="checkBoxUncertaintyVisible">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QLabel" name="labelUncertaintyName">
                  <property name="text">
