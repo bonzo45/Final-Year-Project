@@ -88,10 +88,6 @@ class Sams_View : public QmitkAbstractView {
     virtual void SetFocus();
     virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);
 
-    // The current scan and uncertainty images.
-    mitk::DataNode::Pointer scan;
-    mitk::DataNode::Pointer uncertainty;
-
     Ui::Sams_ViewControls UI;
 
   private:
@@ -102,6 +98,11 @@ class Sams_View : public QmitkAbstractView {
     void ScanPicked(bool test);
     void UncertaintyPicked(bool test);
     void BothPicked(bool test);
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
+    void PreprocessNode(mitk::DataNode::Pointer node);
 
     // 2
     //  a
@@ -110,7 +111,7 @@ class Sams_View : public QmitkAbstractView {
     template <typename TPixel, unsigned int VImageDimension>
     void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, float min, float max);
+    void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, float min, float max, mitk::Image::Pointer & result);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage);
     template <typename TPixel, unsigned int VImageDimension>
