@@ -116,6 +116,7 @@ double lowerThreshold = 0;
 double upperThreshold = 0;
 
 // TEMPORARY
+mitk::DataNode::Pointer temptemptemp = 0;
 mitk::DataNode::Pointer erodedUncertainty = 0;
 
 //  b. Uncertainty Sphere
@@ -821,6 +822,18 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
   typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
   erodeFilter->SetInput(itkImage);
   erodeFilter->SetKernel(structuringElement);
+  erodeFilter->Update();
+
+  // Temptemptemp
+  ImageType * tempImage = erodeFilter->GetOutput();
+  mitk::Image::Pointer tempMitk;
+  mitk::CastToMitkImage(tempImage, tempMitk);
+  temptemptemp = mitk::DataNode::New();
+  temptemptemp->SetData(tempMitk);
+  temptemptemp->SetProperty("name", mitk::StringProperty::New("Temptemptemp"));
+  temptemptemp->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  temptemptemp->SetProperty("layer", mitk::IntProperty::New(1));
+  this->GetDataStorage()->Add(temptemptemp);
 
   // Then we use a subtract filter to subtract those pixels that the erosion filter suggests.
   typedef itk::SubtractImageFilter<ImageType> SubtractType;
