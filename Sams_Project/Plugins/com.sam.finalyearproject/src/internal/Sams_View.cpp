@@ -137,6 +137,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(UI.buttonErode, SIGNAL(clicked()), this, SLOT(ErodeUncertainty()));
 
   //  b. Texture Mapping
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
@@ -475,9 +476,7 @@ void Sams_View::UpperThresholdChanged(int upper) {
 }
 
 void Sams_View::ErodeUncertainty() {
-  mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
-  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(this->uncertainty->GetData());
 
   AccessByItk(uncertaintyImage, ItkErodeUncertainty);
 }

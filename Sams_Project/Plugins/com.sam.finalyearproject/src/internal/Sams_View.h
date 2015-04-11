@@ -27,8 +27,8 @@ PURPOSE.  See the above copyright notices for more information.
 // Stuff I've included.
 #include <mitkImage.h>
 #include <vtkVector.h>
-#include "itkBinaryBallStructuringElement.h"
-#include "itkGrayscaleErodeImageFilter.h"
+#include <itkBinaryBallStructuringElement.h>
+#include <itkGrayscaleErodeImageFilter.h>
 
 
 /*!
