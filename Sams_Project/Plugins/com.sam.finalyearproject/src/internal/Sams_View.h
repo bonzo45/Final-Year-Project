@@ -27,9 +27,6 @@ PURPOSE.  See the above copyright notices for more information.
 // Stuff I've included.
 #include <mitkImage.h>
 #include <vtkVector.h>
-#include <itkBinaryBallStructuringElement.h>
-#include <itkGrayscaleErodeImageFilter.h>
-
 
 /*!
   \brief Sams_View
@@ -49,14 +46,22 @@ class Sams_View : public QmitkAbstractView {
 
   protected slots:
     // 1
+    void ConfirmSelection();
     void SwapScanUncertainty();
+    void ToggleScanVisible(bool checked);
+    void ToggleUncertaintyVisible(bool checked);
 
     // 2
     //  a
-    void ThresholdUncertainty();
     void ToggleUncertaintyThresholding(bool checked);    
+    void ThresholdUncertainty();
     void LowerThresholdChanged(int lower);
     void UpperThresholdChanged(int upper);
+    void TopOnePercent();
+    void TopFivePercent();
+    void TopTenPercent();
+    void TopXPercent(int percentage);
+    void OverlayThreshold();
     void ErodeUncertainty();
 
     //  b
@@ -72,7 +77,6 @@ class Sams_View : public QmitkAbstractView {
 
     // 4
     void ShowTextOverlay();
-    void SetLayers();
 
     // 5
     void GenerateRandomUncertainty();
@@ -84,27 +88,32 @@ class Sams_View : public QmitkAbstractView {
     virtual void SetFocus();
     virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);
 
-    // The current scan and uncertainty images.
-    mitk::DataNode::Pointer scan;
-    mitk::DataNode::Pointer uncertainty;
-
     Ui::Sams_ViewControls UI;
 
   private:
     // 1
-    void SetScan(mitk::DataNode::Pointer scan);
-    void SetUncertainty(mitk::DataNode::Pointer uncertainty);
+    void SelectScan(mitk::DataNode::Pointer scan);
+    void SelectUncertainty(mitk::DataNode::Pointer uncertainty);
     void SetNumberOfImagesSelected(int imagesSelected);
-    void ScanPicked(bool test);
-    void UncertaintyPicked(bool test);
-    void BothPicked(bool test);
+    void ScanSelected(bool test);
+    void UncertaintySelected(bool test);
+    void BothSelected(bool test);
+    void PreprocessNode(mitk::DataNode::Pointer node);
+
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
 
     // 2
     //  a
+    void SetLowerThreshold(double);
+    void SetUpperThreshold(double);
+
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
+    void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension >* itkImage, float min, float max);
+    void ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold);
     template <typename TPixel, unsigned int VImageDimension>
     void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage);
 
@@ -120,9 +129,13 @@ class Sams_View : public QmitkAbstractView {
     // 4
 
     // 5
-    void GenerateRandomUncertainty(unsigned int size);
-    void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
-    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
+    void GenerateRandomUncertainty(unsigned int height, unsigned int width, unsigned int depth);
+    void GenerateCubeUncertainty(unsigned int height, unsigned int width, unsigned int depth, unsigned int cubeSize);
+    void GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
+
+    // Deprecated
+    template <typename TPixel, unsigned int VImageDimension>
+    void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
 };
 
 #endif // Sams_View_h

@@ -15,46 +15,50 @@ PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
+#include "Sams_View.h"
+
 // Blueberry
 #include <berryISelectionService.h>
 #include <berryIWorkbenchWindow.h>
 
-// Qmitk
-#include "Sams_View.h"
-
 // Qt
 #include <QMessageBox>
 
-// Stuff I've included.
+// General
 #include <mitkBaseProperty.h>
-
-// for interacting with the render window
 #include <mitkIRenderWindowPart.h>
 #include <mitkILinkedRenderWindowPart.h>
 #include <mitkIRenderingManager.h>
-#include <mitkTimeSlicedGeometry.h>
 #include <mitkNodePredicateProperty.h>
 
-// for volume rendering
-#include <mitkTransferFunction.h>
-#include <mitkTransferFunctionProperty.h>
+#include <cmath> // for abs
+#include <algorithm> // for min/max
+#include <cstdlib>
 
-// Operation 'Overlay'
-#include <mitkBaseRenderer.h>
-#include <QmitkRenderWindow.h>
-#include <mitkOverlayManager.h>
-#include <mitkTextOverlay2D.h>
+// 1
+#include <itkRescaleIntensityImageFilter.h>
+#include <itkInvertIntensityImageFilter.h>
+#include <itkChangeInformationImageFilter.h>
+#include <mitkSlicedGeometry3D.h>
+#include <mitkPoint.h>
 
-// for thresholding
+// 2
+//  a. Thresholding
 #include <mitkImageAccessByItk.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <mitkImageCast.h>
 #include <itkMinimumMaximumImageCalculator.h>
-// #include <itkFFTShiftImageFilter.h>
+#include <itkImageToHistogramFilter.h>
+#include <itkGrayscaleErodeImageFilter.h>
+#include <itkBinaryBallStructuringElement.h>
+#include <itkGrayscaleErodeImageFilter.h>
+#include <itkSubtractImageFilter.h>
 
-//#include <itkGrayscaleErodeImageFilter.h>
+//  a. Volume Rendering
+#include <mitkTransferFunction.h>
+#include <mitkTransferFunctionProperty.h>
 
-// for sphere
+//  b. Sphere Texture
 #include <vtkSphereSource.h>
 #include <vtkTextureMapToSphere.h>
 #include <mitkSurface.h>
@@ -62,25 +66,23 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkNodePredicateDataType.h>
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
-
-// for sphere texture
 #include <itkImage.h>
 #include <mitkITKImageImport.h>
-#include <cstdlib>
-#include <cmath>
 #include <mitkShaderProperty.h>
 #include <mitkImagePixelReadAccessor.h>
 
-// for model mapping
+//  c. Surface Mapping
 #include <vtkIdList.h>
 #include <vtkCellArray.h>
 #include <vtkMath.h>
 #include <vtkFloatArray.h>
 
-#include <cmath> // for abs
-#include <algorithm> // for min/max
-
-#include <itkSubtractImageFilter.h>
+// 4
+// - Overlay
+#include <mitkBaseRenderer.h>
+#include <QmitkRenderWindow.h>
+#include <mitkOverlayManager.h>
+#include <mitkTextOverlay2D.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
@@ -94,22 +96,29 @@ typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
 // ---- GLOBAL VARIABLES --- //
 // ------------------------- //
 
-// Uncertainty dimensions.
+// 1. Select Data & Uncertainty
+//  - Scan
+mitk::DataNode::Pointer scan;
+
+//  - Uncertainty
+mitk::DataNode::Pointer uncertainty;
+mitk::DataNode::Pointer preprocessedUncertainty;
+
 unsigned int uncertaintyHeight;
 unsigned int uncertaintyWidth;
 unsigned int uncertaintyDepth;
 
-// 2a. Uncertainty Thresholding
+// 2. Visualisation
+//  a. Uncertainty Thresholding
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
 bool thresholdingEnabled = false;
-float minUncertaintyIntensity = 0;
-float maxUncertaintyIntensity = 0;
-float minUncertaintyThreshold = 0;
-float maxUncertaintyThreshold = 0;
+double lowerThreshold = 0;
+double upperThreshold = 0;
 
+// TEMPORARY
 mitk::DataNode::Pointer erodedUncertainty = 0;
 
-// 2b. Uncertainty Sphere
+//  b. Uncertainty Sphere
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
 
 // 5. Test Uncertainties
@@ -122,7 +131,7 @@ UncertaintyImageType::Pointer sphereUncertainty;
 // ----------------------- //
 
 /**
-  * Create the UI
+  * Create the UI, connects up Signals and Slots.
   */
 void Sams_View::CreateQtPartControl(QWidget *parent) {
   // Create Qt UI
@@ -130,13 +139,21 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // Add event handlers.
   // 1. Select Scan & Uncertainty
+  connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
   connect(UI.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
+  connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
+  connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
 
   // 2.
   //  a. Thresholding
-  connect(UI.radioButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
+  connect(UI.checkBoxEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(int)), this, SLOT(TopXPercent(int)));
+  connect(UI.buttonTop1Percent, SIGNAL(clicked()), this, SLOT(TopOnePercent()));
+  connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
+  connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
+  connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertainty()));
   connect(UI.buttonErode, SIGNAL(clicked()), this, SLOT(ErodeUncertainty()));
 
   //  b. Texture Mapping
@@ -151,7 +168,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
   // 4. Random
-  connect(UI.buttonSetLayers, SIGNAL(clicked()), this, SLOT(SetLayers()));
+  connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
   connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
 
   // 5. Test Uncertainties
@@ -196,65 +213,6 @@ vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b)
 // ----------- //
 
 /**
-  * Swaps the scan and the uncertainty.
-  */
-void Sams_View::SwapScanUncertainty() {
-  mitk::DataNode::Pointer temp = this->scan;
-  this->SetScan(this->uncertainty);
-  this->SetUncertainty(temp);
-}
-
-/**
-  * Sets the scan we're working with.
-  */
-void Sams_View::SetScan(mitk::DataNode::Pointer scan) {
-  this->scan = scan;
-
-  mitk::BaseProperty * nameProperty = scan->GetProperty("name");
-  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
-  std::string name = nameStringProperty->GetValueAsString();
-
-  UI.labelScanName->setText(QString::fromStdString(name));
-}
-
-/**
-  * Sets the uncertainty we're working with.
-  */
-void Sams_View::SetUncertainty(mitk::DataNode::Pointer uncertainty) {
-  this->uncertainty = uncertainty;
-
-  // Update name label.
-  mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
-  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
-  std::string name = nameStringProperty->GetValueAsString();
-  UI.labelUncertaintyName->setText(QString::fromStdString(name));
-
-  // Calculate dimensions.
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
-  uncertaintyHeight = uncertaintyImage->GetDimension(0);
-  uncertaintyWidth = uncertaintyImage->GetDimension(1);
-  uncertaintyDepth = uncertaintyImage->GetDimension(2);
-
-  // 2a. Thresholding - Calculate Intensity Range
-  AccessByItk_2(uncertaintyImage, ItkGetRange, minUncertaintyIntensity, maxUncertaintyIntensity);
-
-  UI.sliderMinThreshold->setRange(0, 1000);
-  UI.sliderMinThreshold->setValue(0);
-  LowerThresholdChanged(0);
-  UI.sliderMaxThreshold->setRange(0, 1000);
-  UI.sliderMaxThreshold->setValue(1000);
-  UpperThresholdChanged(1000);
-
-  // Update thresholding sliders.
-  std::ostringstream ss;
-  ss << std::setprecision(2) << std::fixed << minUncertaintyIntensity;
-  UI.labelSliderLeftLimit->setText(ss.str().c_str());
-  ss.str("");
-  ss << std::setprecision(2) << std::fixed << maxUncertaintyIntensity;
-  UI.labelSliderRightLimit->setText(ss.str().c_str());
-}
-
-/**
   * What to do when a data node or selection changes.
   */
 void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
@@ -262,18 +220,23 @@ void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, co
 
   // Go through all of the nodes that have been selected.
   foreach(mitk::DataNode::Pointer node, nodes) {
+    // If it's null, ignore it.
+    if (node.IsNull()) {
+      continue;
+    }
+
     // If it's an image.
     mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(node->GetData());
-    if(node.IsNotNull() && image) {
+    if(image) {
       imagesSelected++;
 
       // Set the first image selected to be the scan.
       if (imagesSelected == 1) {
-        SetScan(node);
+        SelectScan(node);
       }
       // Set the second one to be the uncertainty.
       else if (imagesSelected == 2) {
-        SetUncertainty(node);
+        SelectUncertainty(node);
       }
     }
   }
@@ -282,70 +245,279 @@ void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, co
 }
 
 /**
+  * Sets the scan to work with.
+  */
+void Sams_View::SelectScan(mitk::DataNode::Pointer scanNode) {
+  scan = scanNode;
+
+  // Update name label.
+  mitk::BaseProperty * nameProperty = scan->GetProperty("name");
+  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
+  std::string name = nameStringProperty->GetValueAsString();
+  UI.labelScanName->setText(QString::fromStdString(name));
+}
+
+/**
+  * Sets the uncertainty to work with.
+  */
+void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
+  // Store a reference to the uncertainty DataNode.
+  uncertainty = uncertaintyNode;
+
+  // Update name label.
+  mitk::BaseProperty * nameProperty = uncertainty->GetProperty("name");
+  mitk::StringProperty::Pointer nameStringProperty = dynamic_cast<mitk::StringProperty*>(nameProperty);
+  std::string name = nameStringProperty->GetValueAsString();
+  UI.labelUncertaintyName->setText(QString::fromStdString(name));
+}
+
+/**
+  * Once the scan and uncertainty have been picked and the user confirms they are correct, we do some pre-processing on the data.
+  */
+void Sams_View::ConfirmSelection() {
+  // Calculate dimensions.
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
+  uncertaintyHeight = uncertaintyImage->GetDimension(0);
+  uncertaintyWidth = uncertaintyImage->GetDimension(1);
+  uncertaintyDepth = uncertaintyImage->GetDimension(2);
+
+  // Preprocess uncertainty.
+  PreprocessNode(uncertainty);
+
+  // 2a. Thresholding
+  // Update min/max values.
+  std::ostringstream ss;
+  ss << std::setprecision(2) << std::fixed << 0.0;
+  UI.labelSliderLeftLimit->setText(ss.str().c_str());
+  ss.str("");
+  ss << std::setprecision(2) << std::fixed << 1.0;
+  UI.labelSliderRightLimit->setText(ss.str().c_str());
+
+  // Move sliders to start/end.
+  SetLowerThreshold(0.0);
+  SetUpperThreshold(1.0);
+
+  // Enable visualisations.
+  UI.tab2a->setEnabled(true);
+  UI.tab2b->setEnabled(true);
+  UI.tab2c->setEnabled(true);
+  UI.buttonOverlayThreshold->setEnabled(true);
+}
+
+/**
+  * Swaps the scan and the uncertainty.
+  */
+void Sams_View::SwapScanUncertainty() {
+  mitk::DataNode::Pointer temp = scan;
+  this->SelectScan(uncertainty);
+  this->SelectUncertainty(temp);
+}
+
+/**
+  * Normalizes and Inverts (if enabled) a node.
+  * Saves intermediate steps and result as a child node of the one given.
+  */
+void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
+  // Get image from node.
+  mitk::Image::Pointer mitkImage = dynamic_cast<mitk::Image*>(node->GetData());
+
+  // Normalize it.
+  mitk::Image::Pointer normalizedMitkImage;
+  AccessByItk_1(mitkImage, ItkNormalizeUncertainty, normalizedMitkImage);
+
+  // Save normalized version. (if it already exists, replace it.)
+  mitk::DataNode::Pointer normalizedNode = this->GetDataStorage()->GetNamedDerivedNode("Normalized", node);
+  if (normalizedNode) {
+    this->GetDataStorage()->Remove(normalizedNode);
+  }
+  normalizedNode = mitk::DataNode::New();
+  normalizedNode->SetData(normalizedMitkImage);
+  normalizedNode->SetProperty("name", mitk::StringProperty::New("Normalized"));
+  normalizedNode->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  this->GetDataStorage()->Add(normalizedNode, node);
+
+  // Invert it. (if enabled)
+  mitk::Image::Pointer invertedMitkImage;
+  if (UI.checkBoxInversionEnabled->isChecked()) {
+    AccessByItk_1(normalizedMitkImage, ItkInvertUncertainty, invertedMitkImage);
+  }
+  else {
+    invertedMitkImage = normalizedMitkImage;
+  }
+
+  // Align the scan and uncertainty.
+  // Get the origin and index to world transform of the scan.
+  mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+  mitk::SlicedGeometry3D * scanSlicedGeometry = scanImage->GetSlicedGeometry();
+  mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
+  mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
+
+  // Set the origin and index to world transform of the uncertainty to be the same.
+  // This effectively lines up pixel (x, y, z) in the scan with pixel (x, y, z) in the uncertainty.
+  mitk::SlicedGeometry3D * uncertaintySlicedGeometry = invertedMitkImage->GetSlicedGeometry();
+  uncertaintySlicedGeometry->SetOrigin(scanOrigin);
+  uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
+
+  // Save completed version. (if it already exists, replace it.)
+  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", node);
+  if (preprocessedUncertainty) {
+    this->GetDataStorage()->Remove(preprocessedUncertainty);
+  }
+  preprocessedUncertainty = mitk::DataNode::New();
+  preprocessedUncertainty->SetData(invertedMitkImage);
+  preprocessedUncertainty->SetProperty("name", mitk::StringProperty::New("Preprocessed"));
+  preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  this->GetDataStorage()->Add(preprocessedUncertainty, node);
+}
+
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::Image<double, 3> ResultType;
+  typedef itk::RescaleIntensityImageFilter<ImageType, ResultType> RescaleFilterType;
+
+  // Scale all the values.
+  typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
+  rescaleFilter->SetInput(itkImage);
+  rescaleFilter->SetOutputMinimum(0.0);
+  rescaleFilter->SetOutputMaximum(1.0);
+  rescaleFilter->Update();
+
+  // Convert to MITK
+  ResultType * scaledImage = rescaleFilter->GetOutput();
+  mitk::CastToMitkImage(scaledImage, result);
+}
+
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::InvertIntensityImageFilter <ImageType> InvertIntensityImageFilterType;
+ 
+  // Invert the image.
+  typename InvertIntensityImageFilterType::Pointer invertIntensityFilter = InvertIntensityImageFilterType::New();
+  invertIntensityFilter->SetInput(itkImage);
+  invertIntensityFilter->SetMaximum(1.0);
+  invertIntensityFilter->Update();
+
+  // Convert to MITK
+  ImageType * invertedImage = invertIntensityFilter->GetOutput();
+  mitk::CastToMitkImage(invertedImage, result);
+}
+
+/**
   * Updates the UI to reflect the number of images selected.
   * Shows messages, disables buttons etc.
   */
 void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
   if (imagesSelected == 0) {
-    ScanPicked(false);
-    UncertaintyPicked(false);
-    BothPicked(false);
+    ScanSelected(false);
+    UncertaintySelected(false);
+    BothSelected(false);
   }
   else if (imagesSelected == 1) {
-    ScanPicked(true);
-    UncertaintyPicked(false);
-    BothPicked(false);
+    ScanSelected(true);
+    UncertaintySelected(false);
+    BothSelected(false);
   }
   else {
-    ScanPicked(true);
-    UncertaintyPicked(true);
-    BothPicked(true);
+    ScanSelected(true);
+    UncertaintySelected(true);
+    BothSelected(true);
   }
 }
 
 /**
   * Enables/Disables parts of the UI based on whether we have selected a scan.
   */
-void Sams_View::ScanPicked(bool picked) {
+void Sams_View::ScanSelected(bool picked) {
   if (picked) {
+    UI.checkBoxScanVisible->setVisible(true);
 
+    // Update the visibility checkbox to match the visibility of the scan we've picked.
+    mitk::BoolProperty * scanVisible = dynamic_cast<mitk::BoolProperty *>(scan->GetProperty("visible"));
+    if (scanVisible) {
+      if (scanVisible->GetValue()) {
+        UI.checkBoxScanVisible->setChecked(true);
+      }
+      else {
+        UI.checkBoxScanVisible->setChecked(false);
+      }
+    }
   }
   else {
     UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
+    UI.checkBoxScanVisible->setVisible(false);
   }
 }
 
 /**
   * Enables/Disables parts of the UI based on whether we have selected an uncertainty.
   */
-void Sams_View::UncertaintyPicked(bool picked) {
+void Sams_View::UncertaintySelected(bool picked) {
   if (picked) {
-    UI.radioButtonEnableThreshold->setEnabled(true);
-    UI.sliderMinThreshold->setEnabled(true);
-    UI.sliderMaxThreshold->setEnabled(true);
-    UI.buttonSphere->setEnabled(true);
+    UI.checkBoxUncertaintyVisible->setVisible(true);
+    UI.checkBoxInversionEnabled->setVisible(true);
+
+    // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
+    mitk::BoolProperty * uncertaintyVisible = dynamic_cast<mitk::BoolProperty *>(uncertainty->GetProperty("visible"));
+    if (uncertaintyVisible) {
+      if (uncertaintyVisible->GetValue()) {
+        UI.checkBoxUncertaintyVisible->setChecked(true);
+      }
+      else {
+        UI.checkBoxUncertaintyVisible->setChecked(false);
+      }
+    }
   }
   else {
     UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
-    UI.radioButtonEnableThreshold->setEnabled(false);
-    UI.sliderMinThreshold->setEnabled(false);
-    UI.sliderMaxThreshold->setEnabled(false);
-    UI.buttonSphere->setEnabled(false);
+    UI.checkBoxUncertaintyVisible->setVisible(false);
+    UI.checkBoxInversionEnabled->setVisible(false);
   }
 }
 
 /**
   * Enables/Disables parts of the UI based on whether we have selected both a scan and an uncertainty.
   */
-void Sams_View::BothPicked(bool picked) {
+void Sams_View::BothSelected(bool picked) {
   if (picked) {
+    UI.buttonConfirmSelection->setEnabled(true);
     UI.buttonSwapScanUncertainty->setEnabled(true);
-    UI.buttonSetLayers->setEnabled(true);
   }
   else {
+    UI.buttonConfirmSelection->setEnabled(false);
     UI.buttonSwapScanUncertainty->setEnabled(false);
-    UI.buttonSetLayers->setEnabled(false);
+    UI.tab2a->setEnabled(false);
+    UI.tab2b->setEnabled(false);
+    UI.tab2c->setEnabled(false);
+    UI.buttonOverlayThreshold->setEnabled(false);
   }
+}
+
+void Sams_View::ToggleScanVisible(bool checked) {
+  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
+  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+  if (checked) {
+    scan->SetProperty("visible", propertyTrue);
+  }
+  else {
+    scan->SetProperty("visible", propertyFalse);
+  }
+  
+  this->RequestRenderWindowUpdate();  
+}
+
+void Sams_View::ToggleUncertaintyVisible(bool checked) {
+  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
+  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+  if (checked) {
+    uncertainty->SetProperty("visible", propertyTrue);
+  }
+  else {
+    uncertainty->SetProperty("visible", propertyFalse);
+  }
+
+  this->RequestRenderWindowUpdate();
 }
 
 // ------------ //
@@ -357,35 +529,57 @@ void Sams_View::BothPicked(bool picked) {
   */
 void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   if (checked) {
-    cout << "Checked." << endl;
     thresholdingEnabled = true;
     ThresholdUncertainty();
   }
   else {
-    cout << "NOT Checked." << endl;
     thresholdingEnabled = false;
   }
 }
 
 /**
-  * Creates a copy of the uncertainty data with values not between minUncertaintyThreshold and maxUncertaintyThreshold removed.
+  * Creates a copy of the uncertainty data with values not between lowerThreshold and upperThreshold removed.
   */
 void Sams_View::ThresholdUncertainty() {
-  mitk::DataNode::Pointer uncertaintyNode = this->uncertainty;
-  mitk::BaseData * uncertaintyData = uncertaintyNode->GetData();
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertaintyData);
+  // Get the uncertainty image.
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
 
-  AccessByItk_2(uncertaintyImage, ItkThresholdUncertainty, minUncertaintyThreshold, maxUncertaintyThreshold);
+  // Threshold it.
+  mitk::Image::Pointer thresholdedImage;
+  AccessByItk_3(uncertaintyImage, ItkThresholdUncertainty, lowerThreshold, upperThreshold, thresholdedImage);
+
+  // Save it. (replace if it already exists)
+  if (thresholdedUncertainty) {
+    this->GetDataStorage()->Remove(thresholdedUncertainty);
+  }
+  thresholdedUncertainty = mitk::DataNode::New();
+  thresholdedUncertainty->SetData(thresholdedImage);
+  thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(true));
+  thresholdedUncertainty->SetProperty("name", mitk::StringProperty::New("Thresholded"));
+  thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0));
+  thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+  thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
+  thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+  this->GetDataStorage()->Add(thresholdedUncertainty, preprocessedUncertainty);
+
+  this->RequestRenderWindowUpdate();
 }
 
 /**
   * Uses ITK to do the thresholding.
   */
 template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, float min, float max) {
+void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
   
+  // Check if we're ignoring zeros.
+  if (UI.checkBoxIgnoreZeros->isChecked()) {
+    double epsilon = DBL_MIN;
+    min = std::max(epsilon, min);
+    max = std::max(epsilon, max);
+  }
+
   // Create a thresholder.
   typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
   thresholdFilter->SetInput(itkImage);
@@ -397,58 +591,22 @@ void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itk
   // Compute result.
   thresholdFilter->Update();
   ImageType * thresholdedImage = thresholdFilter->GetOutput();
-  mitk::Image::Pointer resultImage;
-  mitk::CastToMitkImage(thresholdedImage, resultImage);
-
-  // Wrap it up in a Data Node
-  if (thresholdedUncertainty) {
-    this->GetDataStorage()->Remove(thresholdedUncertainty);
-  }
-  thresholdedUncertainty = mitk::DataNode::New();
-  thresholdedUncertainty->SetData(resultImage);
-  thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(true));
-  thresholdedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Thresholded"));
-  thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0));
-  thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
-  thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
-  this->GetDataStorage()->Add(thresholdedUncertainty);
-
-  this->RequestRenderWindowUpdate();
+  mitk::CastToMitkImage(thresholdedImage, result);
 }
 
 /**
-  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
-  */
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
-  
-  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
-  imageCalculatorFilter->SetImage(itkImage);
-  imageCalculatorFilter->Compute();
-
-  min = imageCalculatorFilter->GetMinimum();
-  max = imageCalculatorFilter->GetMaximum();
-  cout << "(" << min << ", " << max << ")" << endl;
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
-  * Display Lower Threshold
+  * Set Lower Threshold (called by sliders)
+  * - lower is between 0 and 1000
   */
 void Sams_View::LowerThresholdChanged(int lower) {
-  
-  float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * lower + minUncertaintyIntensity;
-  if (temp > maxUncertaintyThreshold) {
+  float temp = (1.0 / 1000) * lower;
+  if (temp > upperThreshold) {
     UI.sliderMinThreshold->setValue(UI.sliderMaxThreshold->value());
     return;
   }
-  minUncertaintyThreshold = temp;
+  lowerThreshold = temp;
   std::ostringstream ss;
-  ss << std::setprecision(2) << std::fixed << minUncertaintyThreshold;
+  ss << std::setprecision(2) << std::fixed << lowerThreshold;
   UI.labelSliderLeft->setText(ss.str().c_str());
 
   if (thresholdingEnabled) {
@@ -457,17 +615,18 @@ void Sams_View::LowerThresholdChanged(int lower) {
 }
 
 /**
-  * Display Upper Threshold
+  * Set Upper Threshold (called by sliders)
+    * - upper is between 0 and 1000
   */
 void Sams_View::UpperThresholdChanged(int upper) {
-  float temp = ((maxUncertaintyIntensity - minUncertaintyIntensity) / 1000) * upper + minUncertaintyIntensity;
-  if (temp < minUncertaintyThreshold) {
+  float temp = (1.0 / 1000) * upper;
+  if (temp < lowerThreshold) {
     UI.sliderMaxThreshold->setValue(UI.sliderMinThreshold->value());
     return;
   }
-  maxUncertaintyThreshold = temp;
+  upperThreshold = temp;
   std::ostringstream ss;
-  ss << std::setprecision(2) << std::fixed << maxUncertaintyThreshold;
+  ss << std::setprecision(2) << std::fixed << upperThreshold;
   UI.labelSliderRight->setText(ss.str().c_str());
 
   if (thresholdingEnabled) {
@@ -475,8 +634,174 @@ void Sams_View::UpperThresholdChanged(int upper) {
   }
 }
 
+/**
+  * Sets the lower threshold to be a float value (between 0.0 and 1.0)
+  */
+void Sams_View::SetLowerThreshold(double lower) {
+  int sliderValue = round(lower * 1000);
+  sliderValue = std::min(sliderValue, 1000);
+  sliderValue = std::max(sliderValue, 0);
+
+  UI.sliderMinThreshold->setValue(sliderValue);
+  LowerThresholdChanged(sliderValue);
+}
+
+/**
+  * Sets the upper threshold to be a float value (between 0.0 and 1.0)
+  */
+void Sams_View::SetUpperThreshold(double upper) {
+  int sliderValue = round(upper * 1000);
+  sliderValue = std::min(sliderValue, 1000);
+  sliderValue = std::max(sliderValue, 0);
+
+  UI.sliderMaxThreshold->setValue(sliderValue);
+  UpperThresholdChanged(sliderValue);
+}
+
+void Sams_View::TopOnePercent() {
+  int percentage = 1;
+  TopXPercent(percentage);
+  UI.spinBoxTopXPercent->setValue(percentage);
+}
+
+void Sams_View::TopFivePercent() {
+  int percentage = 5;
+  TopXPercent(percentage);
+  UI.spinBoxTopXPercent->setValue(percentage);
+}
+
+void Sams_View::TopTenPercent() {
+  int percentage = 10;
+  TopXPercent(percentage);
+  UI.spinBoxTopXPercent->setValue(percentage);
+}
+
+/**
+  * Shows the the worst uncertainty.
+  *   percentage - between 0 and 100
+  *   e.g. percentage = 10 will create a threshold to show the worst 10% of uncertainty.
+  */
+void Sams_View::TopXPercent(int percentage) {
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
+
+  // Get the pixel value corresponding to 10%.
+  double lowerThreshold;
+  double upperThreshold;
+  AccessByItk_3(uncertaintyImage, ItkTopXPercent, percentage / 100.0, lowerThreshold, upperThreshold);
+  
+  // Filter the uncertainty to only show the top 10%.
+  SetLowerThreshold(lowerThreshold);
+  SetUpperThreshold(upperThreshold);
+}
+
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
+
+  const unsigned int measurementComponents = 1; // Grayscale
+  const unsigned int binsPerDimension = 1000;
+
+  // Customise the filter.
+  typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
+  lowerBound.Fill(0.0);
+ 
+  typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType upperBound(binsPerDimension);
+  upperBound.Fill(1.0);
+ 
+  typename ImageToHistogramFilterType::HistogramType::SizeType size(measurementComponents);
+  size.Fill(binsPerDimension);
+
+  // Create the filter.
+  typename ImageToHistogramFilterType::Pointer imageToHistogramFilter = ImageToHistogramFilterType::New();
+  imageToHistogramFilter->SetInput(itkImage);
+  imageToHistogramFilter->SetHistogramBinMinimum(lowerBound);
+  imageToHistogramFilter->SetHistogramBinMaximum(upperBound);
+  imageToHistogramFilter->SetHistogramSize(size);
+  imageToHistogramFilter->Update();
+
+  // Get the resultant histogram. It has binsPerDimension buckets.
+  typename ImageToHistogramFilterType::HistogramType * histogram = imageToHistogramFilter->GetOutput();
+
+  // We know that in total there are uncertaintyX * uncertaintyY * uncertaintyZ pixels.
+  typename ImageType::RegionType region = itkImage->GetLargestPossibleRegion();
+  typename ImageType::SizeType regionSize = region.GetSize();
+  unsigned int totalPixels = regionSize[0] * regionSize[1] * regionSize[2];  
+
+  // If we're ignoring zero values then the total gets reduced. The histogram entry gets zeroed as well.
+  if (UI.checkBoxIgnoreZeros->isChecked()) {
+    totalPixels -= histogram->GetFrequency(0);
+    histogram->SetFrequency(0, 0);
+  }
+
+  std::cout << "Total: " << totalPixels << " pixels." << std::endl;
+
+  // The 10% threshold is therefore at 0.1 * total. Go through the histogram (effectively compute CDF) until we reach this.
+  unsigned int pixelCount = 0;
+  unsigned int i = 0;
+  while ((pixelCount < totalPixels * percentage) && (i < binsPerDimension)) {
+    pixelCount += histogram->GetFrequency(i);
+    i++;
+  }
+
+  // 'Return' the threshold values.
+  lowerThreshold = 0.0;
+  upperThreshold = (double) i / (double) binsPerDimension;
+}
+
+/**
+  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
+  */
+void Sams_View::OverlayThreshold() {
+  // Make Scan and Thresholded Visible
+  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
+  
+  // Scan -> Visible.
+  if (scan) {
+    scan->SetProperty("visible", propertyTrue);
+  }
+
+  // Thresholded Uncertainty -> Visible.
+  if (thresholdedUncertainty) {
+    thresholdedUncertainty->SetProperty("visible", propertyTrue);
+  }
+
+  // Put Scan behind Thresholded Uncertainty
+  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
+  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
+  if (scan) {
+    scan->SetProperty("layer", behindProperty);
+  }
+
+  if (thresholdedUncertainty) {
+    thresholdedUncertainty->SetProperty("layer", infrontProperty);  
+  }
+  
+  // Everything else is invisible.
+  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+
+  // Uncertainty -> Invisible.
+  if (uncertainty) {
+    uncertainty->SetProperty("visible", propertyFalse);
+  }
+
+  // Normalized -> Invisible.
+  mitk::DataNode::Pointer normalizedNode = this->GetDataStorage()->GetNamedDerivedNode("Normalized", uncertainty);
+  if (normalizedNode) {
+    normalizedNode->SetProperty("visible", propertyFalse);
+  }
+
+  // Preprocessed -> Invisible.
+  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", uncertainty);
+  if (preprocessedUncertainty) {
+    preprocessedUncertainty->SetProperty("visible", propertyFalse);
+  }
+
+  this->RequestRenderWindowUpdate();
+}
+
 void Sams_View::ErodeUncertainty() {
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(this->uncertainty->GetData());
+  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
 
   AccessByItk(uncertaintyImage, ItkErodeUncertainty);
 }
@@ -667,7 +992,7 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
   // Use an image accessor to read values from the uncertainty.
   try  {
     // See if the uncertainty data is available to be read.
-    mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(uncertainty->GetData());
+    mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
     mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
 
     // Starting at 'startPosition' move in 'direction' in unit steps, taking samples.
@@ -933,19 +1258,6 @@ void Sams_View::ResetViews() {
 // ----------- //
 
 /**
-  * Sets the uncertainty to be rendered in front of the scan (for overlaying in 2D).
-  */
-void Sams_View::SetLayers() {
-  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
-  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
-
-  this->scan->SetProperty("layer", behindProperty);
-  this->uncertainty->SetProperty("layer", infrontProperty);
-
-  this->RequestRenderWindowUpdate();
-}
-
-/**
   * Puts some useless text on the render windows.
   */
 void Sams_View::ShowTextOverlay() {
@@ -977,26 +1289,84 @@ void Sams_View::ShowTextOverlay() {
 // ----------- //
 
 void Sams_View::GenerateRandomUncertainty() {
-  GenerateRandomUncertainty(50);
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  GenerateRandomUncertainty(scanHeight, scanWidth, scanDepth);
 }
 
 void Sams_View::GenerateCubeUncertainty() {
-  GenerateCubeUncertainty(50, 10);
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  GenerateCubeUncertainty(scanHeight, scanWidth, scanDepth, 10);
 }
 
 void Sams_View::GenerateSphereUncertainty() {
-  GenerateSphereUncertainty(50, 30);
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  vtkVector<float, 3> imageSize = vtkVector<float, 3>();
+  imageSize[0] = scanHeight;
+  imageSize[1] = scanWidth;
+  imageSize[2] = scanDepth;
+
+  GenerateSphereUncertainty(imageSize, std::min(std::min(scanHeight, scanWidth), scanDepth));
 }
 
 void Sams_View::GenerateQuadrantSphereUncertainty() {
-  GenerateSphereUncertainty(50, 12.5, vtkVector<float, 3>(12.5));
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  vtkVector<float, 3> imageSize = vtkVector<float, 3>();
+  imageSize[0] = scanHeight;
+  imageSize[1] = scanWidth;
+  imageSize[2] = scanDepth;
+
+  GenerateSphereUncertainty(imageSize, std::min(std::min(scanHeight, scanWidth), scanDepth) / 4, vtkVector<float, 3>(std::min(std::min(scanHeight, scanWidth), scanDepth) / 4));
 }
 
 /**
-  * Generates uncertainty data (size * size * size).
+  * Generates uncertainty data (height * width * depth).
   * Each voxel is a random uncertainty value between 0 and 255.
   */
-void Sams_View::GenerateRandomUncertainty(unsigned int size) {
+void Sams_View::GenerateRandomUncertainty(unsigned int height, unsigned int width, unsigned int depth) {
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1005,9 +1375,9 @@ void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   start[2] = 0;
  
   UncertaintyImageType::SizeType uncertaintySize;
-  uncertaintySize[0] = size;
-  uncertaintySize[1] = size;
-  uncertaintySize[2] = size;
+  uncertaintySize[0] = height;
+  uncertaintySize[1] = width;
+  uncertaintySize[2] = depth;
  
   region.SetSize(uncertaintySize);
   region.SetIndex(start);
@@ -1017,9 +1387,9 @@ void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   randomUncertainty->Allocate();
 
   // Go through each voxel and set a random value.
-  for (unsigned int r = 0; r < size; r++) {
-    for (unsigned int c = 0; c < size; c++) {
-      for (unsigned int d = 0; d < size; d++) {
+  for (unsigned int r = 0; r < height; r++) {
+    for (unsigned int c = 0; c < width; c++) {
+      for (unsigned int d = 0; d < depth; d++) {
         UncertaintyImageType::IndexType pixelIndex;
         pixelIndex[0] = r;
         pixelIndex[1] = c;
@@ -1035,15 +1405,18 @@ void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   
   mitk::DataNode::Pointer randomUncertaintyNode = mitk::DataNode::New();
   randomUncertaintyNode->SetData(mitkImage);
-  randomUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Random Uncertainty"));
+
+  std::ostringstream ss;
+  ss << "Random Uncertainty (" << height << "x" << width << "x" << depth << ")";
+  randomUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(randomUncertaintyNode);
 }
 
 /**
-  * Generates uncertainty data (totalSize * totalSize * totalSize).
-  * It's zero everywhere, apart from a cube placed at the center with size cubeSize that is 1.
+  * Generates uncertainty data (height * width * depth).
+  * The cube, placed at the center with side length cubeSize, is totally uncertain (1) and everywhere else is completely certain (255).
   */
-void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize) {
+void Sams_View::GenerateCubeUncertainty(unsigned int height, unsigned int width, unsigned int depth, unsigned int cubeSize) {
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1052,9 +1425,9 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   start[2] = 0;
  
   UncertaintyImageType::SizeType uncertaintySize;
-  uncertaintySize[0] = totalSize;
-  uncertaintySize[1] = totalSize;
-  uncertaintySize[2] = totalSize;
+  uncertaintySize[0] = height;
+  uncertaintySize[1] = width;
+  uncertaintySize[2] = depth;
  
   region.SetSize(uncertaintySize);
   region.SetIndex(start);
@@ -1063,35 +1436,38 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   cubeUncertainty->SetRegions(region);
   cubeUncertainty->Allocate();
 
-  // Make sure the cube is within the total size.
-  if (cubeSize > totalSize) {
-    cubeSize = totalSize;
-  }
+  // Compute the cube center point.
+  float cubeCenter0 = (height - 1) / 2.0f;
+  float cubeCenter1 = (width - 1) / 2.0f;
+  float cubeCenter2 = (depth - 1) / 2.0f;
 
-  // Compute the cube location. At first to float precision, then round to pixels.
-  float halfCubeWidth = (float) cubeSize / 2.0;
-  float uncertaintyCenter = (((float) (totalSize - 1)) / 2.0);
-  unsigned int cubeStartPixel = ceil(uncertaintyCenter - halfCubeWidth);
-  unsigned int cubeEndPixel = floor(uncertaintyCenter + halfCubeWidth);
+  // Work out which columns/rows/depths the cube is in.
+  float halfCube = cubeSize / 2.0f;
+  unsigned int cubeRowStart = cubeCenter0 - halfCube;
+  unsigned int cubeRowEnd = cubeCenter0 + halfCube;
+  unsigned int cubeColStart = cubeCenter1 - halfCube;
+  unsigned int cubeColEnd = cubeCenter1 + halfCube;
+  unsigned int cubeDepthStart = cubeCenter2 - halfCube;
+  unsigned int cubeDepthEnd = cubeCenter2 + halfCube;
 
   // Go through each voxel and set uncertainty according to whether it's in the cube.
-  for (unsigned int r = 0; r < totalSize; r++) {
-    for (unsigned int c = 0; c < totalSize; c++) {
-      for (unsigned int d = 0; d < totalSize; d++) {
+  for (unsigned int r = 0; r < height; r++) {
+    for (unsigned int c = 0; c < width; c++) {
+      for (unsigned int d = 0; d < depth; d++) {
         UncertaintyImageType::IndexType pixelIndex;
         pixelIndex[0] = r;
         pixelIndex[1] = c;
         pixelIndex[2] = d;
 
         // If this pixel is in the cube.
-        if ((cubeStartPixel <= r) && (r <= cubeEndPixel) &&
-            (cubeStartPixel <= c) && (c <= cubeEndPixel) &&
-            (cubeStartPixel <= d) && (d <= cubeEndPixel)) {
-          cubeUncertainty->SetPixel(pixelIndex, 255);
+        if ((cubeRowStart <= r) && (r <= cubeRowEnd) &&
+            (cubeColStart <= c) && (c <= cubeColEnd) &&
+            (cubeDepthStart <= d) && (d <= cubeDepthEnd)) {
+          cubeUncertainty->SetPixel(pixelIndex, 1);
         }
         // If it's not.
         else {
-          cubeUncertainty->SetPixel(pixelIndex, 0);
+          cubeUncertainty->SetPixel(pixelIndex, 255);
         }
       }
     }
@@ -1102,15 +1478,18 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   
   mitk::DataNode::Pointer cubeUncertaintyNode = mitk::DataNode::New();
   cubeUncertaintyNode->SetData(mitkImage);
-  cubeUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Cube of Uncertainty"));
+
+  std::ostringstream ss;
+  ss << "Cube of Uncertainty (" << height << "x" << width << "x" << depth << ")";
+  cubeUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(cubeUncertaintyNode);
 }
 
 /**
-  * Generates uncertainty data (totalSize * totalSize * totalSize).
+  * Generates uncertainty data (imageSize[0] * imageSize[1] * imageSize[2]).
   * It's zero everywhere, apart from a sphere of radius sphereRadius that has uncertainty 255 at the center and fades linearly to the edges.
   */
-void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
+void Sams_View::GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
 // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1119,9 +1498,9 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   start[2] = 0;
  
   UncertaintyImageType::SizeType uncertaintySize;
-  uncertaintySize[0] = totalSize;
-  uncertaintySize[1] = totalSize;
-  uncertaintySize[2] = totalSize;
+  uncertaintySize[0] = imageSize[0];
+  uncertaintySize[1] = imageSize[1];
+  uncertaintySize[2] = imageSize[2];
  
   region.SetSize(uncertaintySize);
   region.SetIndex(start);
@@ -1133,14 +1512,14 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   // If the center is not specified (-1) in any dimension, make it the center.
   for (unsigned int i = 0; i < 3; i++) {
     if (sphereCenter[i] == -1.0f) {
-      sphereCenter[i] = (float) (totalSize - 1) / 2.0;
+      sphereCenter[i] = (float) (imageSize[i] - 1) / 2.0;
     }
   }
 
   // Go through each voxel and weight uncertainty by distance from center of sphere.
-  for (unsigned int r = 0; r < totalSize; r++) {
-    for (unsigned int c = 0; c < totalSize; c++) {
-      for (unsigned int d = 0; d < totalSize; d++) {
+  for (unsigned int r = 0; r < imageSize[0]; r++) {
+    for (unsigned int c = 0; c < imageSize[1]; c++) {
+      for (unsigned int d = 0; d < imageSize[2]; d++) {
         UncertaintyImageType::IndexType pixelIndex;
         pixelIndex[0] = r;
         pixelIndex[1] = c;
@@ -1156,9 +1535,9 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
         float distanceFromCenter = difference.Norm();
 
         // Get normalized 0-1 weighting.
-        float uncertaintyValue = std::max(0.0f, ((float) sphereRadius - distanceFromCenter) / (float) sphereRadius);
+        float uncertaintyValue = 1 - std::max(0.0f, ((float) sphereRadius - distanceFromCenter) / (float) sphereRadius);
 
-        // Scale by 255.
+        // Scale by 255. Don't allow 0 (undefined uncertainty).
         sphereUncertainty->SetPixel(pixelIndex, uncertaintyValue * 255);
       }
     }
@@ -1169,6 +1548,32 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   
   mitk::DataNode::Pointer sphereUncertaintyNode = mitk::DataNode::New();
   sphereUncertaintyNode->SetData(mitkImage);
-  sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Sphere of Uncertainty"));
+
+  std::ostringstream ss;
+  ss << "Sphere of Uncertainty (" << imageSize[0] << "x" << imageSize[1] << "x" << imageSize[2] << ")";
+  sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(sphereUncertaintyNode);
+}
+
+/* -------------------- */
+/* ---- DEPRECATED ---- */
+/* -------------------- */
+
+/**
+  * Uses ITK to get the minimum and maximum values in the volume. Parameters min and max are set.
+  */
+template <typename TPixel, unsigned int VImageDimension>
+void Sams_View::ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max) {
+  typedef itk::Image<TPixel, VImageDimension> ImageType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> ImageCalculatorFilterType;
+  
+  typename ImageCalculatorFilterType::Pointer imageCalculatorFilter = ImageCalculatorFilterType::New();
+  imageCalculatorFilter->SetImage(itkImage);
+  imageCalculatorFilter->Compute();
+
+  min = imageCalculatorFilter->GetMinimum();
+  max = imageCalculatorFilter->GetMaximum();
+  cout << "(" << min << ", " << max << ")" << endl;
+
+  this->RequestRenderWindowUpdate();
 }
