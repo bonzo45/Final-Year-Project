@@ -39,6 +39,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
+#include <mitkSlicedGeometry3D.h>
+#include <mitkPoint.h>
 
 // 2
 //  a. Thresholding
@@ -335,18 +337,18 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     invertedMitkImage = normalizedMitkImage;
   }
 
-  // New Plan: Get the origin, bla bla bla etc from the scan in one move.
-  // Then pass them through to the uncertainty on the second. Will the types match? Probably not.
-  // Could normalize the image. Not the best, will probably lose some critical MRI information.
-  // ----- TODO ----- /
-  // Align it to the scan.
-  //  Cast the normalized scan to an ITK image. We know it's a <double, 3> (we just normalized it) so we can do this.
-  itk::SmartPointer< itk::Image<double, 3> > uncertaintyItk;
-  mitk::CastToItkImage(invertedMitkImage, uncertaintyItk); 
-  //  Align this image to the scan (which we don't know the exact type of so we use the access method)
-  mitk::Image::Pointer alignedMitkImage;
-  AccessByItk_1(scan, ItkAlignTo, uncertaintyItk, alignedMitkImage);
-  // -- END TODO ---- /
+  // Align the scan and uncertainty.
+  // Get the origin and index to world transform of the scan.
+  mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+  mitk::SlicedGeometry3D * scanSlicedGeometry = scanImage->GetSlicedGeometry();
+  mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
+  mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
+
+  // Set the origin and index to world transform of the uncertainty to be the same.
+  // This effectively lines up pixel (x, y, z) in the scan with pixel (x, y, z) in the uncertainty.
+  mitk::SlicedGeometry3D * uncertaintySlicedGeometry = invertedMitkImage->GetSlicedGeometry();
+  uncertaintySlicedGeometry->SetOrigin(scanOrigin);
+  uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
 
   // Save completed version. (if it already exists, replace it.)
   preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", node);
@@ -354,7 +356,7 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     this->GetDataStorage()->Remove(preprocessedUncertainty);
   }
   preprocessedUncertainty = mitk::DataNode::New();
-  preprocessedUncertainty->SetData(alignedMitkImage);
+  preprocessedUncertainty->SetData(invertedMitkImage);
   preprocessedUncertainty->SetProperty("name", mitk::StringProperty::New("Preprocessed"));
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   this->GetDataStorage()->Add(preprocessedUncertainty, node);
@@ -388,25 +390,6 @@ void Sams_View::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkIma
   invertIntensityFilter->SetInput(itkImage);
   invertIntensityFilter->SetMaximum(1.0);
   invertIntensityFilter->Update();
-
-  // Convert to MITK
-  ImageType * invertedImage = invertIntensityFilter->GetOutput();
-  mitk::CastToMitkImage(invertedImage, result);
-}
-
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkAlignTo(itk::Image<TPixel, VImageDimension>* scan, itk::Image<double, 3> uncertainty, mitk::Image::Pointer & result) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::ChangeInformationImageFilter<ImageType> ChangeInformationImageFilterType;
- 
-  // Use the...
-
-  // Align the image.
-  typename ChangeInformationImageFilter::Pointer changeInformationFilter = ChangeInformationImageFilterType::New();
-  changeInformationFilter->SetInput(uncertainty);
-  changeInformationFilter->UseReferenceImageOn();
-  changeInformationFilter->SetReferenceImage(scan)
-  changeInformationFilter->Update();
 
   // Convert to MITK
   ImageType * invertedImage = invertIntensityFilter->GetOutput();
@@ -1249,26 +1232,84 @@ void Sams_View::ShowTextOverlay() {
 // ----------- //
 
 void Sams_View::GenerateRandomUncertainty() {
-  GenerateRandomUncertainty(50);
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  GenerateRandomUncertainty(scanHeight, scanWidth, scanDepth);
 }
 
 void Sams_View::GenerateCubeUncertainty() {
-  GenerateCubeUncertainty(50, 10);
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  GenerateCubeUncertainty(scanHeight, scanWidth, scanDepth, 10);
 }
 
 void Sams_View::GenerateSphereUncertainty() {
-  GenerateSphereUncertainty(50, 30);
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  vtkVector<float, 3> imageSize = vtkVector<float, 3>();
+  imageSize[0] = scanHeight;
+  imageSize[1] = scanWidth;
+  imageSize[2] = scanDepth;
+
+  GenerateSphereUncertainty(imageSize, std::min(std::min(scanHeight, scanWidth), scanDepth));
 }
 
 void Sams_View::GenerateQuadrantSphereUncertainty() {
-  GenerateSphereUncertainty(50, 12.5, vtkVector<float, 3>(12.5));
+  // If we have selected a scan then generate uncertainty with the same dimensions.
+  unsigned int scanHeight = 50;
+  unsigned int scanWidth = 50;
+  unsigned int scanDepth = 50;
+
+  if (scan) {
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    scanHeight = scanImage->GetDimension(0);
+    scanWidth = scanImage->GetDimension(1);
+    scanDepth = scanImage->GetDimension(2);
+  }
+
+  vtkVector<float, 3> imageSize = vtkVector<float, 3>();
+  imageSize[0] = scanHeight;
+  imageSize[1] = scanWidth;
+  imageSize[2] = scanDepth;
+
+  GenerateSphereUncertainty(imageSize, std::min(std::min(scanHeight, scanWidth), scanDepth) / 4, vtkVector<float, 3>(std::min(std::min(scanHeight, scanWidth), scanDepth) / 4));
 }
 
 /**
-  * Generates uncertainty data (size * size * size).
+  * Generates uncertainty data (height * width * depth).
   * Each voxel is a random uncertainty value between 0 and 255.
   */
-void Sams_View::GenerateRandomUncertainty(unsigned int size) {
+void Sams_View::GenerateRandomUncertainty(unsigned int height, unsigned int width, unsigned int depth) {
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1277,9 +1318,9 @@ void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   start[2] = 0;
  
   UncertaintyImageType::SizeType uncertaintySize;
-  uncertaintySize[0] = size;
-  uncertaintySize[1] = size;
-  uncertaintySize[2] = size;
+  uncertaintySize[0] = height;
+  uncertaintySize[1] = width;
+  uncertaintySize[2] = depth;
  
   region.SetSize(uncertaintySize);
   region.SetIndex(start);
@@ -1289,9 +1330,9 @@ void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   randomUncertainty->Allocate();
 
   // Go through each voxel and set a random value.
-  for (unsigned int r = 0; r < size; r++) {
-    for (unsigned int c = 0; c < size; c++) {
-      for (unsigned int d = 0; d < size; d++) {
+  for (unsigned int r = 0; r < height; r++) {
+    for (unsigned int c = 0; c < width; c++) {
+      for (unsigned int d = 0; d < depth; d++) {
         UncertaintyImageType::IndexType pixelIndex;
         pixelIndex[0] = r;
         pixelIndex[1] = c;
@@ -1307,15 +1348,18 @@ void Sams_View::GenerateRandomUncertainty(unsigned int size) {
   
   mitk::DataNode::Pointer randomUncertaintyNode = mitk::DataNode::New();
   randomUncertaintyNode->SetData(mitkImage);
-  randomUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Random Uncertainty"));
+
+  std::ostringstream ss;
+  ss << "Random Uncertainty (" << height << "x" << width << "x" << depth << ")";
+  randomUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(randomUncertaintyNode);
 }
 
 /**
-  * Generates uncertainty data (totalSize * totalSize * totalSize).
-  * It's zero everywhere, apart from a cube placed at the center with size cubeSize that is 1.
+  * Generates uncertainty data (height * width * depth).
+  * The cube, placed at the center with side length cubeSize, is totally uncertain (1) and everywhere else is completely certain (255).
   */
-void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize) {
+void Sams_View::GenerateCubeUncertainty(unsigned int height, unsigned int width, unsigned int depth, unsigned int cubeSize) {
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1324,9 +1368,9 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   start[2] = 0;
  
   UncertaintyImageType::SizeType uncertaintySize;
-  uncertaintySize[0] = totalSize;
-  uncertaintySize[1] = totalSize;
-  uncertaintySize[2] = totalSize;
+  uncertaintySize[0] = height;
+  uncertaintySize[1] = width;
+  uncertaintySize[2] = depth;
  
   region.SetSize(uncertaintySize);
   region.SetIndex(start);
@@ -1335,30 +1379,33 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   cubeUncertainty->SetRegions(region);
   cubeUncertainty->Allocate();
 
-  // Make sure the cube is within the total size.
-  if (cubeSize > totalSize) {
-    cubeSize = totalSize;
-  }
+  // Compute the cube center point.
+  float cubeCenter0 = (height - 1) / 2.0f;
+  float cubeCenter1 = (width - 1) / 2.0f;
+  float cubeCenter2 = (depth - 1) / 2.0f;
 
-  // Compute the cube location. At first to float precision, then round to pixels.
-  float halfCubeWidth = (float) cubeSize / 2.0;
-  float uncertaintyCenter = (((float) (totalSize - 1)) / 2.0);
-  unsigned int cubeStartPixel = ceil(uncertaintyCenter - halfCubeWidth);
-  unsigned int cubeEndPixel = floor(uncertaintyCenter + halfCubeWidth);
+  // Work out which columns/rows/depths the cube is in.
+  float halfCube = cubeSize / 2.0f;
+  unsigned int cubeRowStart = cubeCenter0 - halfCube;
+  unsigned int cubeRowEnd = cubeCenter0 + halfCube;
+  unsigned int cubeColStart = cubeCenter1 - halfCube;
+  unsigned int cubeColEnd = cubeCenter1 + halfCube;
+  unsigned int cubeDepthStart = cubeCenter2 - halfCube;
+  unsigned int cubeDepthEnd = cubeCenter2 + halfCube;
 
   // Go through each voxel and set uncertainty according to whether it's in the cube.
-  for (unsigned int r = 0; r < totalSize; r++) {
-    for (unsigned int c = 0; c < totalSize; c++) {
-      for (unsigned int d = 0; d < totalSize; d++) {
+  for (unsigned int r = 0; r < height; r++) {
+    for (unsigned int c = 0; c < width; c++) {
+      for (unsigned int d = 0; d < depth; d++) {
         UncertaintyImageType::IndexType pixelIndex;
         pixelIndex[0] = r;
         pixelIndex[1] = c;
         pixelIndex[2] = d;
 
         // If this pixel is in the cube.
-        if ((cubeStartPixel <= r) && (r <= cubeEndPixel) &&
-            (cubeStartPixel <= c) && (c <= cubeEndPixel) &&
-            (cubeStartPixel <= d) && (d <= cubeEndPixel)) {
+        if ((cubeRowStart <= r) && (r <= cubeRowEnd) &&
+            (cubeColStart <= c) && (c <= cubeColEnd) &&
+            (cubeDepthStart <= d) && (d <= cubeDepthEnd)) {
           cubeUncertainty->SetPixel(pixelIndex, 1);
         }
         // If it's not.
@@ -1374,15 +1421,18 @@ void Sams_View::GenerateCubeUncertainty(unsigned int totalSize, unsigned int cub
   
   mitk::DataNode::Pointer cubeUncertaintyNode = mitk::DataNode::New();
   cubeUncertaintyNode->SetData(mitkImage);
-  cubeUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Cube of Uncertainty"));
+
+  std::ostringstream ss;
+  ss << "Cube of Uncertainty (" << height << "x" << width << "x" << depth << ")";
+  cubeUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(cubeUncertaintyNode);
 }
 
 /**
-  * Generates uncertainty data (totalSize * totalSize * totalSize).
+  * Generates uncertainty data (imageSize[0] * imageSize[1] * imageSize[2]).
   * It's zero everywhere, apart from a sphere of radius sphereRadius that has uncertainty 255 at the center and fades linearly to the edges.
   */
-void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
+void Sams_View::GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
 // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -1391,9 +1441,9 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   start[2] = 0;
  
   UncertaintyImageType::SizeType uncertaintySize;
-  uncertaintySize[0] = totalSize;
-  uncertaintySize[1] = totalSize;
-  uncertaintySize[2] = totalSize;
+  uncertaintySize[0] = imageSize[0];
+  uncertaintySize[1] = imageSize[1];
+  uncertaintySize[2] = imageSize[2];
  
   region.SetSize(uncertaintySize);
   region.SetIndex(start);
@@ -1405,14 +1455,14 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   // If the center is not specified (-1) in any dimension, make it the center.
   for (unsigned int i = 0; i < 3; i++) {
     if (sphereCenter[i] == -1.0f) {
-      sphereCenter[i] = (float) (totalSize - 1) / 2.0;
+      sphereCenter[i] = (float) (imageSize[i] - 1) / 2.0;
     }
   }
 
   // Go through each voxel and weight uncertainty by distance from center of sphere.
-  for (unsigned int r = 0; r < totalSize; r++) {
-    for (unsigned int c = 0; c < totalSize; c++) {
-      for (unsigned int d = 0; d < totalSize; d++) {
+  for (unsigned int r = 0; r < imageSize[0]; r++) {
+    for (unsigned int c = 0; c < imageSize[1]; c++) {
+      for (unsigned int d = 0; d < imageSize[2]; d++) {
         UncertaintyImageType::IndexType pixelIndex;
         pixelIndex[0] = r;
         pixelIndex[1] = c;
@@ -1441,7 +1491,10 @@ void Sams_View::GenerateSphereUncertainty(unsigned int totalSize, unsigned int s
   
   mitk::DataNode::Pointer sphereUncertaintyNode = mitk::DataNode::New();
   sphereUncertaintyNode->SetData(mitkImage);
-  sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New("Sphere of Uncertainty"));
+
+  std::ostringstream ss;
+  ss << "Sphere of Uncertainty (" << imageSize[0] << "x" << imageSize[1] << "x" << imageSize[2] << ")";
+  sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(sphereUncertaintyNode);
 }
 

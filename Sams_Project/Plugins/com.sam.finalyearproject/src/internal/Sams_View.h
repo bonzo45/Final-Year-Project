@@ -125,9 +125,9 @@ class Sams_View : public QmitkAbstractView {
     // 4
 
     // 5
-    void GenerateRandomUncertainty(unsigned int size);
-    void GenerateCubeUncertainty(unsigned int totalSize, unsigned int cubeSize);
-    void GenerateSphereUncertainty(unsigned int totalSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
+    void GenerateRandomUncertainty(unsigned int height, unsigned int width, unsigned int depth);
+    void GenerateCubeUncertainty(unsigned int height, unsigned int width, unsigned int depth, unsigned int cubeSize);
+    void GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
 
     // Deprecated
     template <typename TPixel, unsigned int VImageDimension>
