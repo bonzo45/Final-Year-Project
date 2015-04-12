@@ -92,6 +92,9 @@ class Sams_View : public QmitkAbstractView {
     Ui::Sams_ViewControls UI;
 
   private:
+    // Util
+    mitk::DataNode::Pointer SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite = false, mitk::DataNode::Pointer parent = 0);
+
     // 1
     void SelectScan(mitk::DataNode::Pointer scan);
     void SelectUncertainty(mitk::DataNode::Pointer uncertainty);
@@ -132,10 +135,6 @@ class Sams_View : public QmitkAbstractView {
     void GenerateRandomUncertainty(unsigned int height, unsigned int width, unsigned int depth);
     void GenerateCubeUncertainty(unsigned int height, unsigned int width, unsigned int depth, unsigned int cubeSize);
     void GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
-
-    // Deprecated
-    template <typename TPixel, unsigned int VImageDimension>
-    void ItkGetRange(itk::Image<TPixel, VImageDimension>* itkImage, float &min, float &max);
 };
 
 #endif // Sams_View_h
