@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
+    <width>481</width>
     <height>840</height>
    </rect>
   </property>
@@ -280,7 +280,7 @@
           <widget class="QWidget" name="widget1Right" native="true">
            <property name="maximumSize">
             <size>
-             <width>75</width>
+             <width>60</width>
              <height>16777215</height>
             </size>
            </property>
@@ -364,7 +364,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab2a">
          <attribute name="title">
@@ -372,7 +372,7 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="label2aDescription">
             <property name="font">
              <font>
               <pointsize>10</pointsize>
@@ -640,7 +640,7 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_12">
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="label2bDescription">
             <property name="font">
              <font>
               <pointsize>10</pointsize>
@@ -649,6 +649,76 @@
             <property name="text">
              <string>Shows the uncertainty on a sphere by generating a texture.</string>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget2bLabels" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Width</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Height</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget2bSpinBoxes" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QSpinBox" name="spinBoxTextureWidth">
+               <property name="minimum">
+                <number>2</number>
+               </property>
+               <property name="maximum">
+                <number>10000</number>
+               </property>
+               <property name="singleStep">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>200</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBoxTextureHeight">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>5000</number>
+               </property>
+               <property name="singleStep">
+                <number>100</number>
+               </property>
+               <property name="value">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>

@@ -64,6 +64,8 @@ class Sams_View : public QmitkAbstractView {
     void OverlayThreshold();
 
     //  b
+    void TextureWidthChanged(int);
+    void TextureHeightChanged(int);
     void GenerateUncertaintySphere();
 
     //  c

@@ -30,6 +30,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkILinkedRenderWindowPart.h>
 #include <mitkIRenderingManager.h>
 #include <mitkNodePredicateProperty.h>
+#include <mitkProgressBar.h>  // For loading bar.
 
 #include <cmath> // for abs
 #include <algorithm> // for min/max
@@ -159,6 +160,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertainty()));
 
   //  b. Texture Mapping
+  connect(UI.spinBoxTextureWidth, SIGNAL(valueChanged(int)), this, SLOT(TextureWidthChanged(int)));
+  connect(UI.spinBoxTextureHeight, SIGNAL(valueChanged(int)), this, SLOT(TextureHeightChanged(int)));
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
 
   //  c. Surface Mapping
@@ -315,11 +318,31 @@ void Sams_View::SwapScanUncertainty() {
   this->SelectUncertainty(temp);
 }
 
+// > void SomeClass::DoFiltering()
+// > {
+// >  mitk::ProgressBar::GetInstance()->AddStepsToDo(stepCount);
+// >
+// >  itk::ReceptorMemberCommand<ITKFilterType>::Pointer command = itk::ReceptorMemberCommand<ITKFilterType>::New();
+// >  command->SetCallbackFunction(this, &SomeClass::SetProgress);
+// >  itkFilter->AddObserver(itk::IterationEvent(), command);
+// >  ...
+// >  itkFilter->Update();
+// > }
+// >
+// > void SomeClass::SetProgress()
+// > {
+// >  mitk::ProgressBar::GetInstance()->Progress();
+// > }
+
 /**
   * Normalizes and Inverts (if enabled) a node.
   * Saves intermediate steps and result as a child node of the one given.
   */
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
+  // TEST: Loading
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(5);
+  // TEST: Loading
+
   // Get image from node.
   mitk::Image::Pointer mitkImage = dynamic_cast<mitk::Image*>(node->GetData());
   
@@ -340,6 +363,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   normalizedNode->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   this->GetDataStorage()->Add(normalizedNode, node);
 
+  // TEST: Loading
+  mitk::ProgressBar::GetInstance()->Progress();
+  // TEST: Loading
+
   // ------------------- //
   // ------ Invert ----- //
   // ------------------- //
@@ -352,6 +379,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     invertedMitkImage = normalizedMitkImage;
   }
 
+  // TEST: Loading
+  mitk::ProgressBar::GetInstance()->Progress();
+  // TEST: Loading
+
   // ------------------- //
   // ------ Erode ------ //
   // ------------------- //
@@ -363,6 +394,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   else {
     erodedMitkImage = invertedMitkImage;
   }
+
+  // TEST: Loading
+  mitk::ProgressBar::GetInstance()->Progress();
+  // TEST: Loading
 
   // ------------------- //
   // ------ Align ------ //
@@ -382,6 +417,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   uncertaintySlicedGeometry->SetOrigin(scanOrigin);
   uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
 
+  // TEST: Loading
+  mitk::ProgressBar::GetInstance()->Progress();
+  // TEST: Loading
+
   // ------------------- //
   // ------- Save ------ //
   // ------------------- //
@@ -395,6 +434,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   preprocessedUncertainty->SetProperty("name", mitk::StringProperty::New("Preprocessed"));
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   this->GetDataStorage()->Add(preprocessedUncertainty, node);
+
+  // TEST: Loading
+  mitk::ProgressBar::GetInstance()->Progress();
+  // TEST: Loading
 }
 
 template <typename TPixel, unsigned int VImageDimension>
@@ -906,6 +949,16 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
 // ---- 2b ---- //
 // ------------ //
 
+const double LAT_LONG_RATIO = 2.0;
+
+void Sams_View::TextureWidthChanged(int value) {
+  UI.spinBoxTextureHeight->setValue(value / LAT_LONG_RATIO);
+}
+
+void Sams_View::TextureHeightChanged(int value) {
+  UI.spinBoxTextureWidth->setValue(value * LAT_LONG_RATIO);
+}
+
 /**
   * Creates a sphere and maps a texture created from uncertainty to it.
   */
@@ -972,8 +1025,8 @@ void Sams_View::GenerateUncertaintySphere() {
   * It works by projecting a point in the center of the volume outwards, onto a sphere.
   */
 mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
-  unsigned int width = 150;
-  unsigned int height = 50;
+  unsigned int width = UI.spinBoxTextureWidth->value();
+  unsigned int height = UI.spinBoxTextureHeight->value();
 
   // Create a blank ITK image.
   TextureImageType::RegionType region;
@@ -1015,10 +1068,6 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
       // Sample the uncertainty data.
       int pixelValue = SampleUncertainty(center, direction);
 
-      if (c == 75 && r == 25) {
-        cout << "75, 25 has direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ") and value " << pixelValue << endl;
-      }
-
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
       pixelIndex[0] = c;
@@ -1039,14 +1088,11 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   * direction - the vector of the direction to trace in
   */
 int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
-  bool print = ((std::abs(direction[0] - -1.0f) < 0.000001f) && ((std::abs(direction[1]) < 0.000001f) && (std::abs(direction[2]) < 0.000001f)));
-  if (print)
-    cout << "Found Troublesome Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << endl;
-  // Use an image accessor to read values from the uncertainty.
+// Use an image accessor to read values from the uncertainty.
   try  {
     // See if the uncertainty data is available to be read.
     mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
-    mitk::ImagePixelReadAccessor<unsigned char, 3> readAccess(uncertaintyImage);
+    mitk::ImagePixelReadAccessor<double, 3> readAccess(uncertaintyImage);
 
     // Starting at 'startPosition' move in 'direction' in unit steps, taking samples.
     vtkVector<float, 3> position = vtkVector<float, 3>(startPosition);
@@ -1064,16 +1110,10 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       int ySampleRange = (round(position[1]) < position[1])? 1 : -1;
       int zSampleRange = (round(position[2]) < position[2])? 1 : -1;
 
-      if (print) {
-        cout << "- Range for Sample: " << xSampleRange << ", " << ySampleRange << ", " << zSampleRange << endl;
-      }
-
       // Loop through the 8 samples.
       for (int i = std::min(xSampleRange, 0); i <= std::max(xSampleRange, 0); i++) {
         for (int j = std::min(ySampleRange, 0); j <= std::max(ySampleRange, 0); j++) { 
           for (int k = std::min(zSampleRange, 0); k <= std::max(zSampleRange, 0); k++) {
-            if (print)
-              cout << "-- i: " << i << ", j: " << j << ", k: " << k << endl;
             // Get the position of the neighbour.
             vtkVector<float, 3> neighbour = vtkVector<float, 3>();
             neighbour[0] = round(position[0] + i);
@@ -1084,8 +1124,6 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
             if (neighbour[0] < 0.0f || uncertaintyHeight <= neighbour[0] ||
                 neighbour[1] < 0.0f || uncertaintyWidth <= neighbour[1] ||
                 neighbour[2] < 0.0f || uncertaintyDepth <= neighbour[2]) {
-              if (print)
-                cout << "-- SKIPPED NEIGHBOUR" << endl;
               continue;
             }
 
@@ -1094,12 +1132,10 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
             index[0] = neighbour[0];
             index[1] = neighbour[1];
             index[2] = neighbour[2];
-            float neighbourUncertainty = readAccess.GetPixelByIndex(index);
+            double neighbourUncertainty = readAccess.GetPixelByIndex(index);
 
             // If the uncertainty of the neighbour is 0, skip it.
             if (std::abs(neighbourUncertainty) < 0.0001) {
-              if (print)
-                cout << "-- SKIPPED NEIGHBOUR" << endl;
               continue;
             }
 
@@ -1111,13 +1147,9 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
             if (std::abs(distanceToSample) < 0.0001) {
               interpolationTotalAccumulator = neighbourUncertainty;
               interpolationDistanceAccumulator = 1;
-              if (print)
-                cout << "-- Distance is zero. - (" << i << ", " << j << ", " << k << ") - " << interpolationTotalAccumulator << endl;
               goto BREAK_ALL_LOOPS;
             }
 
-            if (print)
-              cout << "-- Interpolation Sample: Uncertainty: " << neighbourUncertainty << ", Distance: " << distanceToSample << endl;
             // Accumulate
             interpolationTotalAccumulator += neighbourUncertainty / distanceToSample;
             interpolationDistanceAccumulator += 1.0 / distanceToSample;
@@ -1129,9 +1161,6 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       // Interpolate the values. If there were no valid samples, set it to zero.
       double interpolatedSample = (interpolationTotalAccumulator == 0.0) ? 0 : interpolationTotalAccumulator / interpolationDistanceAccumulator;
 
-      if (print) 
-        cout << "- Combined Sample: " << interpolatedSample << " (from total=" << interpolationTotalAccumulator << " and distance=" << interpolationDistanceAccumulator << ")" <<endl;
-
       // Include sample if it's not background.
       if (interpolatedSample != 0.0) {
         uncertaintyAccumulator += interpolatedSample;
@@ -1141,14 +1170,12 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       // Move along.
       position = vectorAdd(position, direction);
     }
-    if (print) 
-      cout << "Returning " << round(uncertaintyAccumulator / numSamples) << " - acc = " << uncertaintyAccumulator << " - num = " << numSamples << endl; 
 
-    return round(uncertaintyAccumulator / numSamples);
+    return (uncertaintyAccumulator / numSamples) * 255;
   }
 
   catch (mitk::Exception & e) {
-    cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't unsigned char? (I've assumed it is)" << e << endl;
+    cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't double? (I've assumed it is)" << e << endl;
     return -1;
   }
 }
