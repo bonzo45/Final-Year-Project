@@ -40,6 +40,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkInvertIntensityImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
 #include <itkMaskImageFilter.h>
+#include <itkGrayscaleDilateImageFilter.h>
 #include <mitkSlicedGeometry3D.h>
 #include <mitkPoint.h>
 
@@ -827,7 +828,7 @@ void Sams_View::OverlayThreshold() {
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int thickness, double threshold, mitk::Image::Pointer & result) {
+void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int erodeThickness, double threshold, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
 
   // ------------------------- //
@@ -836,7 +837,7 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
   // Create the erosion kernel, this describes how the data is eroded.
   typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
   StructuringElementType structuringElement;
-  structuringElement.SetRadius(thickness);
+  structuringElement.SetRadius(erodeThickness);
   structuringElement.CreateStructuringElement();
  
   // Create an erosion filter, using the kernel.
@@ -870,12 +871,26 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
   thresholdFilter->Update();
 
   // ------------------------- //
+  // -------- Growing -------- //
+  // ------------------------- //
+  // Then, because we'll still be left with a bit of a ring around the edge, we grow the mask.
+  StructuringElementType dilationStructuringElement;
+  dilationStructuringElement.SetRadius(UI.spinBoxDilateThickness->value());
+  dilationStructuringElement.CreateStructuringElement();
+
+  typedef itk::GrayscaleDilateImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleDilateImageFilterType;
+  typename GrayscaleDilateImageFilterType::Pointer dilateFilter = GrayscaleDilateImageFilterType::New();
+  dilateFilter->SetInput(thresholdFilter->GetOutput());
+  dilateFilter->SetKernel(dilationStructuringElement);
+  dilateFilter->Update();
+
+  // ------------------------- //
   // -------- Masking -------- //
   // ------------------------- //
   typedef itk::MaskImageFilter<ImageType, ImageType, ImageType> MaskImageFilterType;
   typename MaskImageFilterType::Pointer masker = MaskImageFilterType::New();
   masker->SetInput(itkImage);
-  masker->SetMaskImage(thresholdFilter->GetOutput());
+  masker->SetMaskImage(dilateFilter->GetOutput());
   masker->SetMaskingValue(1.0);
   masker->SetOutsideValue(0.0);
   masker->Update();

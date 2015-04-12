@@ -236,6 +236,9 @@
                  <property name="singleStep">
                   <double>0.010000000000000</double>
                  </property>
+                 <property name="value">
+                  <double>0.200000000000000</double>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -248,6 +251,22 @@
                  </property>
                  <property name="minimum">
                   <number>1</number>
+                 </property>
+                 <property name="value">
+                  <number>2</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSpinBox" name="spinBoxDilateThickness">
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="value">
+                  <number>2</number>
                  </property>
                 </widget>
                </item>

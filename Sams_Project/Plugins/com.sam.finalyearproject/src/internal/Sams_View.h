@@ -114,8 +114,7 @@ class Sams_View : public QmitkAbstractView {
     template <typename TPixel, unsigned int VImageDimension>
     void ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int thickness, double threshold, mitk::Image::Pointer & result);
-
+    void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int erodeThickness, double threshold, mitk::Image::Pointer & result);
 
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
