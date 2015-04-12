@@ -39,6 +39,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
+#include <itkMaskImageFilter.h>
 #include <mitkSlicedGeometry3D.h>
 #include <mitkPoint.h>
 
@@ -155,7 +156,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
   connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertainty()));
-  connect(UI.buttonErode, SIGNAL(clicked()), this, SLOT(ErodeUncertainty()));
 
   //  b. Texture Mapping
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
@@ -321,8 +321,10 @@ void Sams_View::SwapScanUncertainty() {
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   // Get image from node.
   mitk::Image::Pointer mitkImage = dynamic_cast<mitk::Image*>(node->GetData());
-
-  // Normalize it.
+  
+  // ------------------- //
+  // ---- Normalize ---- //
+  // ------------------- //
   mitk::Image::Pointer normalizedMitkImage;
   AccessByItk_1(mitkImage, ItkNormalizeUncertainty, normalizedMitkImage);
 
@@ -337,7 +339,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   normalizedNode->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   this->GetDataStorage()->Add(normalizedNode, node);
 
-  // Invert it. (if enabled)
+  // ------------------- //
+  // ------ Invert ----- //
+  // ------------------- //
+  // (if enabled)
   mitk::Image::Pointer invertedMitkImage;
   if (UI.checkBoxInversionEnabled->isChecked()) {
     AccessByItk_1(normalizedMitkImage, ItkInvertUncertainty, invertedMitkImage);
@@ -345,6 +350,23 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   else {
     invertedMitkImage = normalizedMitkImage;
   }
+
+  // ------------------- //
+  // ------ Erode ------ //
+  // ------------------- //
+  // (if enabled)
+  mitk::Image::Pointer erodedMitkImage;
+  if (UI.checkBoxErosionEnabled->isChecked()) {
+    AccessByItk_3(invertedMitkImage, ItkErodeUncertainty, UI.spinBoxErodeThickness->value(), UI.spinBoxErodeThreshold->value(), erodedMitkImage);
+  }
+  else {
+    erodedMitkImage = invertedMitkImage;
+  }
+
+  // ------------------- //
+  // ------ Align ------ //
+  // ------------------- //
+  mitk::Image::Pointer fullyProcessedMitkImage = erodedMitkImage;
 
   // Align the scan and uncertainty.
   // Get the origin and index to world transform of the scan.
@@ -355,17 +377,20 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
 
   // Set the origin and index to world transform of the uncertainty to be the same.
   // This effectively lines up pixel (x, y, z) in the scan with pixel (x, y, z) in the uncertainty.
-  mitk::SlicedGeometry3D * uncertaintySlicedGeometry = invertedMitkImage->GetSlicedGeometry();
+  mitk::SlicedGeometry3D * uncertaintySlicedGeometry = fullyProcessedMitkImage->GetSlicedGeometry();
   uncertaintySlicedGeometry->SetOrigin(scanOrigin);
   uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
 
+  // ------------------- //
+  // ------- Save ------ //
+  // ------------------- //
   // Save completed version. (if it already exists, replace it.)
   preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", node);
   if (preprocessedUncertainty) {
     this->GetDataStorage()->Remove(preprocessedUncertainty);
   }
   preprocessedUncertainty = mitk::DataNode::New();
-  preprocessedUncertainty->SetData(invertedMitkImage);
+  preprocessedUncertainty->SetData(fullyProcessedMitkImage);
   preprocessedUncertainty->SetProperty("name", mitk::StringProperty::New("Preprocessed"));
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   this->GetDataStorage()->Add(preprocessedUncertainty, node);
@@ -457,7 +482,7 @@ void Sams_View::ScanSelected(bool picked) {
 void Sams_View::UncertaintySelected(bool picked) {
   if (picked) {
     UI.checkBoxUncertaintyVisible->setVisible(true);
-    UI.checkBoxInversionEnabled->setVisible(true);
+    UI.widgetUncertaintyProcessing->setVisible(true);
 
     // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
     mitk::BoolProperty * uncertaintyVisible = dynamic_cast<mitk::BoolProperty *>(uncertainty->GetProperty("visible"));
@@ -473,7 +498,7 @@ void Sams_View::UncertaintySelected(bool picked) {
   else {
     UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
     UI.checkBoxUncertaintyVisible->setVisible(false);
-    UI.checkBoxInversionEnabled->setVisible(false);
+    UI.widgetUncertaintyProcessing->setVisible(false);
   }
 }
 
@@ -801,65 +826,65 @@ void Sams_View::OverlayThreshold() {
   this->RequestRenderWindowUpdate();
 }
 
-void Sams_View::ErodeUncertainty() {
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
-
-  AccessByItk(uncertaintyImage, ItkErodeUncertainty);
-}
-
 template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage) {
+void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int thickness, double threshold, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
 
+  // ------------------------- //
+  // ---- Initial Erosion ---- //
+  // ------------------------- //
   // Create the erosion kernel, this describes how the data is eroded.
   typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
   StructuringElementType structuringElement;
-  structuringElement.SetRadius(5);
+  structuringElement.SetRadius(thickness);
   structuringElement.CreateStructuringElement();
  
-  // Create an erosion filter, using the kernel. It returns a binary 0/1 (this pixel should or should not be eroded)
+  // Create an erosion filter, using the kernel.
   typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
   typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
   erodeFilter->SetInput(itkImage);
   erodeFilter->SetKernel(structuringElement);
   erodeFilter->Update();
 
-  // Temptemptemp
-  ImageType * tempImage = erodeFilter->GetOutput();
-  mitk::Image::Pointer tempMitk;
-  mitk::CastToMitkImage(tempImage, tempMitk);
-  temptemptemp = mitk::DataNode::New();
-  temptemptemp->SetData(tempMitk);
-  temptemptemp->SetProperty("name", mitk::StringProperty::New("Temptemptemp"));
-  temptemptemp->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  temptemptemp->SetProperty("layer", mitk::IntProperty::New(1));
-  this->GetDataStorage()->Add(temptemptemp);
-
-  // Then we use a subtract filter to subtract those pixels that the erosion filter suggests.
+  // ------------------------- //
+  // ------ Subtraction ------ //
+  // ------------------------- //
+  // Then we use a subtract filter to get the pixels that changed in the erosion.
   typedef itk::SubtractImageFilter<ImageType> SubtractType;
   typename SubtractType::Pointer diff = SubtractType::New();
   diff->SetInput1(itkImage);
   diff->SetInput2(erodeFilter->GetOutput());
   diff->Update();
 
+  // ------------------------- //
+  // ----- Thresholding ------ //
+  // ------------------------- //
+  // We only really want to remove the edges. These will have changed more significantly than the rest.
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
+  typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
+  thresholdFilter->SetInput(diff->GetOutput());
+  thresholdFilter->SetInsideValue(1.0);
+  thresholdFilter->SetOutsideValue(0.0);
+  thresholdFilter->SetLowerThreshold(threshold);
+  thresholdFilter->SetUpperThreshold(1.0);
+  thresholdFilter->Update();
+
+  // ------------------------- //
+  // -------- Masking -------- //
+  // ------------------------- //
+  typedef itk::MaskImageFilter<ImageType, ImageType, ImageType> MaskImageFilterType;
+  typename MaskImageFilterType::Pointer masker = MaskImageFilterType::New();
+  masker->SetInput(itkImage);
+  masker->SetMaskImage(thresholdFilter->GetOutput());
+  masker->SetMaskingValue(1.0);
+  masker->SetOutsideValue(0.0);
+  masker->Update();
+
+  // ------------------------- //
+  // -------- Return --------- //
+  // ------------------------- //
   // Convert to MITK
-  ImageType * erodedImage = diff->GetOutput();
-  mitk::Image::Pointer resultImage;
-  mitk::CastToMitkImage(erodedImage, resultImage);
-
-  // Wrap it up in a DataNode
-  if (erodedUncertainty) {
-    this->GetDataStorage()->Remove(erodedUncertainty);
-  }
-
-  erodedUncertainty = mitk::DataNode::New();
-  erodedUncertainty->SetData(resultImage);
-  erodedUncertainty->SetProperty("name", mitk::StringProperty::New("Uncertainty Eroded"));
-  erodedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  erodedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
-  this->GetDataStorage()->Add(erodedUncertainty);
-
-  this->RequestRenderWindowUpdate();
+  mitk::CastToMitkImage(masker->GetOutput(), result);
 }
 
 // ------------ //
