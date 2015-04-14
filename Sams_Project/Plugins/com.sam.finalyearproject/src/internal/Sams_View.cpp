@@ -81,7 +81,6 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkFloatArray.h>
 #include <itkImportImageFilter.h>
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
-#include <itkShiftScaleImageFilter.h>
 
 // 4
 // - Overlay
@@ -1252,8 +1251,7 @@ void Sams_View::SurfaceMapping() {
   unsigned int numberOfPoints =  brainModelVtk->GetNumberOfPoints();
   double * intensityArray;
   intensityArray  = new double[numberOfPoints];
-  unsigned char * intensityCharArray;
-  intensityCharArray  = new unsigned char[numberOfPoints];
+  // Should probably call this at some point: delete [] myArrray;
 
   for (unsigned int i = 0; i < numberOfPoints; i++) {
     // Get the position of point i
@@ -1276,8 +1274,7 @@ void Sams_View::SurfaceMapping() {
     normal[2] = -normalAtPoint[2];
 
     // Use the position and normal to sample the uncertainty data.
-    intensityArray[i] = SampleUncertainty(position, normal);
-    intensityCharArray[i] = static_cast<unsigned char>(intensityArray[i] * 255);
+    intensityArray[i] = SampleUncertainty(position, normal);;
   }
   
   // --------------------------------- //
@@ -1310,35 +1307,6 @@ void Sams_View::SurfaceMapping() {
   const bool importImageFilterWillOwnTheBuffer = true;
   importFilter->SetImportPointer(intensityArray, numberOfPoints, importImageFilterWillOwnTheBuffer);
   importFilter->Update();
-  
-  // ---------------------- //
-  // ---- Experimental ---- //  // Same as before but for chars... damn you histograms!
-  // ---------------------- //
-  typedef itk::Image<unsigned char, 1> UncertaintyCharListType;
-  typedef itk::ImportImageFilter<unsigned char, 1> ImportCharFilterType;
-  ImportCharFilterType::Pointer importCharFilter = ImportCharFilterType::New(); 
-  
-  ImportCharFilterType::SizeType sizeChar; 
-  sizeChar[0] = numberOfPoints;
-  
-  ImportCharFilterType::IndexType startChar;
-  startChar[0] = 0;
-  
-  ImportCharFilterType::RegionType regionChar;
-  regionChar.SetIndex(startChar);
-  regionChar.SetSize(sizeChar);
-  importCharFilter->SetRegion(regionChar);
- 
-  double originChar[1];
-  originChar[0] = 0.0;
-  importCharFilter->SetOrigin(originChar);
- 
-  double spacingChar[1];
-  spacingChar[0] = 1.0;
-  importCharFilter->SetSpacing(spacingChar);
-
-  importCharFilter->SetImportPointer(intensityCharArray, numberOfPoints, importImageFilterWillOwnTheBuffer);
-  importCharFilter->Update();
 
   // -------------------------------- //
   // ---- Scale the Uncertanties ---- //
@@ -1362,22 +1330,14 @@ void Sams_View::SurfaceMapping() {
 
   // Histogram equalization.
   else if (UI.radioButtonScalingHistogram->isChecked()) {
-    typedef itk::AdaptiveHistogramEqualizationImageFilter<UncertaintyCharListType> AdaptiveHistogramEqualizationImageFilterType;
+    typedef itk::AdaptiveHistogramEqualizationImageFilter<UncertaintyListType> AdaptiveHistogramEqualizationImageFilterType;
     AdaptiveHistogramEqualizationImageFilterType::Pointer histogramEqualizationFilter = AdaptiveHistogramEqualizationImageFilterType::New();
-    histogramEqualizationFilter->SetInput(importCharFilter->GetOutput());
+    histogramEqualizationFilter->SetInput(importFilter->GetOutput());
     histogramEqualizationFilter->SetAlpha(UI.double1->value());
     histogramEqualizationFilter->SetBeta(UI.double2->value());
     histogramEqualizationFilter->SetRadius(UI.int1->value());
     histogramEqualizationFilter->Update();
-    UncertaintyCharListType::Pointer charScaled = histogramEqualizationFilter->GetOutput();
-
-    typedef itk::ShiftScaleImageFilter<UncertaintyCharListType, UncertaintyListType> Bodger;
-    Bodger::Pointer bodger = Bodger::New();
-    bodger->SetInput(charScaled);
-    bodger->SetShift(0);
-    bodger->SetScale(255);
-    bodger->Update();
-    scaled = bodger->GetOutput();
+    scaled = histogramEqualizationFilter->GetOutput();
   }
 
   // ----------------------------- //
