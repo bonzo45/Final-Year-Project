@@ -79,7 +79,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkCellArray.h>
 #include <vtkMath.h>
 #include <vtkFloatArray.h>
-#include "itkImportImageFilter.h"
+#include <itkImportImageFilter.h>
+#include <itkAdaptiveHistogramEqualizationImageFilter.h>
 
 // 4
 // - Overlay
@@ -1327,9 +1328,16 @@ void Sams_View::SurfaceMapping() {
     scaled = rescaleFilter->GetOutput();
   }
 
-  // TODO: Histogram equalization.
+  // Histogram equalization.
   else if (UI.radioButtonScalingHistogram->isChecked()) {
-    scaled = importFilter->GetOutput();
+    typedef itk::AdaptiveHistogramEqualizationImageFilter<UncertaintyListType> AdaptiveHistogramEqualizationImageFilterType;
+    AdaptiveHistogramEqualizationImageFilterType::Pointer histogramEqualizationFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+    histogramEqualizationFilter->SetInput(importFilter->GetOutput());
+    histogramEqualizationFilter->SetAlpha(UI.double1->value());
+    histogramEqualizationFilter->SetBeta(UI.double2->value());
+    histogramEqualizationFilter->SetRadius(UI.int1->value());
+    histogramEqualizationFilter->Update();
+    scaled = histogramEqualizationFilter->GetOutput();
   }
 
   // ----------------------------- //

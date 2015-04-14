@@ -1038,6 +1038,19 @@
     </widget>
    </item>
    <item>
+    <widget class="QDoubleSpinBox" name="double1"/>
+   </item>
+   <item>
+    <widget class="QDoubleSpinBox" name="double2"/>
+   </item>
+   <item>
+    <widget class="QSpinBox" name="int1">
+     <property name="maximum">
+      <number>9999</number>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QWidget" name="widget3Container" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_8">
       <property name="topMargin">
