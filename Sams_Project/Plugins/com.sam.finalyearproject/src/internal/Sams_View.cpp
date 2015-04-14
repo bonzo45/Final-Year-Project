@@ -1068,6 +1068,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
 
       // Sample the uncertainty data.
       int pixelValue = SampleUncertainty(center, direction) * 255;
+      cout << "(" << r << ", " << c << ") has direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ") and value " << pixelValue << endl;
 
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
@@ -1171,6 +1172,8 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
 
       // Interpolate the values. If there were no valid samples, set it to zero.
       double interpolatedSample = (interpolationTotalAccumulator == 0.0) ? 0 : interpolationTotalAccumulator / interpolationDistanceAccumulator;
+
+      cout << "Sample @ (" << position[0] << ", " << position[1] << ", " << position[2] << ") is " << interpolatedSample << endl;;
 
       // Include sample if it's not background.
       if (interpolatedSample != 0.0) {
@@ -1493,7 +1496,7 @@ void Sams_View::GenerateSphereUncertainty() {
     imageSize[2] = 50;
   }
 
-  GenerateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]));
+  GenerateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 2);
 }
 
 void Sams_View::GenerateQuadrantSphereUncertainty() {
