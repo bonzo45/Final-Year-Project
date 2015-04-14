@@ -954,18 +954,22 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
 // ---- 2b ---- //
 // ------------ //
 
-const double LAT_LONG_RATIO = 2.0;
+double latLongRatio = 2.0;
 
 void Sams_View::TextureWidthChanged(int value) {
   if (UI.checkBoxLocked->isChecked()) {
-    UI.spinBoxTextureHeight->setValue(value / LAT_LONG_RATIO);
+    UI.spinBoxTextureHeight->setValue(value / latLongRatio);
   }
+
+  latLongRatio = UI.spinBoxTextureWidth->value() / UI.spinBoxTextureHeight->value();
 }
 
 void Sams_View::TextureHeightChanged(int value) {
   if (UI.checkBoxLocked->isChecked()) {
-    UI.spinBoxTextureWidth->setValue(value * LAT_LONG_RATIO);
+    UI.spinBoxTextureWidth->setValue(value * latLongRatio);
   }
+
+  latLongRatio = UI.spinBoxTextureWidth->value() / UI.spinBoxTextureHeight->value();
 }
 
 /**
