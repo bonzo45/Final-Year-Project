@@ -338,6 +338,12 @@ void Sams_View::SelectScan(mitk::DataNode::Pointer scanNode) {
   // Store a reference to the scan.
   scan = scanNode;
 
+  // Save dimensions.
+  mitk::Image::Pointer scanImage = GetMitkScan();
+  scanHeight = scanImage->GetDimension(0);
+  scanWidth = scanImage->GetDimension(1);
+  scanDepth = scanImage->GetDimension(2);
+
   // Update name label.
   UI.labelScanName->setText(QString::fromStdString(StringFromStringProperty(scan->GetProperty("name"))));
 }
@@ -349,6 +355,12 @@ void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
   // Store a reference to the uncertainty.
   uncertainty = uncertaintyNode;
 
+  // Save dimensions.
+  mitk::Image::Pointer uncertaintyImage = GetMitkUncertainty();
+  uncertaintyHeight = uncertaintyImage->GetDimension(0);
+  uncertaintyWidth = uncertaintyImage->GetDimension(1);
+  uncertaintyDepth = uncertaintyImage->GetDimension(2);
+
   // Update name label.
   UI.labelUncertaintyName->setText(QString::fromStdString(StringFromStringProperty(uncertainty->GetProperty("name"))));
 }
@@ -357,17 +369,6 @@ void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
   * Once the scan and uncertainty have been picked and the user confirms they are correct, we do some pre-processing on the data.
   */
 void Sams_View::ConfirmSelection() {
-  // Save the dimensions.
-  mitk::Image::Pointer scanImage = GetMitkScan();
-  scanHeight = scanImage->GetDimension(0);
-  scanWidth = scanImage->GetDimension(1);
-  scanDepth = scanImage->GetDimension(2);
-
-  mitk::Image::Pointer uncertaintyImage = GetMitkUncertainty();
-  uncertaintyHeight = uncertaintyImage->GetDimension(0);
-  uncertaintyWidth = uncertaintyImage->GetDimension(1);
-  uncertaintyDepth = uncertaintyImage->GetDimension(2);
-
   // Preprocess uncertainty.
   PreprocessNode(uncertainty);
 
@@ -449,19 +450,20 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   // ------ Align ------ //
   // ------------------- //
   mitk::Image::Pointer fullyProcessedMitkImage = erodedMitkImage;
+  if (UI.checkBoxAligningEnabled->isChecked()) {
+    // Align the scan and uncertainty.
+    // Get the origin and index to world transform of the scan.
+    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
+    mitk::SlicedGeometry3D * scanSlicedGeometry = scanImage->GetSlicedGeometry();
+    mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
+    mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
 
-  // Align the scan and uncertainty.
-  // Get the origin and index to world transform of the scan.
-  mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
-  mitk::SlicedGeometry3D * scanSlicedGeometry = scanImage->GetSlicedGeometry();
-  mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
-  mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
-
-  // Set the origin and index to world transform of the uncertainty to be the same.
-  // This effectively lines up pixel (x, y, z) in the scan with pixel (x, y, z) in the uncertainty.
-  mitk::SlicedGeometry3D * uncertaintySlicedGeometry = fullyProcessedMitkImage->GetSlicedGeometry();
-  uncertaintySlicedGeometry->SetOrigin(scanOrigin);
-  uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
+    // Set the origin and index to world transform of the uncertainty to be the same.
+    // This effectively lines up pixel (x, y, z) in the scan with pixel (x, y, z) in the uncertainty.
+    mitk::SlicedGeometry3D * uncertaintySlicedGeometry = fullyProcessedMitkImage->GetSlicedGeometry();
+    uncertaintySlicedGeometry->SetOrigin(scanOrigin);
+    uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
+  }
 
   mitk::ProgressBar::GetInstance()->Progress();
 
@@ -541,6 +543,7 @@ void Sams_View::ScanSelected(bool picked) {
     UI.checkBoxScanVisible->setChecked(BoolFromBoolProperty(scan->GetProperty("visible")));
   }
   else {
+    scan = 0;
     UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
     UI.checkBoxScanVisible->setVisible(false);
   }
@@ -558,6 +561,8 @@ void Sams_View::UncertaintySelected(bool picked) {
     UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
   }
   else {
+    uncertainty = 0;
+    preprocessedUncertainty = 0;
     UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
     UI.checkBoxUncertaintyVisible->setVisible(false);
     UI.widgetUncertaintyProcessing->setVisible(false);
@@ -1456,7 +1461,7 @@ void Sams_View::ShowTextOverlay() {
 
 void Sams_View::GenerateRandomUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
-  if (selectionConfirmed) {
+  if (scan) {
     GenerateRandomUncertainty(scanHeight, scanWidth, scanDepth);
   }
   else {
@@ -1466,7 +1471,7 @@ void Sams_View::GenerateRandomUncertainty() {
 
 void Sams_View::GenerateCubeUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
-  if (selectionConfirmed) {
+  if (scan) {
     GenerateCubeUncertainty(scanHeight, scanWidth, scanDepth, 10);
   }
   else {
@@ -1477,7 +1482,7 @@ void Sams_View::GenerateCubeUncertainty() {
 void Sams_View::GenerateSphereUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
   vtkVector<float, 3> imageSize = vtkVector<float, 3>();
-  if (selectionConfirmed) {
+  if (scan) {
     imageSize[0] = scanHeight;
     imageSize[1] = scanWidth;
     imageSize[2] = scanDepth;
@@ -1488,13 +1493,13 @@ void Sams_View::GenerateSphereUncertainty() {
     imageSize[2] = 50;
   }
 
-  GenerateSphereUncertainty(imageSize, std::min(std::min(scanHeight, scanWidth), scanDepth));
+  GenerateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]));
 }
 
 void Sams_View::GenerateQuadrantSphereUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
   vtkVector<float, 3> imageSize = vtkVector<float, 3>();
-  if (selectionConfirmed) {
+  if (scan) {
     imageSize[0] = scanHeight;
     imageSize[1] = scanWidth;
     imageSize[2] = scanDepth;
@@ -1505,7 +1510,7 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
     imageSize[2] = 50;
   }
 
-  GenerateSphereUncertainty(imageSize, std::min(std::min(scanHeight, scanWidth), scanDepth) / 4, vtkVector<float, 3>(std::min(std::min(scanHeight, scanWidth), scanDepth) / 4));
+  GenerateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 4, vtkVector<float, 3>(std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 4));
 }
 
 /**
