@@ -79,6 +79,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkCellArray.h>
 #include <vtkMath.h>
 #include <vtkFloatArray.h>
+#include "itkImportImageFilter.h"
 
 // 4
 // - Overlay
@@ -951,11 +952,15 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
 const double LAT_LONG_RATIO = 2.0;
 
 void Sams_View::TextureWidthChanged(int value) {
-  UI.spinBoxTextureHeight->setValue(value / LAT_LONG_RATIO);
+  if (UI.checkBoxLocked->isChecked()) {
+    UI.spinBoxTextureHeight->setValue(value / LAT_LONG_RATIO);
+  }
 }
 
 void Sams_View::TextureHeightChanged(int value) {
-  UI.spinBoxTextureWidth->setValue(value * LAT_LONG_RATIO);
+  if (UI.checkBoxLocked->isChecked()) {
+    UI.spinBoxTextureWidth->setValue(value * LAT_LONG_RATIO);
+  }
 }
 
 /**
@@ -1057,7 +1062,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
       direction.Normalize();
 
       // Sample the uncertainty data.
-      int pixelValue = SampleUncertainty(center, direction);
+      int pixelValue = SampleUncertainty(center, direction) * 255;
 
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
@@ -1066,6 +1071,17 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
 
       uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
     }
+  }
+
+  // Scale the texture values to increase contrast.
+  if (UI.checkBoxScalingLinear->isChecked()) {
+    typedef itk::RescaleIntensityImageFilter<TextureImageType, TextureImageType> RescaleFilterType;
+    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
+    rescaleFilter->SetInput(uncertaintyTexture);
+    rescaleFilter->SetOutputMinimum(0);
+    rescaleFilter->SetOutputMaximum(255);
+    rescaleFilter->Update();
+    uncertaintyTexture = rescaleFilter->GetOutput();
   }
 
   // Convert from ITK to MITK.
@@ -1077,7 +1093,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   * startPosition - the vector to begin tracing from
   * direction - the vector of the direction to trace in
   */
-int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
+double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
 // Use an image accessor to read values from the uncertainty.
   try  {
     // See if the uncertainty data is available to be read.
@@ -1161,7 +1177,7 @@ int Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<fl
       position = vectorAdd(position, direction);
     }
 
-    return (uncertaintyAccumulator / numSamples) * 255;
+    return (uncertaintyAccumulator / numSamples);
   }
 
   catch (mitk::Exception & e) {
@@ -1222,11 +1238,16 @@ void Sams_View::SurfaceMapping() {
   cout << "y: (" << yMin << ", " << yMax << ") - " << yRange << endl;
   cout << "z: (" << zMin << ", " << zMax << ") - " << zRange << endl;
 
-  // Generate a list of colours, one for each point, based on the normal at that point.
-  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  colors->SetNumberOfComponents(3);
-  colors->SetName ("Colors");  
-  for (vtkIdType i = 0; i < brainModelVtk->GetNumberOfPoints(); i++) {
+  // ----------------------------------------- //
+  // ---- Compute Uncertainty Intensities ---- //
+  // ----------------------------------------- //
+  // Generate a list of intensities, one for each point.
+  unsigned int numberOfPoints =  brainModelVtk->GetNumberOfPoints();
+  double * intensityArray;
+  intensityArray  = new double[numberOfPoints];
+  // Should probably call this at some point: delete [] myArrray;
+
+  for (unsigned int i = 0; i < numberOfPoints; i++) {
     // Get the position of point i
     double positionOfPoint[3];
     brainModelVtk->GetPoint(i, positionOfPoint);
@@ -1247,12 +1268,94 @@ void Sams_View::SurfaceMapping() {
     normal[2] = -normalAtPoint[2];
 
     // Use the position and normal to sample the uncertainty data.
-    int intensity = SampleUncertainty(position, normal);
-
+    double intensity = SampleUncertainty(position, normal);
     cout << "Intensity from (" << position[0] << ", " << position[1] << ", " << position[2] << ") -> (" << normal[0] << ", " << normal[1] << ", " << normal[2] << ") is " << intensity <<   "." << endl;
+    intensityArray[i] = intensity;
+  }
+  
+  // --------------------------------- //
+  // ---- Map Uncertanties to ITK ---- //
+  // --------------------------------- //
+  // First convert to the uncertainty array to an ITK image so we can filter it. (list of doubles)
+  typedef itk::Image<double, 1> UncertaintyListType;
+  typedef itk::ImportImageFilter<double, 1>   ImportFilterType;
+  ImportFilterType::Pointer importFilter = ImportFilterType::New(); 
+  
+  ImportFilterType::SizeType  size; 
+  size[0] = numberOfPoints;
+  
+  ImportFilterType::IndexType start;
+  start[0] = 0;
+  
+  ImportFilterType::RegionType region;
+  region.SetIndex(start);
+  region.SetSize(size);
+  importFilter->SetRegion(region);
+ 
+  double origin[1];
+  origin[0] = 0.0;
+  importFilter->SetOrigin(origin);
+ 
+  double spacing[1];
+  spacing[0] = 1.0;
+  importFilter->SetSpacing(spacing);
 
-    // Set the colour to be a grayscale version of this sampling.
-    unsigned char normalColour[3] = {static_cast<unsigned char>(intensity), static_cast<unsigned char>(intensity), static_cast<unsigned char>(intensity)};
+  const bool importImageFilterWillOwnTheBuffer = true;
+  importFilter->SetImportPointer(intensityArray, numberOfPoints, importImageFilterWillOwnTheBuffer);
+  importFilter->Update();
+
+  // -------------------------------- //
+  // ---- Scale the Uncertanties ---- //
+  // -------------------------------- //
+  UncertaintyListType::Pointer scaled;
+  // No scaling.
+  if (UI.radioButtonScalingNone->isChecked()) {
+    scaled = importFilter->GetOutput();
+  }
+
+  // Linear scaling. Map {min-max} to {0-1.}.
+  else if (UI.radioButtonScalingLinear->isChecked()) {
+    typedef itk::RescaleIntensityImageFilter<UncertaintyListType, UncertaintyListType> RescaleFilterType;
+    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
+    rescaleFilter->SetInput(importFilter->GetOutput());
+    rescaleFilter->SetOutputMinimum(0.0);
+    rescaleFilter->SetOutputMaximum(1.0);
+    rescaleFilter->Update();
+    scaled = rescaleFilter->GetOutput();
+  }
+
+  // TODO: Histogram equalization.
+  else if (UI.radioButtonScalingHistogram->isChecked()) {
+    scaled = importFilter->GetOutput();
+  }
+
+  // ----------------------------- //
+  // ---- Map them to Colours ---- //
+  // ----------------------------- //
+  // Generate a list of colours, one for each point.
+  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetNumberOfComponents(3);
+  colors->SetName ("Colors");
+
+  double * scaledValues = scaled->GetBufferPointer();
+
+  // Set the colour to be a grayscale version of this sampling.
+  for (unsigned int i = 0; i < numberOfPoints; i++) {
+    unsigned char intensity = static_cast<unsigned char>(round(scaledValues[i] * 255));
+    cout << scaledValues[i] << " -> " << scaledValues[i] * 255  << " -> " << round(scaledValues[i] * 255) << " -> " << intensity << " -> " << (int) intensity << endl;
+    unsigned char normalColour[3];
+    // Black and White
+    if (UI.radioButtonColourBlackAndWhite->isChecked()) {
+      normalColour[0] = intensity;
+      normalColour[1] = intensity;
+      normalColour[2] = intensity;
+    }
+    // TODO: Colour
+    else if (UI.radioButtonColourColour->isChecked()) {
+      normalColour[0] = 0;
+      normalColour[1] = 255;
+      normalColour[2] = 0;
+    }
     colors->InsertNextTupleValue(normalColour);
   }
   

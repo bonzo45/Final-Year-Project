@@ -123,7 +123,7 @@ class Sams_View : public QmitkAbstractView {
 
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
-    int SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
+    double SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
 
     //  c
 
