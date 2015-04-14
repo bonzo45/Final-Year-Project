@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>413</width>
-    <height>1052</height>
+    <height>1145</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -921,6 +921,36 @@
             <property name="text">
              <string>Maps the uncertainty to a surface model.</string>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_3">
+            <property name="title">
+             <string>Sampling</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_19">
+             <item>
+              <widget class="QRadioButton" name="radioButtonSamplingFull">
+               <property name="text">
+                <string>full</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButtonSamplingHalf">
+               <property name="text">
+                <string>TODO: half</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButtonSamplingScatter">
+               <property name="text">
+                <string>TODO: scatter</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>

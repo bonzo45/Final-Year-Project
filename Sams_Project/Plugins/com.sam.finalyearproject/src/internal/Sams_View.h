@@ -24,7 +24,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "ui_Sams_ViewControls.h"
 
-// Stuff I've included.
+// Classes required for method definitions.
 #include <mitkImage.h>
 #include <vtkVector.h>
 
@@ -124,6 +124,8 @@ class Sams_View : public QmitkAbstractView {
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
     double SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction);
+    double InterpolateUncertaintyAtPosition(vtkVector<float, 3> position);
+
 
     //  c
 
