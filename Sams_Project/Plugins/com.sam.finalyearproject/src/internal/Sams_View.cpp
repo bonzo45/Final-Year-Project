@@ -1072,8 +1072,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
 
       // Sample the uncertainty data.
       int pixelValue = SampleUncertainty(center, direction) * 255;
-      cout << "(" << r << ", " << c << ") has direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ") and value " << pixelValue << endl;
-
+      
       // Set texture value.
       TextureImageType::IndexType pixelIndex;
       pixelIndex[0] = c;
@@ -1177,8 +1176,6 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
       // Interpolate the values. If there were no valid samples, set it to zero.
       double interpolatedSample = (interpolationTotalAccumulator == 0.0) ? 0 : interpolationTotalAccumulator / interpolationDistanceAccumulator;
 
-      cout << "Sample @ (" << position[0] << ", " << position[1] << ", " << position[2] << ") is " << interpolatedSample << endl;;
-
       // Include sample if it's not background.
       if (interpolatedSample != 0.0) {
         uncertaintyAccumulator += interpolatedSample;
@@ -1245,10 +1242,6 @@ void Sams_View::SurfaceMapping() {
   double zMin = bounds[4];
   double zMax = bounds[5];
   double zRange = zMax - zMin;
-  cout << "Ranges:" << endl;
-  cout << "x: (" << xMin << ", " << xMax << ") - " << xRange << endl;
-  cout << "y: (" << yMin << ", " << yMax << ") - " << yRange << endl;
-  cout << "z: (" << zMin << ", " << zMax << ") - " << zRange << endl;
 
   // ----------------------------------------- //
   // ---- Compute Uncertainty Intensities ---- //
@@ -1280,9 +1273,7 @@ void Sams_View::SurfaceMapping() {
     normal[2] = -normalAtPoint[2];
 
     // Use the position and normal to sample the uncertainty data.
-    double intensity = SampleUncertainty(position, normal);
-    cout << "Intensity from (" << position[0] << ", " << position[1] << ", " << position[2] << ") -> (" << normal[0] << ", " << normal[1] << ", " << normal[2] << ") is " << intensity <<   "." << endl;
-    intensityArray[i] = intensity;
+    intensityArray[i] = SampleUncertainty(position, normal);;
   }
   
   // --------------------------------- //
@@ -1354,7 +1345,7 @@ void Sams_View::SurfaceMapping() {
   // Set the colour to be a grayscale version of this sampling.
   for (unsigned int i = 0; i < numberOfPoints; i++) {
     unsigned char intensity = static_cast<unsigned char>(round(scaledValues[i] * 255));
-    cout << scaledValues[i] << " -> " << scaledValues[i] * 255  << " -> " << round(scaledValues[i] * 255) << " -> " << intensity << " -> " << (int) intensity << endl;
+    //cout << scaledValues[i] << " -> " << scaledValues[i] * 255  << " -> " << round(scaledValues[i] * 255) << " -> " << intensity << " -> " << (int) intensity << endl;
     unsigned char normalColour[3];
     // Black and White
     if (UI.radioButtonColourBlackAndWhite->isChecked()) {
@@ -1362,10 +1353,10 @@ void Sams_View::SurfaceMapping() {
       normalColour[1] = intensity;
       normalColour[2] = intensity;
     }
-    // TODO: Colour
+    // Colour
     else if (UI.radioButtonColourColour->isChecked()) {
-      normalColour[0] = 0;
-      normalColour[1] = 255;
+      normalColour[0] = intensity;
+      normalColour[1] = 255 - intensity;
       normalColour[2] = 0;
     }
     colors->InsertNextTupleValue(normalColour);
