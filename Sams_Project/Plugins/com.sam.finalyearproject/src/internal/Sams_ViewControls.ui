@@ -75,7 +75,7 @@
             </font>
            </property>
            <property name="text">
-            <string>R</string>
+            <string>Ra</string>
            </property>
           </widget>
          </item>
@@ -111,7 +111,7 @@
             </font>
            </property>
            <property name="text">
-            <string>C</string>
+            <string>Cu</string>
            </property>
           </widget>
          </item>
@@ -129,7 +129,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Q</string>
+            <string>QS</string>
            </property>
           </widget>
          </item>

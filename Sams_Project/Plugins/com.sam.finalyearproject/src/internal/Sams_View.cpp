@@ -1395,7 +1395,7 @@ void Sams_View::SurfaceMapping() {
       intensityArray[i] = SampleUncertainty(position, normal);
     }
     else if (UI.radioButtonSamplingHalf->isChecked()) {
-      intensityArray[i] = SampleUncertainty(position, normal, UI.int1->value());
+      intensityArray[i] = SampleUncertainty(position, normal, 50);
     }
     else if (UI.radioButtonSamplingScatter->isChecked()) {
       //TODO
