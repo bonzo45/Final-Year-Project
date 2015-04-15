@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>413</width>
-    <height>1145</height>
+    <height>1277</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -933,6 +933,9 @@
               <widget class="QRadioButton" name="radioButtonSamplingFull">
                <property name="text">
                 <string>full</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>

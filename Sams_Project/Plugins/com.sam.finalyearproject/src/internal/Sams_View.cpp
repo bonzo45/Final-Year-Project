@@ -38,6 +38,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 // 1
 #include <itkRescaleIntensityImageFilter.h>
+#include <itkIntensityWindowingImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkChangeInformationImageFilter.h>
 #include <itkMaskImageFilter.h>
@@ -218,6 +219,14 @@ vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b)
   c[1] = a[1] - b[1];
   c[2] = a[2] - b[2];
   return c;
+}
+
+vtkVector<float, 3> vectorScale(vtkVector<float, 3> a, float b) {
+  vtkVector<float, 3> c = vtkVector<float, 3>();
+  c[0] = a[0] * b;
+  c[1] = a[1] * b;
+  c[2] = a[2] * b;
+  return c;  
 }
 
 mitk::Image::Pointer MitkImageFromNode(mitk::DataNode::Pointer node) {
@@ -477,22 +486,49 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   mitk::ProgressBar::GetInstance()->Progress();
 }
 
+/**
+  * Case 1: If itkImage contains characters (0-255) then map the range (0-255) to (0.0-1.0).
+  * Case 2: If itkImage contains anything else just map (min-max) to (0.0-1.0).
+  */
 template <typename TPixel, unsigned int VImageDimension>
 void Sams_View::ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::Image<double, 3> ResultType;
-  typedef itk::RescaleIntensityImageFilter<ImageType, ResultType> RescaleFilterType;
+  
+  itk::Image<unsigned char, 3> * charImage = dynamic_cast<itk::Image<unsigned char, 3>* >(itkImage);
+  // Case 1
+  if (charImage) {
+    cout << "Char" << endl;
+    typedef itk::IntensityWindowingImageFilter< ImageType, ResultType> IntensityWindowingFilterType;
 
-  // Scale all the values.
-  typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-  rescaleFilter->SetInput(itkImage);
-  rescaleFilter->SetOutputMinimum(NORMALIZED_MIN);
-  rescaleFilter->SetOutputMaximum(NORMALIZED_MAX);
-  rescaleFilter->Update();
+    typename IntensityWindowingFilterType::Pointer windowFilter = IntensityWindowingFilterType::New();
+    windowFilter->SetInput(itkImage);
+    windowFilter->SetOutputMinimum(0.0);
+    windowFilter->SetOutputMaximum(1.0);
+    windowFilter->SetWindowMinimum(0);
+    windowFilter->SetWindowMaximum(255);
+    windowFilter->Update();
 
-  // Convert to MITK
-  ResultType * scaledImage = rescaleFilter->GetOutput();
-  mitk::CastToMitkImage(scaledImage, result);
+    // Convert to MITK
+    ResultType * scaledImage = windowFilter->GetOutput();
+    mitk::CastToMitkImage(scaledImage, result);
+  }
+  // Case 2
+  else {
+    cout << "Not Char" << endl;
+    typedef itk::RescaleIntensityImageFilter<ImageType, ResultType> RescaleFilterType;
+
+    // Scale all the values.
+    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
+    rescaleFilter->SetInput(itkImage);
+    rescaleFilter->SetOutputMinimum(NORMALIZED_MIN);
+    rescaleFilter->SetOutputMaximum(NORMALIZED_MAX);
+    rescaleFilter->Update();
+
+    // Convert to MITK
+    ResultType * scaledImage = rescaleFilter->GetOutput();
+    mitk::CastToMitkImage(scaledImage, result);
+  }
 }
 
 template <typename TPixel, unsigned int VImageDimension>
@@ -1098,35 +1134,93 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   return mitk::ImportItkImage(uncertaintyTexture);;
 }
 
+const bool DEBUG_SAMPLING = true;
+
 /**
   * Returns the average uncertainty along a vector in the uncertainty.
   * startPosition - the vector to begin tracing from
   * direction - the vector of the direction to trace in
+  * percentage - how far to send the ray through the volume (0-100) (default 100)
   */
-double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction) {
-  // Starting at 'startPosition' move in 'direction' in unit steps, taking samples.
-  vtkVector<float, 3> position = vtkVector<float, 3>(startPosition);
+double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction, int percentage) {
+  // Starting at 'startPosition' move in 'direction' in unit steps, taking samples.  
+  // Similar to tortoise & hare algorithm. The tortoise moves slowly, collecting the samples we use
+  // and the hare travels faster to see where the end of the uncertainty is.
+  // (this allows us to stop a certain percentage of the way)
+  vtkVector<float, 3> tortoise = vtkVector<float, 3>(startPosition);
+  vtkVector<float, 3> hare = vtkVector<float, 3>(startPosition);
+  // Hare travels faster.
+  vtkVector<float, 3> hareDirection = vectorScale(direction, 100.0f / percentage);
 
-  double uncertaintyAccumulator = 0.0;
-  unsigned int numSamples = 0;
-  while (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
-         0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
-         0 <= position[2] && position[2] <= uncertaintyDepth - 1) {
-    
-    double interpolatedSample = InterpolateUncertaintyAtPosition(position);
+  if (DEBUG_SAMPLING) {
+    cout << "Tortoise: (" << tortoise[0] << ", " << tortoise[1] << ", " << tortoise[2] << ")" << endl <<
+            "Direction: (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << endl <<
+            "Hare: (" << hare[0] << ", " << hare[1] << ", " << hare[2] << ")" << endl <<
+            "Hare Direction: (" << hareDirection[0] << ", " << hareDirection[1] << ", " << hareDirection[2] << ")" << endl;  
+  }
+
+  // Move the tortoise and hare to the start of the uncertainty (i.e. not background)
+  while (0 <= tortoise[0] && tortoise[0] <= uncertaintyHeight - 1 &&
+       0 <= tortoise[1] && tortoise[1] <= uncertaintyWidth - 1 &&
+       0 <= tortoise[2] && tortoise[2] <= uncertaintyDepth - 1) {
+    double sample = InterpolateUncertaintyAtPosition(tortoise);
+
+    if (DEBUG_SAMPLING) {
+      cout << " - Finding Uncertainty: (" << tortoise[0] << ", " << tortoise[1] << ", " << tortoise[2] << ")" <<
+              " is " << sample << endl;
+    }
+
+    if (sample == 0.0) {
+      tortoise = vectorAdd(tortoise, direction);
+    }
+    else {
+      break;
+    }
+  }
+  hare = vtkVector<float, 3>(tortoise);
+
+  // Move the tortoise and hare at different speeds. The tortoise gathers samples, but
+  // stops when the hare reaches the edge of the uncertainty.
+  double accumulator = 0.0;
+  unsigned int sampleCount = 0;
+  while (0 <= tortoise[0] && tortoise[0] <= uncertaintyHeight - 1 &&
+         0 <= tortoise[1] && tortoise[1] <= uncertaintyWidth - 1 &&
+         0 <= tortoise[2] && tortoise[2] <= uncertaintyDepth - 1) {
+    double sample = InterpolateUncertaintyAtPosition(tortoise);
 
     // Include sample if it's not background.
-    if (interpolatedSample != 0.0) {
-      uncertaintyAccumulator += interpolatedSample;
-      numSamples++;
+    if (sample != 0.0) {
+      accumulator += sample;
+      sampleCount++;
+    }
+
+    if (DEBUG_SAMPLING) {
+      cout << " - Sample at: (" << tortoise[0] << ", " << tortoise[1] << ", " << tortoise[2] << ")" <<
+              " is " << sample << endl;
     }
 
     // Move along.
-    position = vectorAdd(position, direction);
+    tortoise = vectorAdd(tortoise, direction);
+    hare = vectorAdd(hare, hareDirection);
+
+    if (DEBUG_SAMPLING) {
+      cout << " - Hare moves to: (" << hare[0] << ", " << hare[1] << ", " << hare[2] << ")" << endl;
+    }
+
+    // If the hare goes over the edge, stop.
+    if (percentage != 100 && InterpolateUncertaintyAtPosition(hare) == 0.0) {
+      if (DEBUG_SAMPLING) {
+        cout << "- Hare over the edge." << endl;
+      }
+      break;
+    }
   }
 
-  return (uncertaintyAccumulator / numSamples);
-
+  double result = (accumulator / sampleCount);
+  if (DEBUG_SAMPLING) {
+    cout << "Result is " << result << " (" << accumulator << "/" << sampleCount << ")" << endl;
+  }
+  return result;
 }
 
 double Sams_View::InterpolateUncertaintyAtPosition(vtkVector<float, 3> position) {
@@ -1200,8 +1294,6 @@ double Sams_View::InterpolateUncertaintyAtPosition(vtkVector<float, 3> position)
     cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't double? (I've assumed it is)" << e << endl;
     return -1;
   }
-
-  
 }
 
 // ------------ //
@@ -1256,7 +1348,7 @@ void Sams_View::SurfaceMapping() {
   // ---- Compute Uncertainty Intensities ---- //
   // ----------------------------------------- //
   // Generate a list of intensities, one for each point.
-  unsigned int numberOfPoints =  brainModelVtk->GetNumberOfPoints();
+  unsigned int numberOfPoints = brainModelVtk->GetNumberOfPoints();
   double * intensityArray;
   intensityArray  = new double[numberOfPoints];
   // Should probably call this at some point: delete [] myArrray;
@@ -1282,7 +1374,15 @@ void Sams_View::SurfaceMapping() {
     normal[2] = -normalAtPoint[2];
 
     // Use the position and normal to sample the uncertainty data.
-    intensityArray[i] = SampleUncertainty(position, normal);;
+    if (UI.radioButtonSamplingFull->isChecked()) {
+      intensityArray[i] = SampleUncertainty(position, normal);
+    }
+    else if (UI.radioButtonSamplingHalf->isChecked()) {
+      intensityArray[i] = SampleUncertainty(position, normal, UI.int1->value());
+    }
+    else if (UI.radioButtonSamplingScatter->isChecked()) {
+      //TODO
+    }
   }
   
   // --------------------------------- //
@@ -1381,7 +1481,7 @@ void Sams_View::SurfaceMapping() {
   // Set the colours to be the scalar value of each point.
   brainModelVtk->GetPointData()->SetScalars(colors);
   
-  cout << "Well, that works." << endl;
+  this->RequestRenderWindowUpdate();
 }
 
 void Sams_View::GenerateSphereSurface() {
