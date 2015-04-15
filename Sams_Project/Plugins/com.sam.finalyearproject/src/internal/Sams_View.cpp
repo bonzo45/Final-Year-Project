@@ -92,6 +92,8 @@ PURPOSE.  See the above copyright notices for more information.
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
+const bool DEBUG_SAMPLING = false;
+
 // ------------------ //
 // ---- TYPEDEFS ---- //
 // ------------------ //
@@ -348,12 +350,6 @@ void Sams_View::SelectScan(mitk::DataNode::Pointer scanNode) {
   // Store a reference to the scan.
   scan = scanNode;
 
-  // Save dimensions.
-  mitk::Image::Pointer scanImage = GetMitkScan();
-  scanHeight = scanImage->GetDimension(0);
-  scanWidth = scanImage->GetDimension(1);
-  scanDepth = scanImage->GetDimension(2);
-
   // Update name label.
   UI.labelScanName->setText(QString::fromStdString(StringFromStringProperty(scan->GetProperty("name"))));
 }
@@ -365,12 +361,6 @@ void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
   // Store a reference to the uncertainty.
   uncertainty = uncertaintyNode;
 
-  // Save dimensions.
-  mitk::Image::Pointer uncertaintyImage = GetMitkUncertainty();
-  uncertaintyHeight = uncertaintyImage->GetDimension(0);
-  uncertaintyWidth = uncertaintyImage->GetDimension(1);
-  uncertaintyDepth = uncertaintyImage->GetDimension(2);
-
   // Update name label.
   UI.labelUncertaintyName->setText(QString::fromStdString(StringFromStringProperty(uncertainty->GetProperty("name"))));
 }
@@ -381,6 +371,18 @@ void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
 void Sams_View::ConfirmSelection() {
   // Preprocess uncertainty.
   PreprocessNode(uncertainty);
+
+  // Save dimensions.
+  mitk::Image::Pointer scanImage = GetMitkScan();
+  scanHeight = scanImage->GetDimension(0);
+  scanWidth = scanImage->GetDimension(1);
+  scanDepth = scanImage->GetDimension(2);
+
+  // Save dimensions.
+  mitk::Image::Pointer uncertaintyImage = GetMitkUncertainty();
+  uncertaintyHeight = uncertaintyImage->GetDimension(0);
+  uncertaintyWidth = uncertaintyImage->GetDimension(1);
+  uncertaintyDepth = uncertaintyImage->GetDimension(2);
 
   // 2a. Thresholding
   // Update min/max values.
@@ -1134,8 +1136,6 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   return mitk::ImportItkImage(uncertaintyTexture);;
 }
 
-const bool DEBUG_SAMPLING = true;
-
 /**
   * Returns the average uncertainty along a vector in the uncertainty.
   * startPosition - the vector to begin tracing from
@@ -1343,6 +1343,14 @@ void Sams_View::SurfaceMapping() {
   double zMin = bounds[4];
   double zMax = bounds[5];
   double zRange = zMax - zMin;
+  if (DEBUG_SAMPLING) {
+    cout << "Surface Bounds:" << endl;
+    cout << xMin << "<= x <=" << xMax << " (" << xRange << ")" << endl;
+    cout << yMin << "<= y <=" << yMax << " (" << yRange << ")" << endl;
+    cout << zMin << "<= z <=" << zMax << " (" << zRange << ")" << endl;
+    cout << "Uncertainty Size:" << endl;
+    cout << "(" << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << ")" << endl;
+  }
 
   // ----------------------------------------- //
   // ---- Compute Uncertainty Intensities ---- //
@@ -1576,6 +1584,10 @@ void Sams_View::ShowTextOverlay() {
 void Sams_View::GenerateRandomUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
   if (scan) {
+    mitk::Image::Pointer scanImage = GetMitkScan();
+    unsigned int scanHeight = scanImage->GetDimension(0);
+    unsigned int scanWidth = scanImage->GetDimension(1);
+    unsigned int scanDepth = scanImage->GetDimension(2);
     GenerateRandomUncertainty(scanHeight, scanWidth, scanDepth);
   }
   else {
@@ -1586,6 +1598,10 @@ void Sams_View::GenerateRandomUncertainty() {
 void Sams_View::GenerateCubeUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
   if (scan) {
+    mitk::Image::Pointer scanImage = GetMitkScan();
+    unsigned int scanHeight = scanImage->GetDimension(0);
+    unsigned int scanWidth = scanImage->GetDimension(1);
+    unsigned int scanDepth = scanImage->GetDimension(2);
     GenerateCubeUncertainty(scanHeight, scanWidth, scanDepth, 10);
   }
   else {
@@ -1597,6 +1613,10 @@ void Sams_View::GenerateSphereUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
   vtkVector<float, 3> imageSize = vtkVector<float, 3>();
   if (scan) {
+    mitk::Image::Pointer scanImage = GetMitkScan();
+    unsigned int scanHeight = scanImage->GetDimension(0);
+    unsigned int scanWidth = scanImage->GetDimension(1);
+    unsigned int scanDepth = scanImage->GetDimension(2);
     imageSize[0] = scanHeight;
     imageSize[1] = scanWidth;
     imageSize[2] = scanDepth;
@@ -1614,6 +1634,10 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   // If we have selected a scan then generate uncertainty with the same dimensions.
   vtkVector<float, 3> imageSize = vtkVector<float, 3>();
   if (scan) {
+    mitk::Image::Pointer scanImage = GetMitkScan();
+    unsigned int scanHeight = scanImage->GetDimension(0);
+    unsigned int scanWidth = scanImage->GetDimension(1);
+    unsigned int scanDepth = scanImage->GetDimension(2);
     imageSize[0] = scanHeight;
     imageSize[1] = scanWidth;
     imageSize[2] = scanDepth;
