@@ -92,7 +92,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
-const bool DEBUG_SAMPLING = false;
+const bool DEBUG_SAMPLING = true;
 
 // ------------------ //
 // ---- TYPEDEFS ---- //
@@ -184,7 +184,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // 4. Random
   connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
-  connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
+  // connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
 
   // 5. Test Uncertainties
   connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
@@ -1136,6 +1136,12 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   return mitk::ImportItkImage(uncertaintyTexture);;
 }
 
+bool WithinBoundsOfUncertainty(vtkVector<float, 3> position) {
+  return (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
+         0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
+         0 <= position[2] && position[2] <= uncertaintyDepth - 1);
+}
+
 /**
   * Returns the average uncertainty along a vector in the uncertainty.
   * startPosition - the vector to begin tracing from
@@ -1160,9 +1166,7 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
   }
 
   // Move the tortoise and hare to the start of the uncertainty (i.e. not background)
-  while (0 <= tortoise[0] && tortoise[0] <= uncertaintyHeight - 1 &&
-       0 <= tortoise[1] && tortoise[1] <= uncertaintyWidth - 1 &&
-       0 <= tortoise[2] && tortoise[2] <= uncertaintyDepth - 1) {
+  while (WithinBoundsOfUncertainty(tortoise)) {
     double sample = InterpolateUncertaintyAtPosition(tortoise);
 
     if (DEBUG_SAMPLING) {
@@ -1208,7 +1212,7 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
     }
 
     // If the hare goes over the edge, stop.
-    if (percentage != 100 && InterpolateUncertaintyAtPosition(hare) == 0.0) {
+    if (percentage != 100 && (!WithinBoundsOfUncertainty(hare) || InterpolateUncertaintyAtPosition(hare) == 0.0)) {
       if (DEBUG_SAMPLING) {
         cout << "- Hare over the edge." << endl;
       }
