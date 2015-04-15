@@ -1488,8 +1488,8 @@ void Sams_View::SurfaceMapping() {
     }
     // Colour
     else if (UI.radioButtonColourColour->isChecked()) {
-      normalColour[0] = intensity;
-      normalColour[1] = 255 - intensity;
+      normalColour[0] = 255 - intensity;
+      normalColour[1] = intensity;
       normalColour[2] = 0;
     }
     colors->InsertNextTupleValue(normalColour);
