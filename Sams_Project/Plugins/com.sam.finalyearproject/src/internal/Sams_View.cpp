@@ -82,6 +82,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkFloatArray.h>
 #include <itkImportImageFilter.h>
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
+#include <vtkCubeSource.h>
+#include <vtkCylinderSource.h>
 
 // 4
 // - Overlay
@@ -176,6 +178,9 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   //  c. Surface Mapping
   connect(UI.buttonSphereSurface, SIGNAL(clicked()), this, SLOT(GenerateSphereSurface()));
+  connect(UI.buttonCubeSurface, SIGNAL(clicked()), this, SLOT(GenerateCubeSurface()));
+  connect(UI.buttonCylinderSurface, SIGNAL(clicked()), this, SLOT(GenerateCylinderSurface()));
+
   connect(UI.buttonSurfaceMapping, SIGNAL(clicked()), this, SLOT(SurfaceMapping()));
 
   // 3. Options
@@ -1515,6 +1520,48 @@ void Sams_View::GenerateSphereSurface() {
   sphereNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
   sphereNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   sphereNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+}
+
+void Sams_View::GenerateCubeSurface() {
+  // Create a simple (VTK) cube.
+  vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
+  cube->SetXLength(20.0);
+  cube->SetYLength(20.0);
+  cube->SetZLength(20.0);
+  cube->SetCenter(0.0, 0.0, 0.0);
+  cube->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer cubeSurface = mitk::Surface::New();
+  cubeSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cube->GetOutput()));
+
+  // Store it as a DataNode.
+  mitk::DataNode::Pointer cubeNode = SaveDataNode("Cube Surface", cubeSurface, true);
+  cubeNode->SetProperty("layer", mitk::IntProperty::New(3));
+  cubeNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  cubeNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
+  cubeNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+}
+
+void Sams_View::GenerateCylinderSurface() {
+  // Create a simple (VTK) cylinder.
+  vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
+  cylinder->SetRadius(20.0);
+  cylinder->SetHeight(20.0);
+  cylinder->SetResolution(10);
+  cylinder->SetCenter(0.0, 0.0, 0.0);
+  cylinder->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer cylinderSurface = mitk::Surface::New();
+  cylinderSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cylinder->GetOutput()));
+
+  // Store it as a DataNode.
+  mitk::DataNode::Pointer cylinderNode = SaveDataNode("Cylinder Surface", cylinderSurface, true);
+  cylinderNode->SetProperty("layer", mitk::IntProperty::New(3));
+  cylinderNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  cylinderNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
+  cylinderNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
 }
 
 // ----------- //

@@ -70,6 +70,8 @@ class Sams_View : public QmitkAbstractView {
 
     //  c
     void GenerateSphereSurface();
+    void GenerateCubeSurface();
+    void GenerateCylinderSurface();
     void SurfaceMapping();
 
     // 3
