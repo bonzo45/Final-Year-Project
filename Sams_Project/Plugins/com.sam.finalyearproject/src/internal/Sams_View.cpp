@@ -87,7 +87,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <vtkCylinderSource.h>
 
 // 4
-// - Overlay
+// - Text Overlay
 #include <mitkBaseRenderer.h>
 #include <QmitkRenderWindow.h>
 #include <mitkOverlayManager.h>
@@ -322,7 +322,6 @@ bool BoolFromBoolProperty(mitk::BaseProperty * property) {
     return false;
   }
 }
-  
 
 std::string StringFromDouble(double value) {
   std::ostringstream ss;
@@ -673,7 +672,7 @@ void Sams_View::ToggleUncertaintyVisible(bool checked) {
 }
 
 // ------------ //
-// ---- 2a ---- //
+// ---- 3a ---- //
 // ------------ //
 
 /**
@@ -1013,7 +1012,7 @@ void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImag
 }
 
 // ------------ //
-// ---- 2b ---- //
+// ---- 3b ---- //
 // ------------ //
 
 double latLongRatio = 2.0;
@@ -1324,7 +1323,7 @@ double Sams_View::InterpolateUncertaintyAtPosition(vtkVector<float, 3> position)
 }
 
 // ------------ //
-// ---- 2c ---- //
+// ---- 3c ---- //
 // ------------ //
 
 /**
@@ -1580,7 +1579,7 @@ void Sams_View::GenerateCylinderSurface() {
 }
 
 // ----------- //
-// ---- 3 ---- //
+// ---- 4 ---- //
 // ----------- //
 
 /**
@@ -1608,37 +1607,6 @@ void Sams_View::ResetViews() {
   mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
   mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
   renderManager->InitializeViews(bounds);
-
-  this->RequestRenderWindowUpdate();
-}
-
-// ----------- //
-// ---- 4 ---- //
-// ----------- //
-
-/**
-  * Puts some useless text on the render windows.
-  */
-void Sams_View::ShowTextOverlay() {
-  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
-  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
-  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
-
-  //Create a textOverlay2D
-  mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
-  textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
-  textOverlay->SetFontSize(40);
-  textOverlay->SetColor(1,0,0); //Set text color to red
-  textOverlay->SetOpacity(1);
-
-  //The position of the Overlay can be set to a fixed coordinate on the display.
-  mitk::Point2D pos;
-  pos[0] = 10,pos[1] = 20;
-  textOverlay->SetPosition2D(pos);
-  
-  //Add the overlay to the overlayManager. It is added to all registered renderers automatically
-  overlayManager->AddOverlay(textOverlay.GetPointer());
 
   this->RequestRenderWindowUpdate();
 }
