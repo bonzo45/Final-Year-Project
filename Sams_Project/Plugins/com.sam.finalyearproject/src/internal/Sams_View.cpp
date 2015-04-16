@@ -1398,7 +1398,7 @@ void Sams_View::SurfaceMapping() {
       intensityArray[i] = SampleUncertainty(position, normal, 50);
     }
     else if (UI.radioButtonSamplingScatter->isChecked()) {
-      //TODO
+      // TODO: Take the average of a bunch of samples, fired off in random directions about the normal?
     }
   }
   
