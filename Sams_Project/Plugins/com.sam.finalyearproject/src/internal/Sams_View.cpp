@@ -97,6 +97,11 @@ const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 const bool DEBUG_SAMPLING = true;
 
+const QString RANDOM_NAME = QString::fromStdString("Random (Demo)");
+const QString SPHERE_NAME = QString::fromStdString("Sphere (Demo)");
+const QString CUBE_NAME = QString::fromStdString("Cube (Demo)");
+const QString QUAD_SPHERE_NAME = QString::fromStdString("Sphere in Quadrant (Demo)");
+
 // ------------------ //
 // ---- TYPEDEFS ---- //
 // ------------------ //
@@ -156,6 +161,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // Add event handlers.
   // 1. Select Scan & Uncertainty
+  connect(UI.comboBoxScan, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(ScanDropdownChanged(const QString &)));
   connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
   connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
   connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
@@ -194,7 +200,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
 
   InitializeUI();
-  SetNumberOfImagesSelected(0);
 }
 
 void Sams_View::InitializeUI() {
@@ -206,6 +211,12 @@ void Sams_View::InitializeUI() {
 
   // Hide erode options boxes.
   UI.widgetErodeOptions->setVisible(false);
+
+  // Disable visualisation
+  UI.tab3a->setEnabled(false);
+  UI.tab3b->setEnabled(false);
+  UI.tab3c->setEnabled(false);
+  selectionConfirmed = false;
 }
 
 /**
@@ -329,33 +340,6 @@ mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseDat
   */
 void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
   UpdateSelectionDropDowns();
-
-  // int imagesSelected = 0;
-
-  // // Go through all of the nodes that have been selected.
-  // foreach(mitk::DataNode::Pointer node, nodes) {
-  //   // If it's null, ignore it.
-  //   if (node.IsNull()) {
-  //     continue;
-  //   }
-
-  //   // If it's an image.
-  //   mitk::Image::Pointer image = MitkImageFromNode(node);
-  //   if(image) {
-  //     imagesSelected++;
-
-  //     // Set the first image selected to be the scan.
-  //     if (imagesSelected == 1) {
-  //       SelectScan(node);
-  //     }
-  //     // Set the second one to be the uncertainty.
-  //     else if (imagesSelected == 2) {
-  //       SelectUncertainty(node);
-  //     }
-  //   }
-  // }
-
-  // SetNumberOfImagesSelected(imagesSelected);
 }
 
 void Sams_View::UpdateSelectionDropDowns() {
@@ -380,10 +364,10 @@ void Sams_View::UpdateSelectionDropDowns() {
     ++image;
   }
   
-  UI.comboBoxUncertainty->addItem(QString::fromStdString("Random (Demo)"));
-  UI.comboBoxUncertainty->addItem(QString::fromStdString("Sphere (Demo)"));
-  UI.comboBoxUncertainty->addItem(QString::fromStdString("Cube (Demo)"));
-  UI.comboBoxUncertainty->addItem(QString::fromStdString("Sphere in Quadrant (Demo)"));
+  UI.comboBoxUncertainty->addItem(RANDOM_NAME);
+  UI.comboBoxUncertainty->addItem(SPHERE_NAME);
+  UI.comboBoxUncertainty->addItem(CUBE_NAME);
+  UI.comboBoxUncertainty->addItem(QUAD_SPHERE_NAME);
 
   // If our previous selections still exist, select them again.
   int scanStillThere = UI.comboBoxScan->findText(scanName);
@@ -397,32 +381,57 @@ void Sams_View::UpdateSelectionDropDowns() {
   }
 }
 
-/**
-  * Sets the scan to work with.
-  */
-void Sams_View::SelectScan(mitk::DataNode::Pointer scanNode) {
-  // // Store a reference to the scan.
-  // scan = scanNode;
-
-  // // Update name label.
-  // UI.labelScanName->setText(QString::fromStdString(StringFromStringProperty(scan->GetProperty("name"))));
+void Sams_View::ScanDropdownChanged(const QString & scanName) {
+  scan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
+  // Update the visibility checkbox to match the visibility of the scan we've picked.
+  UI.checkBoxScanVisible->setChecked(BoolFromBoolProperty(scan->GetProperty("visible")));
 }
 
-/**
-  * Sets the uncertainty to work with.
-  */
-void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
-  // // Store a reference to the uncertainty.
-  // uncertainty = uncertaintyNode;
-
-  // // Update name label.
-  // UI.labelUncertaintyName->setText(QString::fromStdString(StringFromStringProperty(uncertainty->GetProperty("name"))));
+void Sams_View::UncertaintyDropdownChanged(const QString & uncertaintyName) {
+  uncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
+  // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
+  UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
 }
 
 /**
   * Once the scan and uncertainty have been picked and the user confirms they are correct, we do some pre-processing on the data.
   */
 void Sams_View::ConfirmSelection() {
+  // Get the DataNodes corresponding to the drop-down boxes.
+  mitk::DataNode::Pointer scanNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxScan->currentText().toStdString());
+  mitk::DataNode::Pointer uncertaintyNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxUncertainty->currentText().toStdString());
+  
+  // If the scan can't be found, stop.
+  if (scanNode.IsNull()) {
+    return;
+  }
+
+  // If the uncertainty can't be found, maybe it's a demo uncertainty. (we need to generate it)
+  if (uncertaintyNode.IsNull()) {
+    QString uncertaintyName = UI.comboBoxUncertainty->currentText();
+  
+    if (QString::compare(uncertaintyName, RANDOM_NAME) == 0) {
+      // Generate Random
+    }
+    else if (QString::compare(uncertaintyName, SPHERE_NAME) == 0) {
+      // Generate Sphere
+    }
+    else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
+      // Generate Cube
+    }
+    else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {
+      // Generate Sphere in Quadrant
+    }
+    else {
+      // If it's not a demo uncertainty, stop.
+      return;
+    }
+  }
+
+  // Save references to the nodes.
+  scan = scanNode;
+  uncertainty = uncertaintyNode;
+
   // Preprocess uncertainty.
   PreprocessNode(uncertainty);
 
@@ -448,22 +457,13 @@ void Sams_View::ConfirmSelection() {
   SetUpperThreshold(NORMALIZED_MAX);
 
   // Enable visualisations.
-  UI.tab2a->setEnabled(true);
-  UI.tab2b->setEnabled(true);
-  UI.tab2c->setEnabled(true);
+  UI.tab3a->setEnabled(true);
+  UI.tab3b->setEnabled(true);
+  UI.tab3c->setEnabled(true);
   UI.buttonOverlayThreshold->setEnabled(true);
 
   // Flag that we're confirmed.
   selectionConfirmed = true;
-}
-
-/**
-  * Swaps the scan and the uncertainty.
-  */
-void Sams_View::SwapScanUncertainty() {
-  mitk::DataNode::Pointer temp = scan;
-  this->SelectScan(uncertainty);
-  this->SelectUncertainty(temp);
 }
 
 /**
@@ -601,84 +601,6 @@ void Sams_View::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkIma
   // Convert to MITK
   ImageType * invertedImage = invertIntensityFilter->GetOutput();
   mitk::CastToMitkImage(invertedImage, result);
-}
-
-/**
-  * Updates the UI to reflect the number of images selected.
-  * Shows messages, disables buttons etc.
-  */
-void Sams_View::SetNumberOfImagesSelected(int imagesSelected) {
-  if (imagesSelected == 0) {
-    ScanSelected(false);
-    UncertaintySelected(false);
-    BothSelected(false);
-  }
-  else if (imagesSelected == 1) {
-    ScanSelected(true);
-    UncertaintySelected(false);
-    BothSelected(false);
-  }
-  else {
-    ScanSelected(true);
-    UncertaintySelected(true);
-    BothSelected(true);
-  }
-}
-
-/**
-  * Enables/Disables parts of the UI based on whether we have selected a scan.
-  */
-void Sams_View::ScanSelected(bool picked) {
-  if (picked) {
-    UI.checkBoxScanVisible->setVisible(true);
-
-    // Update the visibility checkbox to match the visibility of the scan we've picked.
-    UI.checkBoxScanVisible->setChecked(BoolFromBoolProperty(scan->GetProperty("visible")));
-  }
-  else {
-    scan = 0;
-    //UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
-    UI.checkBoxScanVisible->setVisible(false);
-  }
-}
-
-/**
-  * Enables/Disables parts of the UI based on whether we have selected an uncertainty.
-  */
-void Sams_View::UncertaintySelected(bool picked) {
-  if (picked) {
-    UI.checkBoxUncertaintyVisible->setVisible(true);
-    //UI.widgetUncertaintyProcessing->setVisible(true);
-
-    // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
-    UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
-  }
-  else {
-    uncertainty = 0;
-    preprocessedUncertainty = 0;
-    //UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
-    UI.checkBoxUncertaintyVisible->setVisible(false);
-    //UI.widgetUncertaintyProcessing->setVisible(false);
-  }
-}
-
-/**
-  * Enables/Disables parts of the UI based on whether we have selected both a scan and an uncertainty.
-  */
-void Sams_View::BothSelected(bool picked) {
-  if (picked) {
-    UI.buttonConfirmSelection->setEnabled(true);
-    //UI.buttonSwapScanUncertainty->setEnabled(true);
-  }
-  else {
-    UI.buttonConfirmSelection->setEnabled(false);
-    //UI.buttonSwapScanUncertainty->setEnabled(false);
-    UI.tab2a->setEnabled(false);
-    UI.tab2b->setEnabled(false);
-    UI.tab2c->setEnabled(false);
-    //UI.buttonOverlayThreshold->setEnabled(false);
-    selectionConfirmed = false;
-  }
 }
 
 void Sams_View::ToggleScanVisible(bool checked) {

@@ -46,8 +46,9 @@ class Sams_View : public QmitkAbstractView {
 
   protected slots:
     // 1
+    void ScanDropdownChanged(const QString & scanName);
+    void UncertaintyDropdownChanged(const QString & scanName);
     void ConfirmSelection();
-    void SwapScanUncertainty();
     void ToggleScanVisible(bool checked);
     void ToggleUncertaintyVisible(bool checked);
 
@@ -103,12 +104,6 @@ class Sams_View : public QmitkAbstractView {
     
     // 1
     void UpdateSelectionDropDowns();
-    void SelectScan(mitk::DataNode::Pointer scan);
-    void SelectUncertainty(mitk::DataNode::Pointer uncertainty);
-    void SetNumberOfImagesSelected(int imagesSelected);
-    void ScanSelected(bool test);
-    void UncertaintySelected(bool test);
-    void BothSelected(bool test);
     void PreprocessNode(mitk::DataNode::Pointer node);
 
     template <typename TPixel, unsigned int VImageDimension>

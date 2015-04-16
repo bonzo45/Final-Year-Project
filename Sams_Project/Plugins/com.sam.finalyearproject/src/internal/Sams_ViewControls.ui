@@ -608,7 +608,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTabWidget" name="tabs2">
+       <widget class="QTabWidget" name="tabs3">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -621,7 +621,7 @@
         <property name="currentIndex">
          <number>1</number>
         </property>
-        <widget class="QWidget" name="tab2a">
+        <widget class="QWidget" name="tab3a">
          <attribute name="title">
           <string>Thresholding</string>
          </attribute>
@@ -905,7 +905,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tab2b">
+        <widget class="QWidget" name="tab3b">
          <attribute name="title">
           <string>Sphere Texture</string>
          </attribute>
@@ -1072,7 +1072,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="tab2c">
+        <widget class="QWidget" name="tab3c">
          <attribute name="title">
           <string>Surface Mapping</string>
          </attribute>
