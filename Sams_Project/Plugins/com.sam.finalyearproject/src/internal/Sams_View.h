@@ -83,13 +83,13 @@ class Sams_View : public QmitkAbstractView {
     void ShowTextOverlay();
 
     // 5
+
+    // Debug
+    void ToggleDebug();
     void GenerateRandomUncertainty();
     void GenerateCubeUncertainty();
     void GenerateSphereUncertainty();
     void GenerateQuadrantSphereUncertainty();
-
-    // Debug
-    void ToggleDebug();
 
   protected:  
     virtual void SetFocus();
@@ -135,9 +135,9 @@ class Sams_View : public QmitkAbstractView {
     // 4
 
     // 5
-    void GenerateRandomUncertainty(unsigned int height, unsigned int width, unsigned int depth);
-    void GenerateCubeUncertainty(unsigned int height, unsigned int width, unsigned int depth, unsigned int cubeSize);
-    void GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
+    mitk::DataNode::Pointer GenerateRandomUncertainty(vtkVector<float, 3> imageSize);
+    mitk::DataNode::Pointer GenerateCubeUncertainty(vtkVector<float, 3> imageSize, unsigned int cubeSize);
+    mitk::DataNode::Pointer GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
 };
 
 #endif // Sams_View_h
