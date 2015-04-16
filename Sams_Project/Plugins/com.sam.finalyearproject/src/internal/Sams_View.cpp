@@ -323,11 +323,7 @@ bool BoolFromBoolProperty(mitk::BaseProperty * property) {
   }
 }
 
-std::string StringFromDouble(double value) {
-  std::ostringstream ss;
-  ss << std::setprecision(2) << std::fixed << value;
-  return(ss.str());
-}
+#include <Util.cpp>
 
 mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite, mitk::DataNode::Pointer parent) {
   // If overwrite is set to true, check for previous version and delete.

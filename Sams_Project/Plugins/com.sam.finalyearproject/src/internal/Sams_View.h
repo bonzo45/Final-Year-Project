@@ -52,7 +52,7 @@ class Sams_View : public QmitkAbstractView {
     void ToggleScanVisible(bool checked);
     void ToggleUncertaintyVisible(bool checked);
 
-    // 2
+    // 3
     //  a
     void ToggleUncertaintyThresholding(bool checked);    
     void ThresholdUncertainty();
@@ -75,12 +75,9 @@ class Sams_View : public QmitkAbstractView {
     void GenerateCylinderSurface();
     void SurfaceMapping();
 
-    // 3
+    // 4
     void ToggleCrosshairs(int state);
     void ResetViews();
-
-    // 4
-    void ShowTextOverlay();
 
     // 5
 
