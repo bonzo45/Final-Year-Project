@@ -84,6 +84,13 @@ class Sams_View : public QmitkAbstractView {
 
     // 5
 
+    // UI
+    void ToggleMinimize1();
+    void ToggleMinimize2();
+    void ToggleMinimize3();
+    void ToggleMinimize4();
+    void ToggleErosionEnabled(bool checked);
+
     // Debug
     void ToggleDebug();
     void GenerateRandomUncertainty();

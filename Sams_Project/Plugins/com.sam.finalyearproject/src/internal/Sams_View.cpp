@@ -133,7 +133,7 @@ unsigned int uncertaintyDepth;
 const double NORMALIZED_MAX = 1.0;
 const double NORMALIZED_MIN = 0.0;
 
-// 2. Visualisation
+// 3. Visualisation
 //  a. Uncertainty Thresholding
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
 bool thresholdingEnabled = false;
@@ -143,7 +143,7 @@ double upperThreshold = 0;
 //  b. Uncertainty Sphere
 TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
 
-// 5. Test Uncertainties
+// Demo Uncertainties
 UncertaintyImageType::Pointer cubeUncertainty;
 UncertaintyImageType::Pointer randomUncertainty;
 UncertaintyImageType::Pointer sphereUncertainty;
@@ -167,7 +167,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
   connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
 
-  // 2.
+  // 2. Preprocessing
+  connect(UI.checkBoxErosionEnabled, SIGNAL(toggled(bool)), this, SLOT(ToggleErosionEnabled(bool)));
+
+  // 3.
   //  a. Thresholding
   connect(UI.checkBoxEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
@@ -187,14 +190,15 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   //  c. Surface Mapping
   connect(UI.buttonSurfaceMapping, SIGNAL(clicked()), this, SLOT(SurfaceMapping()));
 
-  // 3. Options
+  // 4. Options
   connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
-  // 4. Random
-  // connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
-
-  // 5. Test Uncertainties
+  // UI
+  connect(UI.buttonMinimize1, SIGNAL(clicked()), this, SLOT(ToggleMinimize1()));
+  connect(UI.buttonMinimize2, SIGNAL(clicked()), this, SLOT(ToggleMinimize2()));
+  connect(UI.buttonMinimize3, SIGNAL(clicked()), this, SLOT(ToggleMinimize3()));
+  connect(UI.buttonMinimize4, SIGNAL(clicked()), this, SLOT(ToggleMinimize4()));
 
   // Debugging
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
@@ -205,6 +209,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   InitializeUI();
 }
+
+// ------------ //
+// ---- UI ---- //
+// ------------ //
 
 void Sams_View::InitializeUI() {
   // Hide Debug Widget.
@@ -221,6 +229,26 @@ void Sams_View::InitializeUI() {
   UI.tab3b->setEnabled(false);
   UI.tab3c->setEnabled(false);
   selectionConfirmed = false;
+}
+
+void Sams_View::ToggleMinimize1() {
+  UI.widget1Minimizable->setVisible(!UI.widget1Minimizable->isVisible());
+}
+
+void Sams_View::ToggleMinimize2() {
+  UI.widget2Minimizable->setVisible(!UI.widget2Minimizable->isVisible());
+}
+
+void Sams_View::ToggleMinimize3() {
+  UI.widget3Minimizable->setVisible(!UI.widget3Minimizable->isVisible());
+}
+
+void Sams_View::ToggleMinimize4() {
+  UI.widget4Minimizable->setVisible(!UI.widget4Minimizable->isVisible());
+}
+
+void Sams_View::ToggleErosionEnabled(bool checked) {
+  UI.widgetErodeOptions->setVisible(checked);
 }
 
 /**
@@ -359,7 +387,7 @@ void Sams_View::UpdateSelectionDropDowns() {
   mitk::TNodePredicateDataType<mitk::Image>::Pointer predicate(mitk::TNodePredicateDataType<mitk::Image>::New());
   mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetSubset(predicate);
 
-  // Add them all to the dropdown.
+  // Add them all to the dropdowns.
   mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
   while(image != allImages->End()) {
     QString name = QString::fromStdString(StringFromStringProperty(image->Value()->GetProperty("name")));
@@ -368,12 +396,13 @@ void Sams_View::UpdateSelectionDropDowns() {
     ++image;
   }
   
+  // Add the demo uncertainties to the uncertainty dropdown.
   UI.comboBoxUncertainty->addItem(RANDOM_NAME);
   UI.comboBoxUncertainty->addItem(SPHERE_NAME);
   UI.comboBoxUncertainty->addItem(CUBE_NAME);
   UI.comboBoxUncertainty->addItem(QUAD_SPHERE_NAME);
 
-  // If our previous selections still exist, select them again.
+  // If our previous selections are still valid, select those again.
   int scanStillThere = UI.comboBoxScan->findText(scanName);
   if (scanStillThere != -1) {
     UI.comboBoxScan->setCurrentIndex(scanStillThere);
@@ -387,20 +416,18 @@ void Sams_View::UpdateSelectionDropDowns() {
 
 void Sams_View::ScanDropdownChanged(const QString & scanName) {
   scan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
-  if (scan.IsNull()) {
-    return;
+  if (scan.IsNotNull()) {
+    // Update the visibility checkbox to match the visibility of the scan we've picked.
+    UI.checkBoxScanVisible->setChecked(BoolFromBoolProperty(scan->GetProperty("visible")));
   }
-  // Update the visibility checkbox to match the visibility of the scan we've picked.
-  UI.checkBoxScanVisible->setChecked(BoolFromBoolProperty(scan->GetProperty("visible")));
 }
 
 void Sams_View::UncertaintyDropdownChanged(const QString & uncertaintyName) {
   uncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
-  if (uncertainty.IsNull()) {
-    return;
+  if (uncertainty.IsNotNull()) {
+    // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
+    UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
   }
-  // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
-  UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
 }
 
 /**
@@ -418,33 +445,34 @@ void Sams_View::ConfirmSelection() {
 
   // If the uncertainty can't be found, maybe it's a demo uncertainty. (we need to generate it)
   if (uncertaintyNode.IsNull()) {
+    // Get it's name.
     QString uncertaintyName = UI.comboBoxUncertainty->currentText();
     vtkVector<float, 3> scanSize = vtkVector<float, 3>();
     mitk::Image::Pointer scanImage = MitkImageFromNode(scanNode);
     scanSize[0] = scanImage->GetDimension(0);
     scanSize[1] = scanImage->GetDimension(1);
     scanSize[2] = scanImage->GetDimension(2);
-  
+
+    // If it's supposed to be random.
     if (QString::compare(uncertaintyName, RANDOM_NAME) == 0) {
-      // Generate Random
       uncertaintyNode = GenerateRandomUncertainty(scanSize);
     }
+    // If it's supposed to be a sphere.
     else if (QString::compare(uncertaintyName, SPHERE_NAME) == 0) {
-      // Generate Sphere
       float half = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 2;
       uncertaintyNode = GenerateSphereUncertainty(scanSize, half);
     }
+    // If it's supposed to be a cube.
     else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
-      // Generate Cube
       uncertaintyNode = GenerateCubeUncertainty(scanSize, 10);
     }
+    // If it's supposed to be a sphere in a quadrant.
     else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {
-      // Generate Sphere in Quadrant
       float quarter = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 4;
       uncertaintyNode = GenerateSphereUncertainty(scanSize, quarter, vtkVector<float, 3>(quarter));
     }
+    // If it's not a demo uncertainty, stop.
     else {
-      // If it's not a demo uncertainty, stop.
       return;
     }
   }
@@ -453,7 +481,7 @@ void Sams_View::ConfirmSelection() {
   scan = scanNode;
   uncertainty = uncertaintyNode;
 
-  // Preprocess uncertainty.
+  // Preprocess the uncertainty.
   PreprocessNode(uncertainty);
 
   // Save dimensions.
@@ -462,13 +490,12 @@ void Sams_View::ConfirmSelection() {
   scanWidth = scanImage->GetDimension(1);
   scanDepth = scanImage->GetDimension(2);
 
-  // Save dimensions.
   mitk::Image::Pointer uncertaintyImage = GetMitkUncertainty();
   uncertaintyHeight = uncertaintyImage->GetDimension(0);
   uncertaintyWidth = uncertaintyImage->GetDimension(1);
   uncertaintyDepth = uncertaintyImage->GetDimension(2);
 
-  // 2a. Thresholding
+  // 3a. Thresholding
   // Update min/max values.
   UI.labelSliderLeftLimit->setText(QString::fromStdString(StringFromDouble(NORMALIZED_MIN)));
   UI.labelSliderRightLimit->setText(QString::fromStdString(StringFromDouble(NORMALIZED_MAX)));
@@ -481,7 +508,6 @@ void Sams_View::ConfirmSelection() {
   UI.tab3a->setEnabled(true);
   UI.tab3b->setEnabled(true);
   UI.tab3c->setEnabled(true);
-  UI.buttonOverlayThreshold->setEnabled(true);
 
   // Flag that we're confirmed.
   selectionConfirmed = true;
