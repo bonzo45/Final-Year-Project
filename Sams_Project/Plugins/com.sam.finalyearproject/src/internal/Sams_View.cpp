@@ -45,6 +45,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkGrayscaleDilateImageFilter.h>
 #include <mitkSlicedGeometry3D.h>
 #include <mitkPoint.h>
+#include <mitkNodePredicateBase.h>
 
 // 2
 //  a. Thresholding
@@ -156,7 +157,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // Add event handlers.
   // 1. Select Scan & Uncertainty
   connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
-  connect(UI.buttonSwapScanUncertainty, SIGNAL(clicked()), this, SLOT(SwapScanUncertainty()));
   connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
   connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
 
@@ -170,6 +170,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
   connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertainty()));
+  connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
 
   //  b. Texture Mapping
   connect(UI.spinBoxTextureWidth, SIGNAL(valueChanged(int)), this, SLOT(TextureWidthChanged(int)));
@@ -177,10 +178,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
 
   //  c. Surface Mapping
-  connect(UI.buttonSphereSurface, SIGNAL(clicked()), this, SLOT(GenerateSphereSurface()));
-  connect(UI.buttonCubeSurface, SIGNAL(clicked()), this, SLOT(GenerateCubeSurface()));
-  connect(UI.buttonCylinderSurface, SIGNAL(clicked()), this, SLOT(GenerateCylinderSurface()));
-
   connect(UI.buttonSurfaceMapping, SIGNAL(clicked()), this, SLOT(SurfaceMapping()));
 
   // 3. Options
@@ -188,16 +185,27 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
   // 4. Random
-  connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
   // connect(UI.buttonOverlayText, SIGNAL(clicked()), this, SLOT(ShowTextOverlay()));
 
   // 5. Test Uncertainties
-  connect(UI.buttonRandomUncertainty, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
-  connect(UI.buttonCubeUncertainty, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
-  connect(UI.buttonSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
-  connect(UI.buttonQuadrantSphereUncertainty, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
 
+
+  // Debugging
+  connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
+
+  InitializeUI();
   SetNumberOfImagesSelected(0);
+}
+
+void Sams_View::InitializeUI() {
+  // Hide Debug Widget.
+  UI.widgetDebug->setVisible(false);
+
+  // Initialize Drop-Down boxes.
+  UpdateSelectionDropDowns();
+
+  // Hide erode options boxes.
+  UI.widgetErodeOptions->setVisible(false);
 }
 
 /**
@@ -320,54 +328,95 @@ mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseDat
   * What to do when a data node or selection changes.
   */
 void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
-  int imagesSelected = 0;
+  UpdateSelectionDropDowns();
 
-  // Go through all of the nodes that have been selected.
-  foreach(mitk::DataNode::Pointer node, nodes) {
-    // If it's null, ignore it.
-    if (node.IsNull()) {
-      continue;
-    }
+  // int imagesSelected = 0;
 
-    // If it's an image.
-    mitk::Image::Pointer image = MitkImageFromNode(node);
-    if(image) {
-      imagesSelected++;
+  // // Go through all of the nodes that have been selected.
+  // foreach(mitk::DataNode::Pointer node, nodes) {
+  //   // If it's null, ignore it.
+  //   if (node.IsNull()) {
+  //     continue;
+  //   }
 
-      // Set the first image selected to be the scan.
-      if (imagesSelected == 1) {
-        SelectScan(node);
-      }
-      // Set the second one to be the uncertainty.
-      else if (imagesSelected == 2) {
-        SelectUncertainty(node);
-      }
-    }
+  //   // If it's an image.
+  //   mitk::Image::Pointer image = MitkImageFromNode(node);
+  //   if(image) {
+  //     imagesSelected++;
+
+  //     // Set the first image selected to be the scan.
+  //     if (imagesSelected == 1) {
+  //       SelectScan(node);
+  //     }
+  //     // Set the second one to be the uncertainty.
+  //     else if (imagesSelected == 2) {
+  //       SelectUncertainty(node);
+  //     }
+  //   }
+  // }
+
+  // SetNumberOfImagesSelected(imagesSelected);
+}
+
+void Sams_View::UpdateSelectionDropDowns() {
+  // Remember our previous selection.
+  QString scanName = UI.comboBoxScan->currentText();
+  QString uncertaintyName = UI.comboBoxUncertainty->currentText();
+
+  // Clear the dropdowns.
+  UI.comboBoxScan->clear();
+  UI.comboBoxUncertainty->clear();
+
+  // Get all the potential images.
+  mitk::TNodePredicateDataType<mitk::Image>::Pointer predicate(mitk::TNodePredicateDataType<mitk::Image>::New());
+  mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetSubset(predicate);
+
+  // Add them all to the dropdown.
+  mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
+  while(image != allImages->End()) {
+    QString name = QString::fromStdString(StringFromStringProperty(image->Value()->GetProperty("name")));
+    UI.comboBoxScan->addItem(name);
+    UI.comboBoxUncertainty->addItem(name);
+    ++image;
+  }
+  
+  UI.comboBoxUncertainty->addItem(QString::fromStdString("Random (Demo)"));
+  UI.comboBoxUncertainty->addItem(QString::fromStdString("Sphere (Demo)"));
+  UI.comboBoxUncertainty->addItem(QString::fromStdString("Cube (Demo)"));
+  UI.comboBoxUncertainty->addItem(QString::fromStdString("Sphere in Quadrant (Demo)"));
+
+  // If our previous selections still exist, select them again.
+  int scanStillThere = UI.comboBoxScan->findText(scanName);
+  if (scanStillThere != -1) {
+    UI.comboBoxScan->setCurrentIndex(scanStillThere);
   }
 
-  SetNumberOfImagesSelected(imagesSelected);
+  int uncertaintyStillThere = UI.comboBoxUncertainty->findText(uncertaintyName);
+  if (uncertaintyStillThere != -1) {
+    UI.comboBoxUncertainty->setCurrentIndex(uncertaintyStillThere);
+  }
 }
 
 /**
   * Sets the scan to work with.
   */
 void Sams_View::SelectScan(mitk::DataNode::Pointer scanNode) {
-  // Store a reference to the scan.
-  scan = scanNode;
+  // // Store a reference to the scan.
+  // scan = scanNode;
 
-  // Update name label.
-  UI.labelScanName->setText(QString::fromStdString(StringFromStringProperty(scan->GetProperty("name"))));
+  // // Update name label.
+  // UI.labelScanName->setText(QString::fromStdString(StringFromStringProperty(scan->GetProperty("name"))));
 }
 
 /**
   * Sets the uncertainty to work with.
   */
 void Sams_View::SelectUncertainty(mitk::DataNode::Pointer uncertaintyNode) {
-  // Store a reference to the uncertainty.
-  uncertainty = uncertaintyNode;
+  // // Store a reference to the uncertainty.
+  // uncertainty = uncertaintyNode;
 
-  // Update name label.
-  UI.labelUncertaintyName->setText(QString::fromStdString(StringFromStringProperty(uncertainty->GetProperty("name"))));
+  // // Update name label.
+  // UI.labelUncertaintyName->setText(QString::fromStdString(StringFromStringProperty(uncertainty->GetProperty("name"))));
 }
 
 /**
@@ -588,7 +637,7 @@ void Sams_View::ScanSelected(bool picked) {
   }
   else {
     scan = 0;
-    UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
+    //UI.labelScanName->setText("Pick a Scan (Ctrl + Click)");
     UI.checkBoxScanVisible->setVisible(false);
   }
 }
@@ -599,7 +648,7 @@ void Sams_View::ScanSelected(bool picked) {
 void Sams_View::UncertaintySelected(bool picked) {
   if (picked) {
     UI.checkBoxUncertaintyVisible->setVisible(true);
-    UI.widgetUncertaintyProcessing->setVisible(true);
+    //UI.widgetUncertaintyProcessing->setVisible(true);
 
     // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
     UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
@@ -607,9 +656,9 @@ void Sams_View::UncertaintySelected(bool picked) {
   else {
     uncertainty = 0;
     preprocessedUncertainty = 0;
-    UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
+    //UI.labelUncertaintyName->setText("Pick an Uncertainty (Ctrl + Click)");
     UI.checkBoxUncertaintyVisible->setVisible(false);
-    UI.widgetUncertaintyProcessing->setVisible(false);
+    //UI.widgetUncertaintyProcessing->setVisible(false);
   }
 }
 
@@ -619,15 +668,15 @@ void Sams_View::UncertaintySelected(bool picked) {
 void Sams_View::BothSelected(bool picked) {
   if (picked) {
     UI.buttonConfirmSelection->setEnabled(true);
-    UI.buttonSwapScanUncertainty->setEnabled(true);
+    //UI.buttonSwapScanUncertainty->setEnabled(true);
   }
   else {
     UI.buttonConfirmSelection->setEnabled(false);
-    UI.buttonSwapScanUncertainty->setEnabled(false);
+    //UI.buttonSwapScanUncertainty->setEnabled(false);
     UI.tab2a->setEnabled(false);
     UI.tab2b->setEnabled(false);
     UI.tab2c->setEnabled(false);
-    UI.buttonOverlayThreshold->setEnabled(false);
+    //UI.buttonOverlayThreshold->setEnabled(false);
     selectionConfirmed = false;
   }
 }
@@ -1127,7 +1176,7 @@ mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
   }
 
   // Scale the texture values to increase contrast.
-  if (UI.checkBoxScalingLinear->isChecked()) {
+  if (UI.radioButtonTextureScalingLinear->isChecked()) {
     typedef itk::RescaleIntensityImageFilter<TextureImageType, TextureImageType> RescaleFilterType;
     typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
     rescaleFilter->SetInput(uncertaintyTexture);
@@ -1396,9 +1445,6 @@ void Sams_View::SurfaceMapping() {
     }
     else if (UI.radioButtonSamplingHalf->isChecked()) {
       intensityArray[i] = SampleUncertainty(position, normal, 50);
-    }
-    else if (UI.radioButtonSamplingScatter->isChecked()) {
-      // TODO: Take the average of a bunch of samples, fired off in random directions about the normal?
     }
   }
   
@@ -1893,4 +1939,12 @@ void Sams_View::GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigne
   ss << "Sphere of Uncertainty (" << imageSize[0] << "x" << imageSize[1] << "x" << imageSize[2] << ")";
   sphereUncertaintyNode->SetProperty("name", mitk::StringProperty::New(ss.str()));
   this->GetDataStorage()->Add(sphereUncertaintyNode);
+}
+
+// --------------- //
+// ---- Debug ---- //
+// --------------- //
+
+void Sams_View::ToggleDebug() {
+  UI.widgetDebug->setVisible(!UI.widgetDebug->isVisible());
 }

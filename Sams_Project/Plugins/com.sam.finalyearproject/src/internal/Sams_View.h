@@ -87,6 +87,9 @@ class Sams_View : public QmitkAbstractView {
     void GenerateSphereUncertainty();
     void GenerateQuadrantSphereUncertainty();
 
+    // Debug
+    void ToggleDebug();
+
   protected:  
     virtual void SetFocus();
     virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);
@@ -94,10 +97,12 @@ class Sams_View : public QmitkAbstractView {
     Ui::Sams_ViewControls UI;
 
   private:
-    // Util
+    // General
+    void InitializeUI();
     mitk::DataNode::Pointer SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite = false, mitk::DataNode::Pointer parent = 0);
-
+    
     // 1
+    void UpdateSelectionDropDowns();
     void SelectScan(mitk::DataNode::Pointer scan);
     void SelectUncertainty(mitk::DataNode::Pointer uncertainty);
     void SetNumberOfImagesSelected(int imagesSelected);
