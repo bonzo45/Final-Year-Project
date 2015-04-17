@@ -29,6 +29,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include "UncertaintyPreprocessor.h"
 #include "UncertaintyThresholder.h"
 #include "UncertaintySampler.h"
+#include "UncertaintyTexture.h"
+#include "SurfaceGenerator.h"
 
 // General
 #include <mitkBaseProperty.h>
@@ -44,30 +46,11 @@ PURPOSE.  See the above copyright notices for more information.
 
 // 1
 #include <itkRescaleIntensityImageFilter.h>
-#include <itkIntensityWindowingImageFilter.h>
-#include <itkInvertIntensityImageFilter.h>
-#include <itkChangeInformationImageFilter.h>
-#include <itkMaskImageFilter.h>
-#include <itkGrayscaleDilateImageFilter.h>
-#include <mitkSlicedGeometry3D.h>
-#include <mitkPoint.h>
-#include <mitkNodePredicateBase.h>
 
 // 2
 //  a. Thresholding
-#include <mitkImageAccessByItk.h>
-#include <itkBinaryThresholdImageFilter.h>
-#include <mitkImageCast.h>
-#include <itkMinimumMaximumImageCalculator.h>
-#include <itkImageToHistogramFilter.h>
-#include <itkGrayscaleErodeImageFilter.h>
-#include <itkBinaryBallStructuringElement.h>
-#include <itkGrayscaleErodeImageFilter.h>
-#include <itkSubtractImageFilter.h>
 
 //  a. Volume Rendering
-#include <mitkTransferFunction.h>
-#include <mitkTransferFunctionProperty.h>
 
 //  b. Sphere Texture
 #include <vtkSphereSource.h>
@@ -111,7 +94,6 @@ const QString QUAD_SPHERE_NAME = QString::fromStdString("Sphere in Quadrant (Dem
 // ------------------ //
 // ---- TYPEDEFS ---- //
 // ------------------ //
-typedef itk::Image<unsigned char, 2>  TextureImageType;
 typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
 
 // ------------------------- //
@@ -723,130 +705,30 @@ void Sams_View::TextureHeightChanged(int value) {
   * Creates a sphere and maps a texture created from uncertainty to it.
   */
 void Sams_View::GenerateUncertaintySphere() {
-  // Create a sphere.
-  vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-  sphere->SetThetaResolution(100);
-  sphere->SetPhiResolution(100);
-  sphere->SetRadius(20.0);
-  sphere->SetCenter(0, 0, 0);
+  // Create Sphere
+  mitk::Surface::Pointer sphereToPutTextureOn = SurfaceGenerator::generateSphere(100, 20);
+  
+  // Create Texture
+  UncertaintyTexture * texturerer = new UncertaintyTexture();
+  texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
+  texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
+  mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
+  delete texturerer;
 
-  // Create a VTK texture map.
-  vtkSmartPointer<vtkTextureMapToSphere> mapToSphere = vtkSmartPointer<vtkTextureMapToSphere>::New();
-  mapToSphere->SetInputConnection(sphere->GetOutputPort());
-  mapToSphere->PreventSeamOff();
-  mapToSphere->Update();
-
-  // Generate texture.
-  mitk::Image::Pointer textureImage = GenerateUncertaintyTexture();
-
-  // Export texture.
-  mitk::DataNode::Pointer textureNode = SaveDataNode("Uncertainty Texture", textureImage, true);
+  // Save texture.
+  mitk::DataNode::Pointer textureNode = SaveDataNode("Uncertainty Texture", texture, true);
   textureNode->SetProperty("layer", mitk::IntProperty::New(3));
   textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 1.0, 0.0));
   textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
 
-  // Create an MITK surface from the texture map.
-  mitk::Surface::Pointer surfaceToPutTextureOn = mitk::Surface::New();
-  surfaceToPutTextureOn->SetVtkPolyData(static_cast<vtkPolyData*>(mapToSphere->GetOutput()));
-
-  // Optional: Manually set texture co-ordinates.
-  // vtkSmartPointer<vtkFloatArray> textureCoords = vtkSmartPointer<vtkFloatArray>::New();
-  // textureCoords->SetNumberOfComponents(2); 
-  // textureCoords->SetNumberOfTuples(4); 
-  // textureCoords->SetTuple2(0, 0.0, 0.0);
-  // textureCoords->SetTuple2(1, 0.0, 1.0);
-  // textureCoords->SetTuple2(2, 1.0, 0.0);
-  // textureCoords->SetTuple2(3, 1.0, 1.0);
-
-  // vtkPolyData * polyData = surfaceToPutTextureOn->GetVtkPolyData();
-  // vtkPointData * pointData = polyData->GetPointData();
-  // pointData->SetTCoords(textureCoords);
-
-  // Create a datanode to store it.
-  mitk::DataNode::Pointer surfaceNode = SaveDataNode("Uncertainty Sphere", surfaceToPutTextureOn, true);
-  mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(textureImage);
+  // Save sphere.
+  mitk::DataNode::Pointer surfaceNode = SaveDataNode("Uncertainty Sphere", sphereToPutTextureOn, true);
+  mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(texture);
   surfaceNode->SetProperty("Surface.Texture", textureProperty);
   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
   surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
   surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
-}
-
-/**
-  * Generates a texture that represents the uncertainty of the uncertainty volume.
-  * It works by projecting a point in the center of the volume outwards, onto a sphere.
-  */
-mitk::Image::Pointer Sams_View::GenerateUncertaintyTexture() {
-  unsigned int width = UI.spinBoxTextureWidth->value();
-  unsigned int height = UI.spinBoxTextureHeight->value();
-
-  // Create a blank ITK image.
-  TextureImageType::RegionType region;
-  TextureImageType::IndexType start;
-  start[0] = 0;
-  start[1] = 0;
- 
-  TextureImageType::SizeType size;
-  size[0] = width;
-  size[1] = height;
- 
-  region.SetSize(size);
-  region.SetIndex(start);
-
-  uncertaintyTexture = TextureImageType::New();
-  uncertaintyTexture->SetRegions(region);
-  uncertaintyTexture->Allocate();
-
-  // Create an uncertainty sampler.
-  UncertaintySampler * sampler = new UncertaintySampler();
-  sampler->setUncertainty(GetMitkPreprocessedUncertainty());
-
-  // Compute center of uncertainty data.
-  vtkVector<float, 3> center = vtkVector<float, 3>();
-  center[0] = ((float) uncertaintyHeight - 1) / 2.0;
-  center[1] = ((float) uncertaintyWidth - 1) / 2.0;
-  center[2] = ((float) uncertaintyDepth - 1) / 2.0;
-
-  // For each pixel in the texture, sample the uncertainty data.
-  for (unsigned int r = 0; r < height; r++) {
-    for (unsigned int c = 0; c < width; c++) {
-      // Compute spherical coordinates: phi (longitude) & theta (latitude).
-      float theta = ((float) r / (float) height) * M_PI;
-      float phi = ((float) c / (float) width) * (2 * M_PI);
-      
-      // Compute point on sphere with radius 1. This is also the vector from the center of the sphere to the point.
-      vtkVector<float, 3> direction = vtkVector<float, 3>();
-      direction[0] = cos(phi) * sin(theta);
-      direction[1] = cos(theta);
-      direction[2] = sin(phi) * sin(theta);
-      direction.Normalize();
-
-      // Sample the uncertainty data.
-      int pixelValue = sampler->sampleUncertainty(center, direction) * 255;
-      
-      // Set texture value.
-      TextureImageType::IndexType pixelIndex;
-      pixelIndex[0] = c;
-      pixelIndex[1] = r;
-
-      uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
-    }
-  }
-  delete sampler;
-
-  // Scale the texture values to increase contrast.
-  if (UI.radioButtonTextureScalingLinear->isChecked()) {
-    typedef itk::RescaleIntensityImageFilter<TextureImageType, TextureImageType> RescaleFilterType;
-    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-    rescaleFilter->SetInput(uncertaintyTexture);
-    rescaleFilter->SetOutputMinimum(0);
-    rescaleFilter->SetOutputMaximum(255);
-    rescaleFilter->Update();
-    uncertaintyTexture = rescaleFilter->GetOutput();
-  }
-
-  // Convert from ITK to MITK.
-  return mitk::ImportItkImage(uncertaintyTexture);;
 }
 
 // ------------ //
@@ -871,8 +753,7 @@ void Sams_View::SurfaceMapping() {
   brainModelNode->SetProperty("scalar visibility", mitk::BoolProperty::New(true));
 
   // Cast it to an MITK surface.
-  mitk::BaseData * brainModelData = brainModelNode->GetData();
-  mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelData);
+  mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelNode->GetData());
 
   // Extract the vtkPolyData.
   vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();

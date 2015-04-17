@@ -13,7 +13,7 @@ class UncertaintySampler {
     mitk::Image::Pointer uncertainty;
     unsigned int uncertaintyHeight, uncertaintyWidth, uncertaintyDepth;
 
-    const bool DEBUGGING = false;
+    static const bool DEBUGGING = false;
 
     double interpolateUncertaintyAtPosition(vtkVector<float, 3> position);
     bool isWithinUncertainty(vtkVector<float, 3> position);
