@@ -24,6 +24,9 @@ PURPOSE.  See the above copyright notices for more information.
 // Qt
 #include <QMessageBox>
 
+// Util
+#include "Util.h"
+
 // General
 #include <mitkBaseProperty.h>
 #include <mitkIRenderWindowPart.h>
@@ -323,8 +326,6 @@ bool BoolFromBoolProperty(mitk::BaseProperty * property) {
   }
 }
 
-#include <Util.cpp>
-
 mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite, mitk::DataNode::Pointer parent) {
   // If overwrite is set to true, check for previous version and delete.
   if (overwrite) {
@@ -492,8 +493,8 @@ void Sams_View::ConfirmSelection() {
 
   // 3a. Thresholding
   // Update min/max values.
-  UI.labelSliderLeftLimit->setText(QString::fromStdString(StringFromDouble(NORMALIZED_MIN)));
-  UI.labelSliderRightLimit->setText(QString::fromStdString(StringFromDouble(NORMALIZED_MAX)));
+  UI.labelSliderLeftLimit->setText(QString::fromStdString(Util::StringFromDouble(NORMALIZED_MIN)));
+  UI.labelSliderRightLimit->setText(QString::fromStdString(Util::StringFromDouble(NORMALIZED_MAX)));
 
   // Move sliders to start/end.
   SetLowerThreshold(NORMALIZED_MIN);
@@ -746,7 +747,7 @@ void Sams_View::LowerThresholdChanged(int lower) {
     return;
   }
   lowerThreshold = translatedLowerValue;
-  UI.labelSliderLeft->setText(QString::fromStdString(StringFromDouble(lowerThreshold)));
+  UI.labelSliderLeft->setText(QString::fromStdString(Util::StringFromDouble(lowerThreshold)));
 
   if (thresholdingEnabled) {
     ThresholdUncertainty();
@@ -764,7 +765,7 @@ void Sams_View::UpperThresholdChanged(int upper) {
     return;
   }
   upperThreshold = translatedUpperValue;
-  UI.labelSliderRight->setText(QString::fromStdString(StringFromDouble(upperThreshold)));
+  UI.labelSliderRight->setText(QString::fromStdString(Util::StringFromDouble(upperThreshold)));
 
   if (thresholdingEnabled) {
     ThresholdUncertainty();
