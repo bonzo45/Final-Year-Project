@@ -2,8 +2,6 @@
 #include <sstream>
 #include <iomanip>
 
-
-
 #include <mitkProperties.h>
 
 // --------------------- //

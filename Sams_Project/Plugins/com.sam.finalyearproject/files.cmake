@@ -1,6 +1,7 @@
 set(SRC_CPP_FILES
 	Util.cpp
   UncertaintyProcessor.cpp
+  UncertaintyThresholder.cpp
 )
 
 set(INTERNAL_CPP_FILES

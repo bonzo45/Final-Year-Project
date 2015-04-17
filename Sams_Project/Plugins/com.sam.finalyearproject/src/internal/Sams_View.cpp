@@ -27,6 +27,7 @@ PURPOSE.  See the above copyright notices for more information.
 // Util
 #include "Util.h"
 #include "UncertaintyProcessor.h"
+#include "UncertaintyThresholder.h"
 
 // General
 #include <mitkBaseProperty.h>
