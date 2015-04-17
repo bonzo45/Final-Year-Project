@@ -3,6 +3,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
 #include <vtkTextureMapToSphere.h>
+#include <vtkCubeSource.h>
+#include <vtkCylinderSource.h>
 
 mitk::Surface::Pointer SurfaceGenerator::generateSphere(unsigned int resolution, unsigned int radius) {
   // Create a sphere.
@@ -22,4 +24,34 @@ mitk::Surface::Pointer SurfaceGenerator::generateSphere(unsigned int resolution,
   mitk::Surface::Pointer surface = mitk::Surface::New();
   surface->SetVtkPolyData(static_cast<vtkPolyData*>(mapToSphere->GetOutput()));
   return surface;
+}
+
+mitk::Surface::Pointer SurfaceGenerator::generateCube(unsigned int length) {
+  // Create a simple (VTK) cube.
+  vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
+  cube->SetXLength(length);
+  cube->SetYLength(length);
+  cube->SetZLength(length);
+  cube->SetCenter(0.0, 0.0, 0.0);
+  cube->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer cubeSurface = mitk::Surface::New();
+  cubeSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cube->GetOutput()));
+  return cubeSurface;
+}
+
+mitk::Surface::Pointer SurfaceGenerator::generateCylinder(unsigned int radius, unsigned int height, unsigned int resolution) {
+  // Create a simple (VTK) cylinder.
+  vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
+  cylinder->SetRadius(radius);
+  cylinder->SetHeight(height);
+  cylinder->SetResolution(resolution);
+  cylinder->SetCenter(0.0, 0.0, 0.0);
+  cylinder->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer cylinderSurface = mitk::Surface::New();
+  cylinderSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cylinder->GetOutput()));
+  return cylinderSurface;
 }

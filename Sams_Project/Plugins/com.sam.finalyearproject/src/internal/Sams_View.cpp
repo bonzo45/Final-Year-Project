@@ -802,17 +802,7 @@ void Sams_View::GenerateSphereSurface() {
 }
 
 void Sams_View::GenerateCubeSurface() {
-  // Create a simple (VTK) cube.
-  vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
-  cube->SetXLength(20.0);
-  cube->SetYLength(20.0);
-  cube->SetZLength(20.0);
-  cube->SetCenter(0.0, 0.0, 0.0);
-  cube->Update();
-
-  // Wrap it in some MITK.
-  mitk::Surface::Pointer cubeSurface = mitk::Surface::New();
-  cubeSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cube->GetOutput()));
+  mitk::Surface::Pointer cubeSurface = SurfaceGenerator::generateCube(20.0);
 
   // Store it as a DataNode.
   mitk::DataNode::Pointer cubeNode = SaveDataNode("Cube Surface", cubeSurface, true);
@@ -823,17 +813,7 @@ void Sams_View::GenerateCubeSurface() {
 }
 
 void Sams_View::GenerateCylinderSurface() {
-  // Create a simple (VTK) cylinder.
-  vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
-  cylinder->SetRadius(20.0);
-  cylinder->SetHeight(20.0);
-  cylinder->SetResolution(10);
-  cylinder->SetCenter(0.0, 0.0, 0.0);
-  cylinder->Update();
-
-  // Wrap it in some MITK.
-  mitk::Surface::Pointer cylinderSurface = mitk::Surface::New();
-  cylinderSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cylinder->GetOutput()));
+  mitk::Surface::Pointer cylinderSurface = SurfaceGenerator::generateCylinder(20.0, 20.0, 10);
 
   // Store it as a DataNode.
   mitk::DataNode::Pointer cylinderNode = SaveDataNode("Cylinder Surface", cylinderSurface, true);
