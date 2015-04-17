@@ -111,8 +111,6 @@ class Sams_View : public QmitkAbstractView {
     void PreprocessNode(mitk::DataNode::Pointer node);
 
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
-    template <typename TPixel, unsigned int VImageDimension>
     void ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
 
     // 2

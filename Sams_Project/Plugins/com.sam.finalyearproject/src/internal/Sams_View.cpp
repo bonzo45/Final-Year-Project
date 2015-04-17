@@ -26,6 +26,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 // Util
 #include "Util.h"
+#include "UncertaintyProcessor.h"
 
 // General
 #include <mitkBaseProperty.h>
@@ -266,64 +267,16 @@ void Sams_View::SetFocus() {
 // ---- Utils ---- //
 // --------------- //
 
-vtkVector<float, 3> vectorAdd(vtkVector<float, 3> a, vtkVector<float, 3> b) {
-  vtkVector<float, 3> c = vtkVector<float, 3>();
-  c[0] = a[0] + b[0];
-  c[1] = a[1] + b[1];
-  c[2] = a[2] + b[2];
-  return c;
-}
-
-vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b) {
-  vtkVector<float, 3> c = vtkVector<float, 3>();
-  c[0] = a[0] - b[0];
-  c[1] = a[1] - b[1];
-  c[2] = a[2] - b[2];
-  return c;
-}
-
-vtkVector<float, 3> vectorScale(vtkVector<float, 3> a, float b) {
-  vtkVector<float, 3> c = vtkVector<float, 3>();
-  c[0] = a[0] * b;
-  c[1] = a[1] * b;
-  c[2] = a[2] * b;
-  return c;  
-}
-
-mitk::Image::Pointer MitkImageFromNode(mitk::DataNode::Pointer node) {
-  return dynamic_cast<mitk::Image*>(node->GetData());
-}
-
 mitk::Image::Pointer GetMitkScan() {
-  return MitkImageFromNode(scan);
+  return Util::MitkImageFromNode(scan);
 }
 
 mitk::Image::Pointer GetMitkUncertainty() {
-  return MitkImageFromNode(uncertainty);
+  return Util::MitkImageFromNode(uncertainty);
 }
 
 mitk::Image::Pointer GetMitkPreprocessedUncertainty() {
-  return MitkImageFromNode(preprocessedUncertainty);
-}
-
-std::string StringFromStringProperty(mitk::BaseProperty * property) {
-  mitk::StringProperty::Pointer stringProperty = dynamic_cast<mitk::StringProperty*>(property);
-  if (stringProperty) {
-    return stringProperty->GetValueAsString();
-  }
-  else {
-    return "INVALID PROPERTY";
-  }
-}
-
-bool BoolFromBoolProperty(mitk::BaseProperty * property) {
-  mitk::BoolProperty * boolProperty = dynamic_cast<mitk::BoolProperty *>(property);
-  if (boolProperty) {
-    return boolProperty->GetValue();
-  }
-  else {
-    return false;
-  }
+  return Util::MitkImageFromNode(preprocessedUncertainty);
 }
 
 mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite, mitk::DataNode::Pointer parent) {
@@ -386,7 +339,7 @@ void Sams_View::UpdateSelectionDropDowns() {
   // Add them all to the dropdowns.
   mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
   while(image != allImages->End()) {
-    QString name = QString::fromStdString(StringFromStringProperty(image->Value()->GetProperty("name")));
+    QString name = QString::fromStdString(Util::StringFromStringProperty(image->Value()->GetProperty("name")));
     UI.comboBoxScan->addItem(name);
     UI.comboBoxUncertainty->addItem(name);
     ++image;
@@ -414,7 +367,7 @@ void Sams_View::ScanDropdownChanged(const QString & scanName) {
   scan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
   if (scan.IsNotNull()) {
     // Update the visibility checkbox to match the visibility of the scan we've picked.
-    UI.checkBoxScanVisible->setChecked(BoolFromBoolProperty(scan->GetProperty("visible")));
+    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(scan->GetProperty("visible")));
   }
 }
 
@@ -422,7 +375,7 @@ void Sams_View::UncertaintyDropdownChanged(const QString & uncertaintyName) {
   uncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
   if (uncertainty.IsNotNull()) {
     // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
-    UI.checkBoxUncertaintyVisible->setChecked(BoolFromBoolProperty(uncertainty->GetProperty("visible")));
+    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(uncertainty->GetProperty("visible")));
   }
 }
 
@@ -444,7 +397,7 @@ void Sams_View::ConfirmSelection() {
     // Get it's name.
     QString uncertaintyName = UI.comboBoxUncertainty->currentText();
     vtkVector<float, 3> scanSize = vtkVector<float, 3>();
-    mitk::Image::Pointer scanImage = MitkImageFromNode(scanNode);
+    mitk::Image::Pointer scanImage = Util::MitkImageFromNode(scanNode);
     scanSize[0] = scanImage->GetDimension(0);
     scanSize[1] = scanImage->GetDimension(1);
     scanSize[2] = scanImage->GetDimension(2);
@@ -514,136 +467,32 @@ void Sams_View::ConfirmSelection() {
   * Saves intermediate steps and result as a child node of the one given.
   */
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
-  mitk::ProgressBar::GetInstance()->AddStepsToDo(5);
-
-  // Get image from node.
-  mitk::Image::Pointer mitkImage = MitkImageFromNode(node);
-  
-  // ------------------- //
-  // ---- Normalize ---- //
-  // ------------------- //
-  mitk::Image::Pointer normalizedMitkImage;
-  AccessByItk_1(mitkImage, ItkNormalizeUncertainty, normalizedMitkImage);
-
-  mitk::ProgressBar::GetInstance()->Progress();
-
-  // ------------------- //
-  // ------ Invert ----- //
-  // ------------------- //
-  // (if enabled)
-  mitk::Image::Pointer invertedMitkImage;
-  if (UI.checkBoxInversionEnabled->isChecked()) {
-    AccessByItk_1(normalizedMitkImage, ItkInvertUncertainty, invertedMitkImage);
-  }
-  else {
-    invertedMitkImage = normalizedMitkImage;
-  }
-
-  mitk::ProgressBar::GetInstance()->Progress();
-
-  // ------------------- //
-  // ------ Erode ------ //
-  // ------------------- //
-  // (if enabled)
-  mitk::Image::Pointer erodedMitkImage;
-  if (UI.checkBoxErosionEnabled->isChecked()) {
-    AccessByItk_3(invertedMitkImage, ItkErodeUncertainty, UI.spinBoxErodeThickness->value(), UI.spinBoxErodeThreshold->value(), erodedMitkImage);
-  }
-  else {
-    erodedMitkImage = invertedMitkImage;
-  }
-
-  mitk::ProgressBar::GetInstance()->Progress();
-
-  // ------------------- //
-  // ------ Align ------ //
-  // ------------------- //
-  mitk::Image::Pointer fullyProcessedMitkImage = erodedMitkImage;
-  if (UI.checkBoxAligningEnabled->isChecked()) {
-    // Align the scan and uncertainty.
-    // Get the origin and index to world transform of the scan.
-    mitk::Image::Pointer scanImage = dynamic_cast<mitk::Image*>(scan->GetData());
-    mitk::SlicedGeometry3D * scanSlicedGeometry = scanImage->GetSlicedGeometry();
-    mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
-    mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
-
-    // Set the origin and index to world transform of the uncertainty to be the same.
-    // This effectively lines up pixel (x, y, z) in the scan with pixel (x, y, z) in the uncertainty.
-    mitk::SlicedGeometry3D * uncertaintySlicedGeometry = fullyProcessedMitkImage->GetSlicedGeometry();
-    uncertaintySlicedGeometry->SetOrigin(scanOrigin);
-    uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
-  }
-
-  mitk::ProgressBar::GetInstance()->Progress();
-
-  // ------------------- //
-  // ------- Save ------ //
-  // ------------------- //
+  //mitk::ProgressBar::GetInstance()->AddStepsToDo(5);
+  //mitk::ProgressBar::GetInstance()->Progress();
+  //mitk::ProgressBar::GetInstance()->Progress();
+  //mitk::ProgressBar::GetInstance()->Progress();
+  //mitk::ProgressBar::GetInstance()->Progress();
+  //mitk::ProgressBar::GetInstance()->Progress();
+  UncertaintyProcessor * processor = new UncertaintyProcessor();
+  processor->setScan(Util::MitkImageFromNode(scan));
+  processor->setUncertainty(Util::MitkImageFromNode(node));
+  processor->setNormalizationParams(
+    NORMALIZED_MIN,
+    NORMALIZED_MAX
+  );
+  processor->setErodeParams(
+    UI.spinBoxErodeThickness->value(),
+    UI.spinBoxErodeThreshold->value(),
+    UI.spinBoxDilateThickness->value()
+  );
+  mitk::Image::Pointer fullyProcessedMitkImage = processor->PreprocessUncertainty(
+    UI.checkBoxInversionEnabled->isChecked(),
+    UI.checkBoxErosionEnabled->isChecked(),
+    UI.checkBoxAligningEnabled->isChecked()
+  );
   preprocessedUncertainty = SaveDataNode("Preprocessed", fullyProcessedMitkImage, true, node);
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-
-  mitk::ProgressBar::GetInstance()->Progress();
-}
-
-/**
-  * Case 1: If itkImage contains characters (0-255) then map the range (0-255) to (0.0-1.0).
-  * Case 2: If itkImage contains anything else just map (min-max) to (0.0-1.0).
-  */
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::Image<double, 3> ResultType;
-  
-  itk::Image<unsigned char, 3> * charImage = dynamic_cast<itk::Image<unsigned char, 3>* >(itkImage);
-  // Case 1
-  if (charImage) {
-    cout << "Char" << endl;
-    typedef itk::IntensityWindowingImageFilter< ImageType, ResultType> IntensityWindowingFilterType;
-
-    typename IntensityWindowingFilterType::Pointer windowFilter = IntensityWindowingFilterType::New();
-    windowFilter->SetInput(itkImage);
-    windowFilter->SetOutputMinimum(0.0);
-    windowFilter->SetOutputMaximum(1.0);
-    windowFilter->SetWindowMinimum(0);
-    windowFilter->SetWindowMaximum(255);
-    windowFilter->Update();
-
-    // Convert to MITK
-    ResultType * scaledImage = windowFilter->GetOutput();
-    mitk::CastToMitkImage(scaledImage, result);
-  }
-  // Case 2
-  else {
-    cout << "Not Char" << endl;
-    typedef itk::RescaleIntensityImageFilter<ImageType, ResultType> RescaleFilterType;
-
-    // Scale all the values.
-    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-    rescaleFilter->SetInput(itkImage);
-    rescaleFilter->SetOutputMinimum(NORMALIZED_MIN);
-    rescaleFilter->SetOutputMaximum(NORMALIZED_MAX);
-    rescaleFilter->Update();
-
-    // Convert to MITK
-    ResultType * scaledImage = rescaleFilter->GetOutput();
-    mitk::CastToMitkImage(scaledImage, result);
-  }
-}
-
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::InvertIntensityImageFilter <ImageType> InvertIntensityImageFilterType;
- 
-  // Invert the image.
-  typename InvertIntensityImageFilterType::Pointer invertIntensityFilter = InvertIntensityImageFilterType::New();
-  invertIntensityFilter->SetInput(itkImage);
-  invertIntensityFilter->SetMaximum(NORMALIZED_MAX);
-  invertIntensityFilter->Update();
-
-  // Convert to MITK
-  ImageType * invertedImage = invertIntensityFilter->GetOutput();
-  mitk::CastToMitkImage(invertedImage, result);
+  delete processor;
 }
 
 void Sams_View::ToggleScanVisible(bool checked) {
@@ -933,81 +782,6 @@ void Sams_View::OverlayThreshold() {
   this->RequestRenderWindowUpdate();
 }
 
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int erodeThickness, double threshold, mitk::Image::Pointer & result) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-
-  // ------------------------- //
-  // ---- Initial Erosion ---- //
-  // ------------------------- //
-  // Create the erosion kernel, this describes how the data is eroded.
-  typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(erodeThickness);
-  structuringElement.CreateStructuringElement();
- 
-  // Create an erosion filter, using the kernel.
-  typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
-  typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
-  erodeFilter->SetInput(itkImage);
-  erodeFilter->SetKernel(structuringElement);
-  erodeFilter->Update();
-
-  // ------------------------- //
-  // ------ Subtraction ------ //
-  // ------------------------- //
-  // Then we use a subtract filter to get the pixels that changed in the erosion.
-  typedef itk::SubtractImageFilter<ImageType> SubtractType;
-  typename SubtractType::Pointer diff = SubtractType::New();
-  diff->SetInput1(itkImage);
-  diff->SetInput2(erodeFilter->GetOutput());
-  diff->Update();
-
-  // ------------------------- //
-  // ----- Thresholding ------ //
-  // ------------------------- //
-  // We only really want to remove the edges. These will have changed more significantly than the rest.
-  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
-  typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
-  thresholdFilter->SetInput(diff->GetOutput());
-  thresholdFilter->SetInsideValue(1.0);
-  thresholdFilter->SetOutsideValue(0.0);
-  thresholdFilter->SetLowerThreshold(threshold);
-  thresholdFilter->SetUpperThreshold(1.0);
-  thresholdFilter->Update();
-
-  // ------------------------- //
-  // -------- Growing -------- //
-  // ------------------------- //
-  // Then, because we'll still be left with a bit of a ring around the edge, we grow the mask.
-  StructuringElementType dilationStructuringElement;
-  dilationStructuringElement.SetRadius(UI.spinBoxDilateThickness->value());
-  dilationStructuringElement.CreateStructuringElement();
-
-  typedef itk::GrayscaleDilateImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleDilateImageFilterType;
-  typename GrayscaleDilateImageFilterType::Pointer dilateFilter = GrayscaleDilateImageFilterType::New();
-  dilateFilter->SetInput(thresholdFilter->GetOutput());
-  dilateFilter->SetKernel(dilationStructuringElement);
-  dilateFilter->Update();
-
-  // ------------------------- //
-  // -------- Masking -------- //
-  // ------------------------- //
-  typedef itk::MaskImageFilter<ImageType, ImageType, ImageType> MaskImageFilterType;
-  typename MaskImageFilterType::Pointer masker = MaskImageFilterType::New();
-  masker->SetInput(itkImage);
-  masker->SetMaskImage(dilateFilter->GetOutput());
-  masker->SetMaskingValue(1.0);
-  masker->SetOutsideValue(0.0);
-  masker->Update();
-
-  // ------------------------- //
-  // -------- Return --------- //
-  // ------------------------- //
-  // Convert to MITK
-  mitk::CastToMitkImage(masker->GetOutput(), result);
-}
-
 // ------------ //
 // ---- 3b ---- //
 // ------------ //
@@ -1175,7 +949,7 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
   vtkVector<float, 3> tortoise = vtkVector<float, 3>(startPosition);
   vtkVector<float, 3> hare = vtkVector<float, 3>(startPosition);
   // Hare travels faster.
-  vtkVector<float, 3> hareDirection = vectorScale(direction, 100.0f / percentage);
+  vtkVector<float, 3> hareDirection = Util::vectorScale(direction, 100.0f / percentage);
 
   if (DEBUG_SAMPLING) {
     cout << "Tortoise: (" << tortoise[0] << ", " << tortoise[1] << ", " << tortoise[2] << ")" << endl <<
@@ -1194,7 +968,7 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
     }
 
     if (sample == 0.0) {
-      tortoise = vectorAdd(tortoise, direction);
+      tortoise = Util::vectorAdd(tortoise, direction);
     }
     else {
       break;
@@ -1223,8 +997,8 @@ double Sams_View::SampleUncertainty(vtkVector<float, 3> startPosition, vtkVector
     }
 
     // Move along.
-    tortoise = vectorAdd(tortoise, direction);
-    hare = vectorAdd(hare, hareDirection);
+    tortoise = Util::vectorAdd(tortoise, direction);
+    hare = Util::vectorAdd(hare, hareDirection);
 
     if (DEBUG_SAMPLING) {
       cout << " - Hare moves to: (" << hare[0] << ", " << hare[1] << ", " << hare[2] << ")" << endl;
@@ -1291,7 +1065,7 @@ double Sams_View::InterpolateUncertaintyAtPosition(vtkVector<float, 3> position)
           }
 
           // Get the distance to this neighbour
-          vtkVector<float, 3> difference = vectorSubtract(position, neighbour);
+          vtkVector<float, 3> difference = Util::vectorSubtract(position, neighbour);
           double distanceToSample = difference.Norm();
 
           // If the distance turns out to be zero, we have a perfect match. Ignore all other samples.
@@ -1775,7 +1549,7 @@ mitk::DataNode::Pointer Sams_View::GenerateSphereUncertainty(vtkVector<float, 3>
         position[2] = d;
 
         // Compute distance from center.
-        vtkVector<float, 3> difference = vectorSubtract(position, sphereCenter);
+        vtkVector<float, 3> difference = Util::vectorSubtract(position, sphereCenter);
         float distanceFromCenter = difference.Norm();
 
         // Get normalized 0-1 weighting.

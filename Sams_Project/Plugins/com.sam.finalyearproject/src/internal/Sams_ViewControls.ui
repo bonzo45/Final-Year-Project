@@ -512,12 +512,15 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBoxDilateThickness">
+             <widget class="QSpinBox" name="spinBoxErodeThickness">
               <property name="maximumSize">
                <size>
                 <width>50</width>
                 <height>25</height>
                </size>
+              </property>
+              <property name="minimum">
+               <number>1</number>
               </property>
               <property name="value">
                <number>2</number>
@@ -590,15 +593,12 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBoxErodeThickness">
+             <widget class="QSpinBox" name="spinBoxDilateThickness">
               <property name="maximumSize">
                <size>
                 <width>50</width>
                 <height>25</height>
                </size>
-              </property>
-              <property name="minimum">
-               <number>1</number>
               </property>
               <property name="value">
                <number>2</number>

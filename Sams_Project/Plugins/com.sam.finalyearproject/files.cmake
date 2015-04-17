@@ -1,5 +1,6 @@
 set(SRC_CPP_FILES
 	Util.cpp
+  UncertaintyProcessor.cpp
 )
 
 set(INTERNAL_CPP_FILES
