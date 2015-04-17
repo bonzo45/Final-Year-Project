@@ -118,16 +118,7 @@ class Sams_View : public QmitkAbstractView {
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
 
-    //  c
-
-    // 3
-
-    // 4
-
-    // 5
-    mitk::DataNode::Pointer GenerateRandomUncertainty(vtkVector<float, 3> imageSize);
-    mitk::DataNode::Pointer GenerateCubeUncertainty(vtkVector<float, 3> imageSize, unsigned int cubeSize);
-    mitk::DataNode::Pointer GenerateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter = vtkVector<float, 3>(-1.0f));
+    // c
 };
 
 #endif // Sams_View_h
