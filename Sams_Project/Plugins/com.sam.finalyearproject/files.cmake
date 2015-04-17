@@ -5,6 +5,7 @@ set(SRC_CPP_FILES
   UncertaintySampler.cpp
   UncertaintyTexture.cpp
   SurfaceGenerator.cpp
+  UncertaintySurfaceMapper.cpp
 )
 
 set(INTERNAL_CPP_FILES

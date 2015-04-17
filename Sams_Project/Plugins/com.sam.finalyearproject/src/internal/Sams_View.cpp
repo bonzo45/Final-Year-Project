@@ -31,6 +31,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "UncertaintySampler.h"
 #include "UncertaintyTexture.h"
 #include "SurfaceGenerator.h"
+#include "UncertaintySurfaceMapper.h"
 
 // General
 #include <mitkBaseProperty.h>
@@ -746,7 +747,7 @@ void Sams_View::SurfaceMapping() {
     return;
   }
 
-  // Stop the specular in the rendering.
+  // Stop it being specular in the rendering.
   brainModelNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
   brainModelNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   brainModelNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
@@ -755,173 +756,36 @@ void Sams_View::SurfaceMapping() {
   // Cast it to an MITK surface.
   mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelNode->GetData());
 
-  // Extract the vtkPolyData.
-  vtkPolyData * brainModelVtk = brainModelSurface->GetVtkPolyData();
-
-  // From this we can the array containing all the normals.
-  vtkSmartPointer<vtkFloatArray> normals = vtkFloatArray::SafeDownCast(brainModelVtk->GetPointData()->GetNormals());
-  if (!normals) {
-    cerr << "Couldn't seem to find any normals." << endl;
-    return;
+  // Map the uncertainty to it.
+  UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
+  mapper->setUncertainty(GetMitkPreprocessedUncertainty());
+  mapper->setSurface(brainModelSurface);
+  // ---- Sampling Options ---- ///
+  if (UI.radioButtonSamplingFull->isChecked()) {
+    mapper->setSamplingFull();
   }
-
-  // Compute the bounding box of the surface (for simple registration between surface and uncertainty volume)
-  double bounds[6];
-  brainModelVtk->GetBounds(bounds); // NOTE: Apparently this isn't thread safe.
-  double xMin = bounds[0];
-  double xMax = bounds[1];
-  double xRange = xMax - xMin;
-  double yMin = bounds[2];
-  double yMax = bounds[3];
-  double yRange = yMax - yMin;
-  double zMin = bounds[4];
-  double zMax = bounds[5];
-  double zRange = zMax - zMin;
-  if (DEBUG_SAMPLING) {
-    cout << "Surface Bounds:" << endl;
-    cout << xMin << "<= x <=" << xMax << " (" << xRange << ")" << endl;
-    cout << yMin << "<= y <=" << yMax << " (" << yRange << ")" << endl;
-    cout << zMin << "<= z <=" << zMax << " (" << zRange << ")" << endl;
-    cout << "Uncertainty Size:" << endl;
-    cout << "(" << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << ")" << endl;
+  else if (UI.radioButtonSamplingHalf->isChecked()) {
+    mapper->setSamplingHalf();
   }
-
-  // ----------------------------------------- //
-  // ---- Compute Uncertainty Intensities ---- //
-  // ----------------------------------------- //
-  // Generate a list of intensities, one for each point.
-  unsigned int numberOfPoints = brainModelVtk->GetNumberOfPoints();
-  double * intensityArray;
-  intensityArray  = new double[numberOfPoints];
-
-  // Create an uncertainty sampler.
-  UncertaintySampler * sampler = new UncertaintySampler();
-  sampler->setUncertainty(GetMitkPreprocessedUncertainty());
-
-  for (unsigned int i = 0; i < numberOfPoints; i++) {
-    // Get the position of point i
-    double positionOfPoint[3];
-    brainModelVtk->GetPoint(i, positionOfPoint);
-
-    // TODO: Better registration step. Unfortunately MITK appears not to be able to do pointwise registration between surface and image.
-    // Simple scaling. Normalise the point to 0-1 based on the bounding box of the surface. Scale by uncertainty volume size.
-    vtkVector<float, 3> position = vtkVector<float, 3>();
-    position[0] = ((positionOfPoint[0] - xMin) / xRange) * (uncertaintyHeight - 1);
-    position[1] = ((positionOfPoint[1] - yMin) / yRange) * (uncertaintyWidth - 1);
-    position[2] = ((positionOfPoint[2] - zMin) / zRange) * (uncertaintyDepth - 1);
-
-    // Get the normal of point i
-    double normalAtPoint[3];
-    normals->GetTuple(i, normalAtPoint);
-    vtkVector<float, 3> normal = vtkVector<float, 3>();
-    normal[0] = -normalAtPoint[0];
-    normal[1] = -normalAtPoint[1];
-    normal[2] = -normalAtPoint[2];
-
-    // Use the position and normal to sample the uncertainty data.
-    if (UI.radioButtonSamplingFull->isChecked()) {
-      intensityArray[i] = sampler->sampleUncertainty(position, normal);
-    }
-    else if (UI.radioButtonSamplingHalf->isChecked()) {
-      intensityArray[i] = sampler->sampleUncertainty(position, normal, 50);
-    }
-  }
-  
-  // --------------------------------- //
-  // ---- Map Uncertanties to ITK ---- //
-  // --------------------------------- //
-  // First convert to the uncertainty array to an ITK image so we can filter it. (list of doubles)
-  typedef itk::Image<double, 1> UncertaintyListType;
-  typedef itk::ImportImageFilter<double, 1>   ImportFilterType;
-  ImportFilterType::Pointer importFilter = ImportFilterType::New(); 
-  
-  ImportFilterType::SizeType  size; 
-  size[0] = numberOfPoints;
-  
-  ImportFilterType::IndexType start;
-  start[0] = 0;
-  
-  ImportFilterType::RegionType region;
-  region.SetIndex(start);
-  region.SetSize(size);
-  importFilter->SetRegion(region);
- 
-  double origin[1];
-  origin[0] = 0.0;
-  importFilter->SetOrigin(origin);
- 
-  double spacing[1];
-  spacing[0] = 1.0;
-  importFilter->SetSpacing(spacing);
-
-  const bool importImageFilterWillOwnTheBuffer = true;
-  importFilter->SetImportPointer(intensityArray, numberOfPoints, importImageFilterWillOwnTheBuffer);
-  importFilter->Update();
-
-  // -------------------------------- //
-  // ---- Scale the Uncertanties ---- //
-  // -------------------------------- //
-  UncertaintyListType::Pointer scaled;
-  // No scaling.
+  // ---- Scaling Options ---- //
   if (UI.radioButtonScalingNone->isChecked()) {
-    scaled = importFilter->GetOutput();
+    mapper->setScalingNone();
   }
-
-  // Linear scaling. Map {min-max} to {0-1.}.
   else if (UI.radioButtonScalingLinear->isChecked()) {
-    typedef itk::RescaleIntensityImageFilter<UncertaintyListType, UncertaintyListType> RescaleFilterType;
-    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-    rescaleFilter->SetInput(importFilter->GetOutput());
-    rescaleFilter->SetOutputMinimum(0.0);
-    rescaleFilter->SetOutputMaximum(1.0);
-    rescaleFilter->Update();
-    scaled = rescaleFilter->GetOutput();
+    mapper->setScalingLinear();
   }
-
-  // Histogram equalization.
   else if (UI.radioButtonScalingHistogram->isChecked()) {
-    typedef itk::AdaptiveHistogramEqualizationImageFilter<UncertaintyListType> AdaptiveHistogramEqualizationImageFilterType;
-    AdaptiveHistogramEqualizationImageFilterType::Pointer histogramEqualizationFilter = AdaptiveHistogramEqualizationImageFilterType::New();
-    histogramEqualizationFilter->SetInput(importFilter->GetOutput());
-    histogramEqualizationFilter->SetAlpha(UI.double1->value());
-    histogramEqualizationFilter->SetBeta(UI.double2->value());
-    histogramEqualizationFilter->SetRadius(UI.int1->value());
-    histogramEqualizationFilter->Update();
-    scaled = histogramEqualizationFilter->GetOutput();
+    mapper->setScalingHistogram();
   }
-
-  // ----------------------------- //
-  // ---- Map them to Colours ---- //
-  // ----------------------------- //
-  // Generate a list of colours, one for each point.
-  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  colors->SetNumberOfComponents(3);
-  colors->SetName ("Colors");
-
-  double * scaledValues = scaled->GetBufferPointer();
-
-  // Set the colour to be a grayscale version of this sampling.
-  for (unsigned int i = 0; i < numberOfPoints; i++) {
-    unsigned char intensity = static_cast<unsigned char>(round(scaledValues[i] * 255));
-    //cout << scaledValues[i] << " -> " << scaledValues[i] * 255  << " -> " << round(scaledValues[i] * 255) << " -> " << intensity << " -> " << (int) intensity << endl;
-    unsigned char normalColour[3];
-    // Black and White
-    if (UI.radioButtonColourBlackAndWhite->isChecked()) {
-      normalColour[0] = intensity;
-      normalColour[1] = intensity;
-      normalColour[2] = intensity;
-    }
-    // Colour
-    else if (UI.radioButtonColourColour->isChecked()) {
-      normalColour[0] = 255 - intensity;
-      normalColour[1] = intensity;
-      normalColour[2] = 0;
-    }
-    colors->InsertNextTupleValue(normalColour);
+  // ---- Colour Options ---- //
+  if (UI.radioButtonColourBlackAndWhite->isChecked()) {
+    mapper->setBlackAndWhite();
   }
-  
-  // Set the colours to be the scalar value of each point.
-  brainModelVtk->GetPointData()->SetScalars(colors);
+  else if (UI.radioButtonColourColour->isChecked()) {
+    mapper->setColour();
+  }
+  mapper->map();
+  delete mapper;
   
   this->RequestRenderWindowUpdate();
 }
