@@ -10,7 +10,7 @@ class UncertaintyProcessor {
     void setUncertainty(mitk::Image::Pointer image);
     void setNormalizationParams(double min, double max);
     void setErodeParams(int erodeThickness, double erodeThreshold, int dilateThickness);
-    mitk::Image::Pointer PreprocessUncertainty(bool invert, bool erode, bool align);
+    mitk::Image::Pointer preprocessUncertainty(bool invert, bool erode, bool align);
 
   private:
     mitk::Image::Pointer scan;

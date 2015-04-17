@@ -480,14 +480,14 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     UI.spinBoxErodeThreshold->value(),
     UI.spinBoxDilateThickness->value()
   );
-  mitk::Image::Pointer fullyProcessedMitkImage = processor->PreprocessUncertainty(
+  mitk::Image::Pointer fullyProcessedMitkImage = processor->preprocessUncertainty(
     UI.checkBoxInversionEnabled->isChecked(),
     UI.checkBoxErosionEnabled->isChecked(),
     UI.checkBoxAligningEnabled->isChecked()
   );
+  delete processor;
   preprocessedUncertainty = SaveDataNode("Preprocessed", fullyProcessedMitkImage, true, node);
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  delete processor;
 }
 
 void Sams_View::ToggleScanVisible(bool checked) {
@@ -533,12 +533,11 @@ void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   * Creates a copy of the uncertainty data with values not between lowerThreshold and upperThreshold removed.
   */
 void Sams_View::ThresholdUncertainty() {
-  // Get the uncertainty image.
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
-
-  // Threshold it.
-  mitk::Image::Pointer thresholdedImage;
-  AccessByItk_3(uncertaintyImage, ItkThresholdUncertainty, lowerThreshold, upperThreshold, thresholdedImage);
+  UncertaintyThresholder * thresholder = new UncertaintyThresholder();
+  thresholder->setUncertainty(GetMitkPreprocessedUncertainty());
+  thresholder->setIgnoreZeros(UI.checkBoxIgnoreZeros->isChecked());
+  mitk::Image::Pointer thresholdedImage = thresholder->thresholdUncertainty(lowerThreshold, upperThreshold);
+  delete thresholder;
 
   // Save it. (replace if it already exists)
   thresholdedUncertainty = SaveDataNode("Thresholded", thresholdedImage, true, preprocessedUncertainty);
@@ -549,35 +548,6 @@ void Sams_View::ThresholdUncertainty() {
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 
   this->RequestRenderWindowUpdate();
-}
-
-/**
-  * Uses ITK to do the thresholding.
-  */
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
-  
-  // Check if we're ignoring zeros.
-  if (UI.checkBoxIgnoreZeros->isChecked()) {
-    double epsilon = DBL_MIN;
-    min = std::max(epsilon, min);
-    max = std::max(epsilon, max);
-  }
-
-  // Create a thresholder.
-  typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
-  thresholdFilter->SetInput(itkImage);
-  thresholdFilter->SetInsideValue(1);
-  thresholdFilter->SetOutsideValue(0);
-  thresholdFilter->SetLowerThreshold(min);
-  thresholdFilter->SetUpperThreshold(max);
-
-  // Compute result.
-  thresholdFilter->Update();
-  ImageType * thresholdedImage = thresholdFilter->GetOutput();
-  mitk::CastToMitkImage(thresholdedImage, result);
 }
 
 /**
@@ -658,72 +628,21 @@ void Sams_View::TopTenPercent() {
   *   e.g. percentage = 10 will create a threshold to show the worst 10% of uncertainty.
   */
 void Sams_View::TopXPercent(int percentage) {
-  mitk::Image::Pointer uncertaintyImage = dynamic_cast<mitk::Image*>(preprocessedUncertainty->GetData());
+  mitk::Image::Pointer uncertaintyImage = GetMitkPreprocessedUncertainty();
 
-  // Get the pixel value corresponding to 10%.
-  double lowerThreshold;
-  double upperThreshold;
-  AccessByItk_3(uncertaintyImage, ItkTopXPercent, percentage / 100.0, lowerThreshold, upperThreshold);
-  
+  UncertaintyThresholder * thresholder = new UncertaintyThresholder();
+  thresholder->setUncertainty(GetMitkPreprocessedUncertainty());
+  thresholder->setIgnoreZeros(UI.checkBoxIgnoreZeros->isChecked());
+  double min, max;
+  thresholder->getTopXPercentThreshold(percentage, min, max);
+  delete thresholder;
+
   // Filter the uncertainty to only show the top 10%.
-  SetLowerThreshold(lowerThreshold);
-  SetUpperThreshold(upperThreshold);
+  SetLowerThreshold(min);
+  SetUpperThreshold(max);
 
   // Update the spinBox.
   UI.spinBoxTopXPercent->setValue(percentage);
-}
-
-template <typename TPixel, unsigned int VImageDimension>
-void Sams_View::ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
-
-  const unsigned int measurementComponents = 1; // Grayscale
-  const unsigned int binsPerDimension = 1000;
-
-  // Customise the filter.
-  typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
-  lowerBound.Fill(0.0);
- 
-  typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType upperBound(binsPerDimension);
-  upperBound.Fill(1.0);
- 
-  typename ImageToHistogramFilterType::HistogramType::SizeType size(measurementComponents);
-  size.Fill(binsPerDimension);
-
-  // Create the filter.
-  typename ImageToHistogramFilterType::Pointer imageToHistogramFilter = ImageToHistogramFilterType::New();
-  imageToHistogramFilter->SetInput(itkImage);
-  imageToHistogramFilter->SetHistogramBinMinimum(lowerBound);
-  imageToHistogramFilter->SetHistogramBinMaximum(upperBound);
-  imageToHistogramFilter->SetHistogramSize(size);
-  imageToHistogramFilter->Update();
-
-  // Get the resultant histogram. It has binsPerDimension buckets.
-  typename ImageToHistogramFilterType::HistogramType * histogram = imageToHistogramFilter->GetOutput();
-
-  // We know that in total there are uncertaintyX * uncertaintyY * uncertaintyZ pixels.
-  typename ImageType::RegionType region = itkImage->GetLargestPossibleRegion();
-  typename ImageType::SizeType regionSize = region.GetSize();
-  unsigned int totalPixels = regionSize[0] * regionSize[1] * regionSize[2];  
-
-  // If we're ignoring zero values then the total gets reduced. The histogram entry gets zeroed as well.
-  if (UI.checkBoxIgnoreZeros->isChecked()) {
-    totalPixels -= histogram->GetFrequency(0);
-    histogram->SetFrequency(0, 0);
-  }
-
-  // The 10% threshold is therefore at 0.1 * total. Go through the histogram (effectively compute CDF) until we reach this.
-  unsigned int pixelCount = 0;
-  unsigned int i = 0;
-  while ((pixelCount < totalPixels * percentage) && (i < binsPerDimension)) {
-    pixelCount += histogram->GetFrequency(i);
-    i++;
-  }
-
-  // 'Return' the threshold values.
-  lowerThreshold = 0.0;
-  upperThreshold = (double) i / (double) binsPerDimension;
 }
 
 /**

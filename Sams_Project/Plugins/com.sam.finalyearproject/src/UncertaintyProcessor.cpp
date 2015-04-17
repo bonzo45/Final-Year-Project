@@ -47,7 +47,7 @@ void UncertaintyProcessor::setErodeParams(int erodeThickness, double erodeThresh
   this->erodeDilateThickness = dilateThickness;
 }
 
-mitk::Image::Pointer UncertaintyProcessor::PreprocessUncertainty(bool invert, bool erode, bool align) {
+mitk::Image::Pointer UncertaintyProcessor::preprocessUncertainty(bool invert, bool erode, bool align) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(4);
 
   // ------------------- //
