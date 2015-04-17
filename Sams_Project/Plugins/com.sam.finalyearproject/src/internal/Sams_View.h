@@ -110,25 +110,13 @@ class Sams_View : public QmitkAbstractView {
     void UpdateSelectionDropDowns();
     void PreprocessNode(mitk::DataNode::Pointer node);
 
-    template <typename TPixel, unsigned int VImageDimension>
-    void ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result);
-
     // 2
     //  a
     void SetLowerThreshold(double);
     void SetUpperThreshold(double);
 
-    template <typename TPixel, unsigned int VImageDimension>
-    void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result);
-    template <typename TPixel, unsigned int VImageDimension>
-    void ItkTopXPercent(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold);
-    template <typename TPixel, unsigned int VImageDimension>
-    void ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, int erodeThickness, double threshold, mitk::Image::Pointer & result);
-
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
-    double SampleUncertainty(vtkVector<float, 3> startPoint, vtkVector<float, 3> direction, int percentage = 100);
-    double InterpolateUncertaintyAtPosition(vtkVector<float, 3> position);
 
     //  c
 
