@@ -21,8 +21,8 @@
 // -------------- //
 // ---- MITK ---- //
 // -------------- //
-// Align
-
+// Loading bar
+#include <mitkProgressBar.h>
 
 // ------------------------ //
 // ---- Implementation ---- //
@@ -48,12 +48,16 @@ void UncertaintyProcessor::setErodeParams(int erodeThickness, double erodeThresh
 }
 
 mitk::Image::Pointer UncertaintyProcessor::PreprocessUncertainty(bool invert, bool erode, bool align) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(4);
+
   // ------------------- //
   // ---- Normalize ---- //
   // ------------------- //
   mitk::Image::Pointer normalizedMitkImage;
   AccessByItk_1(this->uncertainty, ItkNormalizeUncertainty, normalizedMitkImage);
-
+  
+  mitk::ProgressBar::GetInstance()->Progress();
+  
   // ------------------- //
   // ------ Invert ----- //
   // ------------------- //
@@ -62,7 +66,8 @@ mitk::Image::Pointer UncertaintyProcessor::PreprocessUncertainty(bool invert, bo
   if (invert) {
     AccessByItk_1(normalizedMitkImage, ItkInvertUncertainty, invertedMitkImage);
   }
-
+  mitk::ProgressBar::GetInstance()->Progress();
+  
   // ------------------- //
   // ------ Erode ------ //
   // ------------------- //
@@ -71,6 +76,8 @@ mitk::Image::Pointer UncertaintyProcessor::PreprocessUncertainty(bool invert, bo
   if (erode) {
     AccessByItk_1(invertedMitkImage, ItkErodeUncertainty, erodedMitkImage);
   }
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // ------------------- //
   // ------ Align ------ //
@@ -89,6 +96,8 @@ mitk::Image::Pointer UncertaintyProcessor::PreprocessUncertainty(bool invert, bo
     uncertaintySlicedGeometry->SetOrigin(scanOrigin);
     uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
   }
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   return fullyProcessedMitkImage;
 }

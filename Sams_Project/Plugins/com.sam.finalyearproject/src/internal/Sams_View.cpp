@@ -467,12 +467,6 @@ void Sams_View::ConfirmSelection() {
   * Saves intermediate steps and result as a child node of the one given.
   */
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
-  //mitk::ProgressBar::GetInstance()->AddStepsToDo(5);
-  //mitk::ProgressBar::GetInstance()->Progress();
-  //mitk::ProgressBar::GetInstance()->Progress();
-  //mitk::ProgressBar::GetInstance()->Progress();
-  //mitk::ProgressBar::GetInstance()->Progress();
-  //mitk::ProgressBar::GetInstance()->Progress();
   UncertaintyProcessor * processor = new UncertaintyProcessor();
   processor->setScan(Util::MitkImageFromNode(scan));
   processor->setUncertainty(Util::MitkImageFromNode(node));
