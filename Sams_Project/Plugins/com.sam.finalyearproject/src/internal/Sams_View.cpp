@@ -26,8 +26,9 @@ PURPOSE.  See the above copyright notices for more information.
 
 // Util
 #include "Util.h"
-#include "UncertaintyProcessor.h"
+#include "UncertaintyPreprocessor.h"
 #include "UncertaintyThresholder.h"
+#include "UncertaintySampler.h"
 
 // General
 #include <mitkBaseProperty.h>
@@ -468,24 +469,24 @@ void Sams_View::ConfirmSelection() {
   * Saves intermediate steps and result as a child node of the one given.
   */
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
-  UncertaintyProcessor * processor = new UncertaintyProcessor();
-  processor->setScan(Util::MitkImageFromNode(scan));
-  processor->setUncertainty(Util::MitkImageFromNode(node));
-  processor->setNormalizationParams(
+  UncertaintyPreprocessor * preprocessor = new UncertaintyPreprocessor();
+  preprocessor->setScan(Util::MitkImageFromNode(scan));
+  preprocessor->setUncertainty(Util::MitkImageFromNode(node));
+  preprocessor->setNormalizationParams(
     NORMALIZED_MIN,
     NORMALIZED_MAX
   );
-  processor->setErodeParams(
+  preprocessor->setErodeParams(
     UI.spinBoxErodeThickness->value(),
     UI.spinBoxErodeThreshold->value(),
     UI.spinBoxDilateThickness->value()
   );
-  mitk::Image::Pointer fullyProcessedMitkImage = processor->preprocessUncertainty(
+  mitk::Image::Pointer fullyProcessedMitkImage = preprocessor->preprocessUncertainty(
     UI.checkBoxInversionEnabled->isChecked(),
     UI.checkBoxErosionEnabled->isChecked(),
     UI.checkBoxAligningEnabled->isChecked()
   );
-  delete processor;
+  delete preprocessor;
   preprocessedUncertainty = SaveDataNode("Preprocessed", fullyProcessedMitkImage, true, node);
   preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
 }

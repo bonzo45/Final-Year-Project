@@ -1,4 +1,4 @@
-#include "UncertaintyProcessor.h"
+#include "UncertaintyPreprocessor.h"
 
 // ----------------- //
 // ---- Filters ---- //
@@ -28,26 +28,26 @@
 // ---- Implementation ---- //
 // ------------------------ //
 
-void UncertaintyProcessor::setScan(mitk::Image::Pointer scan) {
+void UncertaintyPreprocessor::setScan(mitk::Image::Pointer scan) {
   this->scan = scan;
 }
 
-void UncertaintyProcessor::setUncertainty(mitk::Image::Pointer uncertainty) {
+void UncertaintyPreprocessor::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
 }
 
-void UncertaintyProcessor::setNormalizationParams(double min, double max) {
+void UncertaintyPreprocessor::setNormalizationParams(double min, double max) {
   this->normalizationMin = min;
   this->normalizationMax = max;
 }
 
-void UncertaintyProcessor::setErodeParams(int erodeThickness, double erodeThreshold, int dilateThickness) {
+void UncertaintyPreprocessor::setErodeParams(int erodeThickness, double erodeThreshold, int dilateThickness) {
   this->erodeErodeThickness = erodeThickness;
   this->erodeThreshold = erodeThreshold;
   this->erodeDilateThickness = dilateThickness;
 }
 
-mitk::Image::Pointer UncertaintyProcessor::preprocessUncertainty(bool invert, bool erode, bool align) {
+mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert, bool erode, bool align) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(4);
 
   // ------------------- //
@@ -107,7 +107,7 @@ mitk::Image::Pointer UncertaintyProcessor::preprocessUncertainty(bool invert, bo
   * Case 2: If itkImage contains anything else just map (min-max) to (0.0-1.0).
   */
 template <typename TPixel, unsigned int VImageDimension>
-void UncertaintyProcessor::ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
+void UncertaintyPreprocessor::ItkNormalizeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::Image<double, 3> ResultType;
   
@@ -146,7 +146,7 @@ void UncertaintyProcessor::ItkNormalizeUncertainty(itk::Image<TPixel, VImageDime
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-void UncertaintyProcessor::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
+void UncertaintyPreprocessor::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::InvertIntensityImageFilter <ImageType> InvertIntensityImageFilterType;
  
@@ -162,7 +162,7 @@ void UncertaintyProcessor::ItkInvertUncertainty(itk::Image<TPixel, VImageDimensi
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-void UncertaintyProcessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
+void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
 
   // ------------------------- //

@@ -3,9 +3,8 @@
 
 #include <mitkImage.h>
 
-class UncertaintyProcessor {
+class UncertaintyPreprocessor {
 	public:
-    //UncertaintyProcessor();
     void setScan(mitk::Image::Pointer image);
     void setUncertainty(mitk::Image::Pointer image);
     void setNormalizationParams(double min, double max);
