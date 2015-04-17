@@ -791,17 +791,7 @@ void Sams_View::SurfaceMapping() {
 }
 
 void Sams_View::GenerateSphereSurface() {
-  // Create a simple (VTK) sphere.
-  vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-  sphere->SetThetaResolution(50);
-  sphere->SetPhiResolution(150);
-  sphere->SetRadius(20.0);
-  sphere->SetCenter(0, 0, 0);
-  sphere->Update();
-
-  // Wrap it in some MITK.
-  mitk::Surface::Pointer sphereSurface = mitk::Surface::New();
-  sphereSurface->SetVtkPolyData(static_cast<vtkPolyData*>(sphere->GetOutput()));
+  mitk::Surface::Pointer sphereSurface = SurfaceGenerator::generateSphere(100, 20);
 
   // Store it as a DataNode.
   mitk::DataNode::Pointer sphereNode = SaveDataNode("Sphere Surface", sphereSurface, true);
