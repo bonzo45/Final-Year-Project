@@ -65,21 +65,19 @@ class Sams_View : public QmitkAbstractView {
     void OverlayThreshold();
 
     //  b
+    void GenerateUncertaintySphere();
     void TextureWidthChanged(int);
     void TextureHeightChanged(int);
-    void GenerateUncertaintySphere();
 
     //  c
+    void SurfaceMapping();
     void GenerateSphereSurface();
     void GenerateCubeSurface();
     void GenerateCylinderSurface();
-    void SurfaceMapping();
 
     // 4
     void ToggleCrosshairs(int state);
     void ResetViews();
-
-    // 5
 
     // UI
     void ToggleMinimize1();
@@ -102,15 +100,36 @@ class Sams_View : public QmitkAbstractView {
     Ui::Sams_ViewControls UI;
 
   private:
+    // Variables
+    //  - Scan
+    mitk::DataNode::Pointer scan;
+
+    unsigned int scanHeight;
+    unsigned int scanWidth;
+    unsigned int scanDepth;
+
+    //  - Uncertainty
+    mitk::DataNode::Pointer uncertainty;
+    mitk::DataNode::Pointer preprocessedUncertainty;
+
+    unsigned int uncertaintyHeight;
+    unsigned int uncertaintyWidth;
+    unsigned int uncertaintyDepth;
+
     // General
     void InitializeUI();
+    mitk::Image::Pointer GetMitkScan();
+    mitk::Image::Pointer GetMitkUncertainty();
+    mitk::Image::Pointer GetMitkPreprocessedUncertainty();
     mitk::DataNode::Pointer SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite = false, mitk::DataNode::Pointer parent = 0);
     
     // 1
     void UpdateSelectionDropDowns();
+    
+    // 2
     void PreprocessNode(mitk::DataNode::Pointer node);
 
-    // 2
+    // 3
     //  a
     void SetLowerThreshold(double);
     void SetUpperThreshold(double);

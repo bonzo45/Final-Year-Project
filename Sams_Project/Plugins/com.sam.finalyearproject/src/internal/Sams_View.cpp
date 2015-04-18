@@ -1,20 +1,3 @@
-/*=========================================================================
-
-Program:   Medical Imaging & Interaction Toolkit
-Language:  C++
-Date:      $Date$
-Version:   $Revision$ 
- 
-Copyright (c) German Cancer Research Center, Division of Medical and
-Biological Informatics. All rights reserved.
-See MITKCopyright.txt or http://www.mitk.org/copyright.html for details.
-
-This software is distributed WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
-
 #include "Sams_View.h"
 
 // Blueberry
@@ -24,7 +7,7 @@ PURPOSE.  See the above copyright notices for more information.
 // Qt
 #include <QMessageBox>
 
-// Util
+// Sam's Helper Functions
 #include "Util.h"
 #include "UncertaintyPreprocessor.h"
 #include "UncertaintyThresholder.h"
@@ -34,89 +17,34 @@ PURPOSE.  See the above copyright notices for more information.
 #include "UncertaintySurfaceMapper.h"
 #include "DemoUncertainty.h"
 
-// General
-#include <mitkBaseProperty.h>
+// MITK Interaction
 #include <mitkIRenderWindowPart.h>
 #include <mitkILinkedRenderWindowPart.h>
 #include <mitkIRenderingManager.h>
 #include <mitkNodePredicateProperty.h>
-#include <mitkProgressBar.h>  // For loading bar.
+#include <mitkNodePredicateDataType.h>
 
-#include <cmath> // for abs
+// C Libraries
 #include <algorithm> // for min/max
 #include <cstdlib>
 
-// 1
-#include <itkRescaleIntensityImageFilter.h>
-
-// 2
-//  a. Thresholding
-
-//  a. Volume Rendering
-
+// 3
 //  b. Sphere Texture
-#include <vtkSphereSource.h>
-#include <vtkTextureMapToSphere.h>
 #include <mitkSurface.h>
 #include <mitkSmartPointerProperty.h>
-#include <mitkNodePredicateDataType.h>
-#include <vtkFloatArray.h>
-#include <vtkPointData.h>
-#include <itkImage.h>
-#include <mitkITKImageImport.h>
-#include <mitkShaderProperty.h>
-#include <mitkImagePixelReadAccessor.h>
-
-//  c. Surface Mapping
-#include <vtkIdList.h>
-#include <vtkCellArray.h>
-#include <vtkMath.h>
-#include <vtkFloatArray.h>
-#include <itkImportImageFilter.h>
-#include <itkAdaptiveHistogramEqualizationImageFilter.h>
-#include <vtkCubeSource.h>
-#include <vtkCylinderSource.h>
-
-// 4
-// - Text Overlay
-#include <mitkBaseRenderer.h>
-#include <QmitkRenderWindow.h>
-#include <mitkOverlayManager.h>
-#include <mitkTextOverlay2D.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
-
-const bool DEBUG_SAMPLING = false;
 
 const QString RANDOM_NAME = QString::fromStdString("Random (Demo)");
 const QString SPHERE_NAME = QString::fromStdString("Sphere (Demo)");
 const QString CUBE_NAME = QString::fromStdString("Cube (Demo)");
 const QString QUAD_SPHERE_NAME = QString::fromStdString("Sphere in Quadrant (Demo)");
 
+const double NORMALIZED_MAX = 1.0;
+const double NORMALIZED_MIN = 0.0;
 // ------------------------- //
 // ---- GLOBAL VARIABLES --- //
 // ------------------------- //
-
-bool selectionConfirmed = false;
-
-// 1. Select Data & Uncertainty
-//  - Scan
-mitk::DataNode::Pointer scan;
-
-unsigned int scanHeight;
-unsigned int scanWidth;
-unsigned int scanDepth;
-
-//  - Uncertainty
-mitk::DataNode::Pointer uncertainty;
-mitk::DataNode::Pointer preprocessedUncertainty;
-
-unsigned int uncertaintyHeight;
-unsigned int uncertaintyWidth;
-unsigned int uncertaintyDepth;
-
-const double NORMALIZED_MAX = 1.0;
-const double NORMALIZED_MIN = 0.0;
 
 // 3. Visualisation
 //  a. Uncertainty Thresholding
@@ -205,7 +133,6 @@ void Sams_View::InitializeUI() {
   UI.tab3a->setEnabled(false);
   UI.tab3b->setEnabled(false);
   UI.tab3c->setEnabled(false);
-  selectionConfirmed = false;
 }
 
 void Sams_View::ToggleMinimize1() {
@@ -240,15 +167,15 @@ void Sams_View::SetFocus() {
 // ---- Utils ---- //
 // --------------- //
 
-mitk::Image::Pointer GetMitkScan() {
-  return Util::MitkImageFromNode(scan);
+mitk::Image::Pointer Sams_View::GetMitkScan() {
+  return Util::MitkImageFromNode(this->scan);
 }
 
-mitk::Image::Pointer GetMitkUncertainty() {
+mitk::Image::Pointer Sams_View::GetMitkUncertainty() {
   return Util::MitkImageFromNode(uncertainty);
 }
 
-mitk::Image::Pointer GetMitkPreprocessedUncertainty() {
+mitk::Image::Pointer Sams_View::GetMitkPreprocessedUncertainty() {
   return Util::MitkImageFromNode(preprocessedUncertainty);
 }
 
@@ -337,18 +264,20 @@ void Sams_View::UpdateSelectionDropDowns() {
 }
 
 void Sams_View::ScanDropdownChanged(const QString & scanName) {
-  scan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
-  if (scan.IsNotNull()) {
+  mitk::DataNode::Pointer potentialScan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
+  if (potentialScan.IsNotNull()) {
+    this->scan = potentialScan;
     // Update the visibility checkbox to match the visibility of the scan we've picked.
-    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(scan->GetProperty("visible")));
+    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(this->scan->GetProperty("visible")));
   }
 }
 
 void Sams_View::UncertaintyDropdownChanged(const QString & uncertaintyName) {
-  uncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
-  if (uncertainty.IsNotNull()) {
+  mitk::DataNode::Pointer potentialUncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
+  if (potentialUncertainty.IsNotNull()) {
+    this->uncertainty = potentialUncertainty;
     // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
-    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(uncertainty->GetProperty("visible")));
+    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(this->uncertainty->GetProperty("visible")));
   }
 }
 
@@ -409,11 +338,11 @@ void Sams_View::ConfirmSelection() {
   }
 
   // Save references to the nodes.
-  scan = scanNode;
-  uncertainty = uncertaintyNode;
+  this->scan = scanNode;
+  this->uncertainty = uncertaintyNode;
 
   // Preprocess the uncertainty.
-  PreprocessNode(uncertainty);
+  PreprocessNode(this->uncertainty);
 
   // Save dimensions.
   mitk::Image::Pointer scanImage = GetMitkScan();
@@ -439,9 +368,6 @@ void Sams_View::ConfirmSelection() {
   UI.tab3a->setEnabled(true);
   UI.tab3b->setEnabled(true);
   UI.tab3c->setEnabled(true);
-
-  // Flag that we're confirmed.
-  selectionConfirmed = true;
 }
 
 /**
@@ -450,8 +376,8 @@ void Sams_View::ConfirmSelection() {
   */
 void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   UncertaintyPreprocessor * preprocessor = new UncertaintyPreprocessor();
-  preprocessor->setScan(Util::MitkImageFromNode(scan));
-  preprocessor->setUncertainty(Util::MitkImageFromNode(node));
+  preprocessor->setScan(GetMitkScan());
+  preprocessor->setUncertainty(GetMitkUncertainty());
   preprocessor->setNormalizationParams(
     NORMALIZED_MIN,
     NORMALIZED_MAX
@@ -473,10 +399,10 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
 
 void Sams_View::ToggleScanVisible(bool checked) {
   if (checked) {
-    scan->SetProperty("visible", mitk::BoolProperty::New(true));
+    GetMitkScan()->SetProperty("visible", mitk::BoolProperty::New(true));
   }
   else {
-    scan->SetProperty("visible", mitk::BoolProperty::New(false));
+    GetMitkScan()->SetProperty("visible", mitk::BoolProperty::New(false));
   }
   
   this->RequestRenderWindowUpdate();  
@@ -484,10 +410,10 @@ void Sams_View::ToggleScanVisible(bool checked) {
 
 void Sams_View::ToggleUncertaintyVisible(bool checked) {
   if (checked) {
-    uncertainty->SetProperty("visible", mitk::BoolProperty::New(true));
+    GetMitkUncertainty()->SetProperty("visible", mitk::BoolProperty::New(true));
   }
   else {
-    uncertainty->SetProperty("visible", mitk::BoolProperty::New(false));
+    GetMitkUncertainty()->SetProperty("visible", mitk::BoolProperty::New(false));
   }
 
   this->RequestRenderWindowUpdate();
@@ -525,7 +451,7 @@ void Sams_View::ThresholdUncertainty() {
   thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0));
   thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-  thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(1));
+  thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(10));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 
   this->RequestRenderWindowUpdate();
@@ -630,24 +556,20 @@ void Sams_View::TopXPercent(int percentage) {
   * Sets the layers and visibility required for the thresholded uncertainty to be displayed on top of the scan.
   */
 void Sams_View::OverlayThreshold() {
-  // Make Scan and Thresholded Visible
-  mitk::BoolProperty::Pointer propertyTrue = mitk::BoolProperty::New(true);
-  
-  // Scan -> Visible.
-  if (scan) {
-    scan->SetProperty("visible", propertyTrue);
+  // Make Scan and Thresholded Visible  
+  if (this->scan) {
+    this->scan->SetProperty("visible", mitk::BoolProperty::New(true));
   }
 
-  // Thresholded Uncertainty -> Visible.
   if (thresholdedUncertainty) {
-    thresholdedUncertainty->SetProperty("visible", propertyTrue);
+    thresholdedUncertainty->SetProperty("visible", mitk::BoolProperty::New(true));
   }
 
   // Put Scan behind Thresholded Uncertainty
   mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
   mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
-  if (scan) {
-    scan->SetProperty("layer", behindProperty);
+  if (this->scan) {
+    this->scan->SetProperty("layer", behindProperty);
   }
 
   if (thresholdedUncertainty) {
@@ -658,18 +580,12 @@ void Sams_View::OverlayThreshold() {
   mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
 
   // Uncertainty -> Invisible.
-  if (uncertainty) {
-    uncertainty->SetProperty("visible", propertyFalse);
-  }
-
-  // Normalized -> Invisible.
-  mitk::DataNode::Pointer normalizedNode = this->GetDataStorage()->GetNamedDerivedNode("Normalized", uncertainty);
-  if (normalizedNode) {
-    normalizedNode->SetProperty("visible", propertyFalse);
+  if (this->uncertainty) {
+    this->uncertainty->SetProperty("visible", propertyFalse);
   }
 
   // Preprocessed -> Invisible.
-  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", uncertainty);
+  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", this->uncertainty);
   if (preprocessedUncertainty) {
     preprocessedUncertainty->SetProperty("visible", propertyFalse);
   }
