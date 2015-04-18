@@ -40,6 +40,10 @@ const QString SPHERE_NAME = QString::fromStdString("Sphere (Demo)");
 const QString CUBE_NAME = QString::fromStdString("Cube (Demo)");
 const QString QUAD_SPHERE_NAME = QString::fromStdString("Sphere in Quadrant (Demo)");
 
+const QString SPHERE_SURFACE_NAME = QString::fromStdString("Sphere");
+const QString CUBE_SURFACE_NAME = QString::fromStdString("Cube");
+const QString CYLINDER_SURFACE_NAME = QString::fromStdString("Cylinder");
+
 const double NORMALIZED_MAX = 1.0;
 const double NORMALIZED_MIN = 0.0;
 // ------------------------- //
@@ -104,6 +108,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonMinimize2, SIGNAL(clicked()), this, SLOT(ToggleMinimize2()));
   connect(UI.buttonMinimize3, SIGNAL(clicked()), this, SLOT(ToggleMinimize3()));
   connect(UI.buttonMinimize4, SIGNAL(clicked()), this, SLOT(ToggleMinimize4()));
+  connect(UI.buttonReset2, SIGNAL(clicked()), this, SLOT(ResetPreprocessingSettings()));
 
   // Debugging
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
@@ -149,6 +154,15 @@ void Sams_View::ToggleMinimize3() {
 
 void Sams_View::ToggleMinimize4() {
   UI.widget4Minimizable->setVisible(!UI.widget4Minimizable->isVisible());
+}
+
+void Sams_View::ResetPreprocessingSettings() {
+  UI.checkBoxAligningEnabled->setChecked(false);
+  UI.checkBoxInversionEnabled->setChecked(false);
+  UI.checkBoxErosionEnabled->setChecked(false);
+  UI.spinBoxErodeThickness->setValue(2);
+  UI.spinBoxErodeThreshold->setValue(0.2);
+  UI.spinBoxDilateThickness->setValue(2);
 }
 
 void Sams_View::ToggleErosionEnabled(bool checked) {
@@ -227,14 +241,16 @@ void Sams_View::UpdateSelectionDropDowns() {
   // Remember our previous selection.
   QString scanName = UI.comboBoxScan->currentText();
   QString uncertaintyName = UI.comboBoxUncertainty->currentText();
+  QString surfaceName = UI.comboBoxSurface->currentText();
 
   // Clear the dropdowns.
   UI.comboBoxScan->clear();
   UI.comboBoxUncertainty->clear();
+  UI.comboBoxSurface->clear();
 
   // Get all the potential images.
-  mitk::TNodePredicateDataType<mitk::Image>::Pointer predicate(mitk::TNodePredicateDataType<mitk::Image>::New());
-  mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetSubset(predicate);
+  mitk::TNodePredicateDataType<mitk::Image>::Pointer imagePredicate(mitk::TNodePredicateDataType<mitk::Image>::New());
+  mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetSubset(imagePredicate);
 
   // Add them all to the dropdowns.
   mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
@@ -244,12 +260,29 @@ void Sams_View::UpdateSelectionDropDowns() {
     UI.comboBoxUncertainty->addItem(name);
     ++image;
   }
-  
+
   // Add the demo uncertainties to the uncertainty dropdown.
   UI.comboBoxUncertainty->addItem(RANDOM_NAME);
   UI.comboBoxUncertainty->addItem(SPHERE_NAME);
   UI.comboBoxUncertainty->addItem(CUBE_NAME);
   UI.comboBoxUncertainty->addItem(QUAD_SPHERE_NAME);
+
+  // Get all the potential surfaces.
+  mitk::TNodePredicateDataType<mitk::Surface>::Pointer surfacePredicate(mitk::TNodePredicateDataType<mitk::Surface>::New());
+  mitk::DataStorage::SetOfObjects::ConstPointer allSurfaces = this->GetDataStorage()->GetSubset(surfacePredicate);
+
+  // Add them all to the surface dropdown.
+  mitk::DataStorage::SetOfObjects::ConstIterator surface = allSurfaces->Begin();
+  while(surface != allSurfaces->End()) {
+    QString name = QString::fromStdString(Util::StringFromStringProperty(surface->Value()->GetProperty("name")));
+    UI.comboBoxSurface->addItem(name);
+    ++surface;
+  }
+
+  // Add the demo uncertainties to the uncertainty dropdown.
+  UI.comboBoxSurface->addItem(SPHERE_SURFACE_NAME);
+  UI.comboBoxSurface->addItem(CUBE_SURFACE_NAME);
+  UI.comboBoxSurface->addItem(CYLINDER_SURFACE_NAME);
 
   // If our previous selections are still valid, select those again.
   int scanStillThere = UI.comboBoxScan->findText(scanName);
@@ -260,6 +293,11 @@ void Sams_View::UpdateSelectionDropDowns() {
   int uncertaintyStillThere = UI.comboBoxUncertainty->findText(uncertaintyName);
   if (uncertaintyStillThere != -1) {
     UI.comboBoxUncertainty->setCurrentIndex(uncertaintyStillThere);
+  }
+
+  int surfaceStillThere = UI.comboBoxSurface->findText(surfaceName);
+  if (surfaceStillThere != -1) {
+    UI.comboBoxSurface->setCurrentIndex(surfaceStillThere);
   }
 }
 
@@ -626,6 +664,7 @@ void Sams_View::GenerateUncertaintySphere() {
   UncertaintyTexture * texturerer = new UncertaintyTexture();
   texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
   texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
+  texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
   mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
   delete texturerer;
 
@@ -653,26 +692,51 @@ void Sams_View::GenerateUncertaintySphere() {
   * Takes a surface and maps the uncertainty onto it based on the normal vector.
   */
 void Sams_View::SurfaceMapping() {
-  // Get the surface.
-  mitk::DataNode::Pointer brainModelNode = this->GetDataStorage()->GetNode(mitk::NodePredicateDataType::New("Surface"));
-  if (brainModelNode == (void*)NULL) {
-    cout << "No Surface Found." << endl;
-    return;
+  mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
+
+  // If the surface can't be found, maybe it's a demo surface. (we need to generate it)
+  if (surfaceNode.IsNull()) {
+    // Get it's name.
+    QString surfaceName = UI.comboBoxSurface->currentText();
+    std::ostringstream name;
+    mitk::Surface::Pointer generatedSurface;
+
+    // If it's supposed to be a sphere.
+    if (QString::compare(surfaceName, SPHERE_SURFACE_NAME) == 0) {
+      name << "Sphere Surface";
+      generatedSurface = SurfaceGenerator::generateSphere();
+    }
+    // If it's supposed to be a cube.
+    else if (QString::compare(surfaceName, CUBE_SURFACE_NAME) == 0) {
+      name << "Cube Surface";
+      generatedSurface = SurfaceGenerator::generateCube();
+    }
+    // If it's supposed to be a cylinder.
+    else if (QString::compare(surfaceName, CUBE_NAME) == 0) {
+      name << "Cylinder Surface";
+      generatedSurface = SurfaceGenerator::generateCylinder();
+    }
+    // If it's not a demo uncertainty, stop.
+    else {
+      return;
+    }
+
+    surfaceNode = SaveDataNode(name.str().c_str(), generatedSurface);
   }
 
   // Stop it being specular in the rendering.
-  brainModelNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
-  brainModelNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
-  brainModelNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
-  brainModelNode->SetProperty("scalar visibility", mitk::BoolProperty::New(true));
+  surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+  surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
+  surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+  surfaceNode->SetProperty("scalar visibility", mitk::BoolProperty::New(true));
 
   // Cast it to an MITK surface.
-  mitk::Surface::Pointer brainModelSurface = dynamic_cast<mitk::Surface*>(brainModelNode->GetData());
+  mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
 
   // Map the uncertainty to it.
   UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
   mapper->setUncertainty(GetMitkPreprocessedUncertainty());
-  mapper->setSurface(brainModelSurface);
+  mapper->setSurface(mitkSurface);
   // ---- Sampling Options ---- ///
   if (UI.radioButtonSamplingFull->isChecked()) {
     mapper->setSamplingFull();

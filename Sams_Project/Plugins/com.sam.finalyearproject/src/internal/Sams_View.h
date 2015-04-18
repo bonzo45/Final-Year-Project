@@ -84,6 +84,7 @@ class Sams_View : public QmitkAbstractView {
     void ToggleMinimize2();
     void ToggleMinimize3();
     void ToggleMinimize4();
+    void ResetPreprocessingSettings();
     void ToggleErosionEnabled(bool checked);
 
     // Debug
