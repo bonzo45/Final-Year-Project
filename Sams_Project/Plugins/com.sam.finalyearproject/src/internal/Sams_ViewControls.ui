@@ -224,6 +224,9 @@
            <property name="text">
             <string>Pick the volume images for your scan and uncertainty.</string>
            </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -438,6 +441,9 @@
            </property>
            <property name="text">
             <string>Preprocessing is applied to the uncertainty before visualisation.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -727,6 +733,9 @@
            <property name="text">
             <string>Click 'Confirm' above, then start visualising.</string>
            </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -741,7 +750,7 @@
             </sizepolicy>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="tab3a">
             <attribute name="title">

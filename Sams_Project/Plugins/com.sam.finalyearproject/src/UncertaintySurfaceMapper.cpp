@@ -219,15 +219,15 @@ void UncertaintySurfaceMapper::map() {
     //cout << scaledValues[i] << " -> " << scaledValues[i] * 255  << " -> " << round(scaledValues[i] * 255) << " -> " << intensity << " -> " << (int) intensity << endl;
     unsigned char normalColour[3];
     // Black and White
-    if (colour) {
+    if (blackAndWhite) {
       normalColour[0] = intensity;
       normalColour[1] = intensity;
       normalColour[2] = intensity;
     }
     // Colour
-    else if (blackAndWhite) {
+    else if (colour) {
       normalColour[0] = 255 - intensity;
-      normalColour[1] = intensity;
+      normalColour[1] = 0;
       normalColour[2] = 0;
     }
     colors->InsertNextTupleValue(normalColour);

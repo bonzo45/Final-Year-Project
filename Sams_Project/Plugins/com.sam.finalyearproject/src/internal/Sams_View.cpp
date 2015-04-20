@@ -29,6 +29,10 @@
 #include <cstdlib>
 
 // 3
+//  a. Thresholding
+#include <mitkTransferFunction.h>
+#include <mitkTransferFunctionProperty.h>
+
 //  b. Sphere Texture
 #include <mitkSurface.h>
 #include <mitkSmartPointerProperty.h>
@@ -491,6 +495,13 @@ void Sams_View::ThresholdUncertainty() {
   thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(10));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+
+  // TEST: Volume Rendering.
+  mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+  transferFunction->AddScalarOpacityPoint(lowerThreshold, 0.0);
+  transferFunction->AddScalarOpacityPoint(upperThreshold, 1.0);
+  transferFunction->AddScalarOpacityPoint(std::min(1.0, upperThreshold + 0.001), 0.0);
+  this->preprocessedUncertainty->SetProperty("Image Rendering.Transfer Function", mitk::TransferFunctionProperty::New(transferFunction));
 
   this->RequestRenderWindowUpdate();
 }
