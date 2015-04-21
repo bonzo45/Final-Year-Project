@@ -881,14 +881,14 @@ void Sams_View::DebugVolumeRenderPreprocessed() {
 
   // Opacity Transfer Function
   mitk::TransferFunction::ControlPoints scalarOpacityPoints;
-  scalarOpacityPoints.push_back(std::make_pair(0.0, 1.0));
-  scalarOpacityPoints.push_back(std::make_pair(1.0, 1.0));
-  // transferFunction->AddScalarOpacityPoint(std::min(1.0, upperThreshold + 0.001), 0.0);
+  scalarOpacityPoints.push_back(std::make_pair(lowerThreshold, 0.0));
+  scalarOpacityPoints.push_back(std::make_pair(upperThreshold, 0.5));
+  scalarOpacityPoints.push_back(std::make_pair(std::min(1.0, upperThreshold + 0.001), 0.0));
 
   // Colour Transfer Function
   vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-  colorTransferFunction->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-  colorTransferFunction->AddRGBPoint(1.0, 1.0, 0.0, 0.0);
+  colorTransferFunction->AddRGBPoint(lowerThreshold, 0.0, 0.0, 0.0);
+  colorTransferFunction->AddRGBPoint(upperThreshold, 1.0, 0.0, 0.0);
   
   // Combine them.
   mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
@@ -896,5 +896,7 @@ void Sams_View::DebugVolumeRenderPreprocessed() {
   transferFunction->SetColorTransferFunction(colorTransferFunction);
 
   this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
+
+  cout << "Lower Threshold: " << lowerThreshold << ", Upper Threshold: " << upperThreshold << endl;
   this->RequestRenderWindowUpdate();
 }
