@@ -15,6 +15,13 @@
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 
+UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
+  setSamplingFull();
+  setBlackAndWhite();
+  setScalingNone();
+  setSamplingAverage();
+}
+
 void UncertaintySurfaceMapper::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
@@ -67,6 +74,27 @@ void UncertaintySurfaceMapper::setColour() {
   this->colour = true;
 }
 
+void UncertaintySurfaceMapper::setSamplingAverage() {
+  clearSampling();
+  this->samplingAverage = true;
+}
+
+void UncertaintySurfaceMapper::setSamplingMinimum() {
+  clearSampling();
+  this->samplingMinimum = true;
+}
+
+void UncertaintySurfaceMapper::setSamplingMaximum() {
+  clearSampling();
+  this->samplingMaximum = true;
+}
+
+void UncertaintySurfaceMapper::clearSampling() {
+  this->samplingAverage = false;
+  this->samplingMinimum = false;
+  this->samplingMaximum = false;
+}
+
 void UncertaintySurfaceMapper::map() {
   // Extract the vtkPolyData.
   vtkPolyData * surfacePolyData = this->surface->GetVtkPolyData();
@@ -110,6 +138,15 @@ void UncertaintySurfaceMapper::map() {
   // Create an uncertainty sampler.
   UncertaintySampler * sampler = new UncertaintySampler();
   sampler->setUncertainty(this->uncertainty);
+  if (samplingAverage) {
+    sampler->setAverage();
+  }
+  else if (samplingMinimum) {
+    sampler->setMin();
+  }
+  else if (samplingMaximum) {
+    sampler->setMax();
+  }   
 
   for (unsigned int i = 0; i < numberOfPoints; i++) {
     // Get the position of point i

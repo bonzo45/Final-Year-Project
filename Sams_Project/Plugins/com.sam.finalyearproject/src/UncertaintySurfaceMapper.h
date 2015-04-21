@@ -6,6 +6,7 @@
 
 class UncertaintySurfaceMapper {
   public:
+    UncertaintySurfaceMapper();
     void setUncertainty(mitk::Image::Pointer uncertainty);
     void setSurface(mitk::Surface::Pointer surface);
     void setSamplingFull();
@@ -15,6 +16,9 @@ class UncertaintySurfaceMapper {
     void setScalingHistogram();
     void setBlackAndWhite();
     void setColour();
+    void setSamplingAverage();
+    void setSamplingMinimum();
+    void setSamplingMaximum();
     void map();
 
   private:
@@ -33,6 +37,11 @@ class UncertaintySurfaceMapper {
 
     bool blackAndWhite;
     bool colour;
+
+    bool samplingAverage;
+    bool samplingMinimum;
+    bool samplingMaximum;
+    void clearSampling();
 
     static const bool DEBUGGING = false;
 };

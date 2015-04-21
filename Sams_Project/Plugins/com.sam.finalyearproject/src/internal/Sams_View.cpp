@@ -757,6 +757,15 @@ void Sams_View::SurfaceMapping() {
   UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
   mapper->setUncertainty(GetMitkPreprocessedUncertainty());
   mapper->setSurface(mitkSurface);
+  if (UI.radioButtonSurfaceSampleAverage->isChecked()) {
+    mapper->setSamplingAverage();
+  }
+  else if (UI.radioButtonSurfaceSampleMinimum->isChecked()) {
+   mapper->setSamplingMinimum(); 
+  }
+  else if (UI.radioButtonSurfaceSampleMaximum->isChecked()) {
+    mapper->setSamplingMaximum();
+  }
   // ---- Sampling Options ---- ///
   if (UI.radioButtonSamplingFull->isChecked()) {
     mapper->setSamplingFull();
