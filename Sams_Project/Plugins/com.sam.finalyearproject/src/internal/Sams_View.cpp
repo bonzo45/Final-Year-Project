@@ -676,6 +676,15 @@ void Sams_View::GenerateUncertaintySphere() {
   texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
   texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
   texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
+  if (UI.radioButtonTextureSampleAverage->isChecked()) {
+    texturerer->setSamplingAverage();
+  }
+  else if (UI.radioButtonTextureSampleMinimum->isChecked()) {
+   texturerer->setSamplingMinimum(); 
+  }
+  else if (UI.radioButtonTextureSampleMaximum->isChecked()) {
+    texturerer->setSamplingMaximum();
+  }
   mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
   delete texturerer;
 

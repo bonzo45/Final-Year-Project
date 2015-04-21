@@ -6,13 +6,19 @@
 
 class UncertaintySampler {
 	public:
+    UncertaintySampler();
     void setUncertainty(mitk::Image::Pointer image);
+    void setAverage();
+    void setMin();
+    void setMax();
     double sampleUncertainty(vtkVector<float, 3> startPosition, vtkVector<float, 3> direction, int percentage = 100);
 
   private:
     mitk::Image::Pointer uncertainty;
     unsigned int uncertaintyHeight, uncertaintyWidth, uncertaintyDepth;
-
+    double initialAccumulator;
+    double (*accumulate)(double, double);
+    double (*collapse)(double, double);
     static const bool DEBUGGING = false;
 
     double interpolateUncertaintyAtPosition(vtkVector<float, 3> position);
