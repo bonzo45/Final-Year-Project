@@ -308,19 +308,19 @@ void Sams_View::UpdateSelectionDropDowns() {
 void Sams_View::ScanDropdownChanged(const QString & scanName) {
   mitk::DataNode::Pointer potentialScan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
   if (potentialScan.IsNotNull()) {
-    this->scan = potentialScan;
     // Update the visibility checkbox to match the visibility of the scan we've picked.
-    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(this->scan->GetProperty("visible")));
+    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(potentialScan->GetProperty("visible")));
   }
+  this->scan = potentialScan;
 }
 
 void Sams_View::UncertaintyDropdownChanged(const QString & uncertaintyName) {
   mitk::DataNode::Pointer potentialUncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
   if (potentialUncertainty.IsNotNull()) {
-    this->uncertainty = potentialUncertainty;
     // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
-    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(this->uncertainty->GetProperty("visible")));
+    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(potentialUncertainty->GetProperty("visible")));
   }
+  this->uncertainty = potentialUncertainty;
 }
 
 /**
@@ -440,22 +440,30 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
 }
 
 void Sams_View::ToggleScanVisible(bool checked) {
+  if (this->scan.IsNull()) {
+    return;
+  }
+
   if (checked) {
-    GetMitkScan()->SetProperty("visible", mitk::BoolProperty::New(true));
+    this->scan->SetProperty("visible", mitk::BoolProperty::New(true));
   }
   else {
-    GetMitkScan()->SetProperty("visible", mitk::BoolProperty::New(false));
+    this->scan->SetProperty("visible", mitk::BoolProperty::New(false));
   }
   
   this->RequestRenderWindowUpdate();  
 }
 
 void Sams_View::ToggleUncertaintyVisible(bool checked) {
+  if (this->uncertainty.IsNull()) {
+    return;
+  }
+
   if (checked) {
-    GetMitkUncertainty()->SetProperty("visible", mitk::BoolProperty::New(true));
+    this->uncertainty->SetProperty("visible", mitk::BoolProperty::New(true));
   }
   else {
-    GetMitkUncertainty()->SetProperty("visible", mitk::BoolProperty::New(false));
+    this->uncertainty->SetProperty("visible", mitk::BoolProperty::New(false));
   }
 
   this->RequestRenderWindowUpdate();
