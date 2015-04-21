@@ -4,6 +4,9 @@
 #include <mitkImageCast.h>
 #include <itkRescaleIntensityImageFilter.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 void UncertaintyTexture::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
@@ -20,11 +23,34 @@ void UncertaintyTexture::setScalingLinear(bool scalingLinear) {
   this->scalingLinear = scalingLinear;
 }
 
+void UncertaintyTexture::clearSampling() {
+  this->samplingAverage = false;
+  this->samplingMinimum = false;
+  this->samplingMaximum = false;
+}
+
+void UncertaintyTexture::setSamplingAverage() {
+  clearSampling();
+  this->samplingAverage = true;
+}
+
+void UncertaintyTexture::setSamplingMinimum() {
+  clearSampling();
+  this->samplingMinimum = true;
+}
+
+void UncertaintyTexture::setSamplingMaximum() {
+  clearSampling();
+  this->samplingMaximum = true;
+}
+
 /**
   * Generates a texture that represents the uncertainty of the uncertainty volume.
   * It works by projecting a point in the center of the volume outwards, onto a sphere.
   */
 mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(2);
+
   // Create a blank ITK image.
   TextureImageType::RegionType region;
   TextureImageType::IndexType start;
@@ -45,6 +71,15 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   // Create an uncertainty sampler.
   UncertaintySampler * sampler = new UncertaintySampler();
   sampler->setUncertainty(this->uncertainty);
+  if (samplingAverage) {
+    sampler->setAverage();
+  }
+  else if (samplingMinimum) {
+    sampler->setMin();
+  }
+  else if (samplingMaximum) {
+    sampler->setMax();
+  } 
 
   // Compute center of uncertainty data.
   vtkVector<float, 3> center = vtkVector<float, 3>();
@@ -79,6 +114,8 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   }
   delete sampler;
 
+  mitk::ProgressBar::GetInstance()->Progress();
+
   // Scale the texture values to increase contrast.
   if (scalingLinear) {
     typedef itk::RescaleIntensityImageFilter<TextureImageType, TextureImageType> RescaleFilterType;
@@ -93,5 +130,6 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   // Convert from ITK to MITK.
   mitk::Image::Pointer result;
   mitk::CastToMitkImage(uncertaintyTexture, result);
+  mitk::ProgressBar::GetInstance()->Progress();
   return result;
 }

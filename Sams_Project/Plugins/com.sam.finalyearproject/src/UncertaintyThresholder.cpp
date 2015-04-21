@@ -6,6 +6,9 @@
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkImageToHistogramFilter.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 UncertaintyThresholder::UncertaintyThresholder() {
   this->ignoreZeros = false;
 } 
@@ -34,6 +37,8 @@ void UncertaintyThresholder::getTopXPercentThreshold(int percentage, double & mi
   */
 template <typename TPixel, unsigned int VImageDimension>
 void UncertaintyThresholder::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
+
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
   
@@ -56,10 +61,13 @@ void UncertaintyThresholder::ItkThresholdUncertainty(itk::Image<TPixel, VImageDi
   thresholdFilter->Update();
   ImageType * thresholdedImage = thresholdFilter->GetOutput();
   mitk::CastToMitkImage(thresholdedImage, result);
+  mitk::ProgressBar::GetInstance()->Progress();
 }
 
 template <typename TPixel, unsigned int VImageDimension>
 void UncertaintyThresholder::ItkTopXPercentThreshold(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
+
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
 
@@ -109,4 +117,5 @@ void UncertaintyThresholder::ItkTopXPercentThreshold(itk::Image<TPixel, VImageDi
   // 'Return' the threshold values.
   lowerThreshold = 0.0;
   upperThreshold = (double) i / (double) binsPerDimension;
+  mitk::ProgressBar::GetInstance()->Progress();
 }

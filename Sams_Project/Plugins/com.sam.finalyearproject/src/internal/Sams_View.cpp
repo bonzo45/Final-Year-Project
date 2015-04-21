@@ -310,19 +310,19 @@ void Sams_View::UpdateSelectionDropDowns() {
 void Sams_View::ScanDropdownChanged(const QString & scanName) {
   mitk::DataNode::Pointer potentialScan = this->GetDataStorage()->GetNamedNode(scanName.toStdString());
   if (potentialScan.IsNotNull()) {
-    this->scan = potentialScan;
     // Update the visibility checkbox to match the visibility of the scan we've picked.
-    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(this->scan->GetProperty("visible")));
+    UI.checkBoxScanVisible->setChecked(Util::BoolFromBoolProperty(potentialScan->GetProperty("visible")));
   }
+  this->scan = potentialScan;
 }
 
 void Sams_View::UncertaintyDropdownChanged(const QString & uncertaintyName) {
   mitk::DataNode::Pointer potentialUncertainty = this->GetDataStorage()->GetNamedNode(uncertaintyName.toStdString());
   if (potentialUncertainty.IsNotNull()) {
-    this->uncertainty = potentialUncertainty;
     // Update the visibility checkbox to match the visibility of the uncertainty we've picked.
-    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(this->uncertainty->GetProperty("visible")));
+    UI.checkBoxUncertaintyVisible->setChecked(Util::BoolFromBoolProperty(potentialUncertainty->GetProperty("visible")));
   }
+  this->uncertainty = potentialUncertainty;
 }
 
 /**
@@ -441,22 +441,30 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
 }
 
 void Sams_View::ToggleScanVisible(bool checked) {
+  if (this->scan.IsNull()) {
+    return;
+  }
+
   if (checked) {
-    GetMitkScan()->SetProperty("visible", mitk::BoolProperty::New(true));
+    this->scan->SetProperty("visible", mitk::BoolProperty::New(true));
   }
   else {
-    GetMitkScan()->SetProperty("visible", mitk::BoolProperty::New(false));
+    this->scan->SetProperty("visible", mitk::BoolProperty::New(false));
   }
   
   this->RequestRenderWindowUpdate();  
 }
 
 void Sams_View::ToggleUncertaintyVisible(bool checked) {
+  if (this->uncertainty.IsNull()) {
+    return;
+  }
+
   if (checked) {
-    GetMitkUncertainty()->SetProperty("visible", mitk::BoolProperty::New(true));
+    this->uncertainty->SetProperty("visible", mitk::BoolProperty::New(true));
   }
   else {
-    GetMitkUncertainty()->SetProperty("visible", mitk::BoolProperty::New(false));
+    this->uncertainty->SetProperty("visible", mitk::BoolProperty::New(false));
   }
 
   this->RequestRenderWindowUpdate();
@@ -587,9 +595,12 @@ void Sams_View::TopXPercent(int percentage) {
   thresholder->getTopXPercentThreshold(percentage, min, max);
   delete thresholder;
 
-  // Filter the uncertainty to only show the top 10%.
+  // Filter the uncertainty to only show the top 10%. Avoid filtering twice by disabling thresholding.
+  bool temp = thresholdingEnabled;
+  thresholdingEnabled = false;
   SetLowerThreshold(min);
   SetUpperThreshold(max);
+  thresholdingEnabled = temp;
 
   // Update the spinBox.
   UI.spinBoxTopXPercent->setValue(percentage);
@@ -670,6 +681,15 @@ void Sams_View::GenerateUncertaintySphere() {
   texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
   texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
   texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
+  if (UI.radioButtonTextureSampleAverage->isChecked()) {
+    texturerer->setSamplingAverage();
+  }
+  else if (UI.radioButtonTextureSampleMinimum->isChecked()) {
+   texturerer->setSamplingMinimum(); 
+  }
+  else if (UI.radioButtonTextureSampleMaximum->isChecked()) {
+    texturerer->setSamplingMaximum();
+  }
   mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
   delete texturerer;
 
@@ -742,6 +762,15 @@ void Sams_View::SurfaceMapping() {
   UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
   mapper->setUncertainty(GetMitkPreprocessedUncertainty());
   mapper->setSurface(mitkSurface);
+  if (UI.radioButtonSurfaceSampleAverage->isChecked()) {
+    mapper->setSamplingAverage();
+  }
+  else if (UI.radioButtonSurfaceSampleMinimum->isChecked()) {
+   mapper->setSamplingMinimum(); 
+  }
+  else if (UI.radioButtonSurfaceSampleMaximum->isChecked()) {
+    mapper->setSamplingMaximum();
+  }
   // ---- Sampling Options ---- ///
   if (UI.radioButtonSamplingFull->isChecked()) {
     mapper->setSamplingFull();

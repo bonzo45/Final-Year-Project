@@ -12,6 +12,9 @@ class UncertaintyTexture {
     void setUncertainty(mitk::Image::Pointer image);
     void setDimensions(unsigned int width, unsigned int height);
     void setScalingLinear(bool scalingLinear);
+    void setSamplingAverage();
+    void setSamplingMinimum();
+    void setSamplingMaximum();
     mitk::Image::Pointer generateUncertaintyTexture();
 
   private:
@@ -22,6 +25,8 @@ class UncertaintyTexture {
 
     bool scalingLinear;
 
+    bool samplingAverage, samplingMinimum, samplingMaximum;
+    void clearSampling();
 };
 
 #endif

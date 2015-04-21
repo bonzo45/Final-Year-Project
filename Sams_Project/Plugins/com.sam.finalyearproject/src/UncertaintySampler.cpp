@@ -2,8 +2,16 @@
 #include "Util.h"
 
 #include <cmath> // abs
+#include <cfloat> // DBL_MAX
 
 #include <mitkImagePixelReadAccessor.h>
+
+// Loading bar
+#include <mitkProgressBar.h>
+
+UncertaintySampler::UncertaintySampler() {
+  setAverage();
+}
 
 void UncertaintySampler::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
@@ -12,10 +20,42 @@ void UncertaintySampler::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertaintyDepth = uncertainty->GetDimension(2);
 }
 
-bool UncertaintySampler::isWithinUncertainty(vtkVector<float, 3> position) {
-  return (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
-         0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
-         0 <= position[2] && position[2] <= uncertaintyDepth - 1);
+double add(double a, double b) {
+  return a + b;
+}
+
+double max(double a, double b) {
+  return std::max(a, b);
+}
+
+double min(double a, double b) {
+  return std::min(a, b);
+}
+
+double divide(double a, double b) {
+  return a / b;
+}
+
+double passThrough(double a, double b) {
+  return a;
+}
+
+void UncertaintySampler::setAverage() {
+  this->initialAccumulator = 0.0;
+  this->accumulate = &add;
+  this->collapse = &divide;
+}
+
+void UncertaintySampler::setMax() {
+  this->initialAccumulator = 0;
+  this->accumulate = &max;
+  this->collapse = &passThrough;
+}
+
+void UncertaintySampler::setMin() {
+  this->initialAccumulator = DBL_MAX;
+  this->accumulate = &min;
+  this->collapse = &passThrough;
 }
 
 /**
@@ -61,7 +101,7 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
 
   // Move the tortoise and hare at different speeds. The tortoise gathers samples, but
   // stops when the hare reaches the edge of the uncertainty.
-  double accumulator = 0.0;
+  double accumulator = initialAccumulator;
   unsigned int sampleCount = 0;
   while (0 <= tortoise[0] && tortoise[0] <= uncertaintyHeight - 1 &&
          0 <= tortoise[1] && tortoise[1] <= uncertaintyWidth - 1 &&
@@ -70,7 +110,7 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
 
     // Include sample if it's not background.
     if (sample != 0.0) {
-      accumulator += sample;
+      accumulator = accumulate(accumulator, sample);
       sampleCount++;
     }
 
@@ -96,7 +136,7 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
     }
   }
 
-  double result = (accumulator / sampleCount);
+  double result = collapse(accumulator, sampleCount);
   if (DEBUGGING) {
     cout << "Result is " << result << " (" << accumulator << "/" << sampleCount << ")" << endl;
   }
@@ -173,4 +213,10 @@ double UncertaintySampler::interpolateUncertaintyAtPosition(vtkVector<float, 3> 
     cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't double? (I've assumed it is)" << e << endl;
     return -1;
   }
+}
+
+bool UncertaintySampler::isWithinUncertainty(vtkVector<float, 3> position) {
+  return (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
+         0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
+         0 <= position[2] && position[2] <= uncertaintyDepth - 1);
 }
