@@ -593,9 +593,12 @@ void Sams_View::TopXPercent(int percentage) {
   thresholder->getTopXPercentThreshold(percentage, min, max);
   delete thresholder;
 
-  // Filter the uncertainty to only show the top 10%.
+  // Filter the uncertainty to only show the top 10%. Avoid filtering twice by disabling thresholding.
+  bool temp = thresholdingEnabled;
+  thresholdingEnabled = false;
   SetLowerThreshold(min);
   SetUpperThreshold(max);
+  thresholdingEnabled = temp;
 
   // Update the spinBox.
   UI.spinBoxTopXPercent->setValue(percentage);

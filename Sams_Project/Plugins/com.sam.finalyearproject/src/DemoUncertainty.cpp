@@ -2,11 +2,16 @@
 #include "Util.h"
 #include <mitkImageCast.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 /**
   * Generates uncertainty data (height * width * depth).
   * Each voxel is a random uncertainty value between 0 and 255.
   */
 mitk::Image::Pointer DemoUncertainty::generateRandomUncertainty(vtkVector<float, 3> imageSize) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
+  
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -43,6 +48,7 @@ mitk::Image::Pointer DemoUncertainty::generateRandomUncertainty(vtkVector<float,
   // Convert from ITK to MITK.
   mitk::Image::Pointer result;
   mitk::CastToMitkImage(randomUncertainty, result);
+  mitk::ProgressBar::GetInstance()->Progress();
   return result;
 }
 
@@ -51,6 +57,7 @@ mitk::Image::Pointer DemoUncertainty::generateRandomUncertainty(vtkVector<float,
   * The cube, placed at the center with side length cubeSize, is totally uncertain (1) and everywhere else is completely certain (255).
   */
 mitk::Image::Pointer DemoUncertainty::generateCubeUncertainty(vtkVector<float, 3> imageSize, unsigned int cubeSize) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -110,6 +117,7 @@ mitk::Image::Pointer DemoUncertainty::generateCubeUncertainty(vtkVector<float, 3
   // Convert from ITK to MITK.
   mitk::Image::Pointer result;
   mitk::CastToMitkImage(cubeUncertainty, result);
+  mitk::ProgressBar::GetInstance()->Progress();
   return result;
 }
 
@@ -118,6 +126,8 @@ mitk::Image::Pointer DemoUncertainty::generateCubeUncertainty(vtkVector<float, 3
   * It's zero everywhere, apart from a sphere of radius sphereRadius that has uncertainty 255 at the center and fades linearly to the edges.
   */
 mitk::Image::Pointer DemoUncertainty::generateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
+
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
   UncertaintyImageType::IndexType start;
@@ -174,5 +184,6 @@ mitk::Image::Pointer DemoUncertainty::generateSphereUncertainty(vtkVector<float,
   // Convert from ITK to MITK.
   mitk::Image::Pointer result;
   mitk::CastToMitkImage(sphereUncertainty, result);
+  mitk::ProgressBar::GetInstance()->Progress();
   return result;
 }

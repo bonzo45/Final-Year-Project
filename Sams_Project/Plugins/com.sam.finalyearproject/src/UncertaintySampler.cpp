@@ -6,6 +6,9 @@
 
 #include <mitkImagePixelReadAccessor.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 UncertaintySampler::UncertaintySampler() {
   setAverage();
 }

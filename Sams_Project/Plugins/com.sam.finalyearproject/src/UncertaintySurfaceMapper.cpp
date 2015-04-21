@@ -15,6 +15,9 @@
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
   setSamplingFull();
   setBlackAndWhite();
@@ -96,15 +99,19 @@ void UncertaintySurfaceMapper::clearSampling() {
 }
 
 void UncertaintySurfaceMapper::map() {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(7);
+
   // Extract the vtkPolyData.
   vtkPolyData * surfacePolyData = this->surface->GetVtkPolyData();
 
-  // From this we can the array containing all the normals.
+  // From this we can get the array containing all the normals.
   vtkSmartPointer<vtkFloatArray> normals = vtkFloatArray::SafeDownCast(surfacePolyData->GetPointData()->GetNormals());
   if (!normals) {
     cerr << "Couldn't seem to find any normals." << endl;
     return;
   }
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // Compute the bounding box of the surface (for simple registration between surface and uncertainty volume)
   double bounds[6];
@@ -127,6 +134,8 @@ void UncertaintySurfaceMapper::map() {
     cout << "(" << uncertaintyHeight << ", " << uncertaintyWidth << ", " << uncertaintyDepth << ")" << endl;
   }
 
+  mitk::ProgressBar::GetInstance()->Progress();
+
   // ----------------------------------------- //
   // ---- Compute Uncertainty Intensities ---- //
   // ----------------------------------------- //
@@ -147,6 +156,8 @@ void UncertaintySurfaceMapper::map() {
   else if (samplingMaximum) {
     sampler->setMax();
   }   
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   for (unsigned int i = 0; i < numberOfPoints; i++) {
     // Get the position of point i
@@ -177,6 +188,8 @@ void UncertaintySurfaceMapper::map() {
     }
   }
   
+  mitk::ProgressBar::GetInstance()->Progress();
+
   // --------------------------------- //
   // ---- Map Uncertanties to ITK ---- //
   // --------------------------------- //
@@ -207,6 +220,8 @@ void UncertaintySurfaceMapper::map() {
   const bool importImageFilterWillOwnTheBuffer = true;
   importFilter->SetImportPointer(intensityArray, numberOfPoints, importImageFilterWillOwnTheBuffer);
   importFilter->Update();
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // -------------------------------- //
   // ---- Scale the Uncertanties ---- //
@@ -240,6 +255,8 @@ void UncertaintySurfaceMapper::map() {
     scaled = histogramEqualizationFilter->GetOutput();
   }
 
+  mitk::ProgressBar::GetInstance()->Progress();
+
   // ----------------------------- //
   // ---- Map them to Colours ---- //
   // ----------------------------- //
@@ -272,4 +289,6 @@ void UncertaintySurfaceMapper::map() {
   
   // Set the colours to be the scalar value of each point.
   surfacePolyData->GetPointData()->SetScalars(colors);
+
+  mitk::ProgressBar::GetInstance()->Progress();
 }
