@@ -38,6 +38,12 @@
 #include <mitkSurface.h>
 #include <mitkSmartPointerProperty.h>
 
+// Debug
+//  Overlays
+#include <QmitkRenderWindow.h>
+#include <mitkOverlayManager.h>
+#include <mitkScaleLegendOverlay.h>
+
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
 
 const QString RANDOM_NAME = QString::fromStdString("Random (Demo)");
@@ -122,6 +128,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebugSphere, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
   connect(UI.buttonDebugQuadSphere, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
   connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
+  connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(DebugOverlay()));
+
 
   InitializeUI();
 }
@@ -927,5 +935,33 @@ void Sams_View::DebugVolumeRenderPreprocessed() {
   this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
 
   cout << "Lower Threshold: " << lowerThreshold << ", Upper Threshold: " << upperThreshold << endl;
+  this->RequestRenderWindowUpdate();
+}
+
+void Sams_View::DebugOverlay() {
+  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
+  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
+  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
+
+  mitk::ScaleLegendOverlay::Pointer scaleOverlay = mitk::ScaleLegendOverlay::New();
+  scaleOverlay->SetLeftAxisVisibility(true);
+  overlayManager->AddOverlay(scaleOverlay.GetPointer());
+
+  // //Create a textOverlay2D
+  // mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
+  // textOverlay->SetText("Test!"); //set UTF-8 encoded text to render
+  // textOverlay->SetFontSize(40);
+  // textOverlay->SetColor(1,0,0); //Set text color to red
+  // textOverlay->SetOpacity(1);
+
+  // //The position of the Overlay can be set to a fixed coordinate on the display.
+  // mitk::Point2D pos;
+  // pos[0] = 10,pos[1] = 20;
+  // textOverlay->SetPosition2D(pos);
+  
+  // //Add the overlay to the overlayManager. It is added to all registered renderers automatically
+  // overlayManager->AddOverlay(textOverlay.GetPointer());
+
   this->RequestRenderWindowUpdate();
 }

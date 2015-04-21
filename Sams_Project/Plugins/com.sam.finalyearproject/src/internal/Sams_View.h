@@ -94,6 +94,7 @@ class Sams_View : public QmitkAbstractView {
     void GenerateSphereUncertainty();
     void GenerateQuadrantSphereUncertainty();
     void DebugVolumeRenderPreprocessed();
+    void DebugOverlay();
 
   protected:  
     virtual void SetFocus();

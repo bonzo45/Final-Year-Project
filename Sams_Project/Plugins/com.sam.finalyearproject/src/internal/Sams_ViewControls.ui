@@ -193,13 +193,33 @@
           </widget>
          </item>
          <item>
-          <widget class="QDoubleSpinBox" name="double1"/>
+          <widget class="QDoubleSpinBox" name="double1">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item>
-          <widget class="QDoubleSpinBox" name="double2"/>
+          <widget class="QDoubleSpinBox" name="double2">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QSpinBox" name="int1">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="maximum">
             <number>9999</number>
            </property>
@@ -207,8 +227,27 @@
          </item>
          <item>
           <widget class="QPushButton" name="buttonDebug1">
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>VR</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonDebug2">
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>O</string>
            </property>
           </widget>
          </item>
@@ -757,7 +796,7 @@
             </sizepolicy>
            </property>
            <property name="currentIndex">
-            <number>2</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="tab3a">
             <attribute name="title">
