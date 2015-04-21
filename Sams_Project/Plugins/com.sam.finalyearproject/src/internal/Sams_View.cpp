@@ -32,6 +32,7 @@
 //  a. Thresholding
 #include <mitkTransferFunction.h>
 #include <mitkTransferFunctionProperty.h>
+#include <mitkRenderingModeProperty.h>
 
 //  b. Sphere Texture
 #include <mitkSurface.h>
@@ -120,6 +121,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebugCube, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonDebugSphere, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
   connect(UI.buttonDebugQuadSphere, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
+  connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
 
   InitializeUI();
 }
@@ -436,7 +438,6 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
   );
   delete preprocessor;
   preprocessedUncertainty = SaveDataNode("Preprocessed", fullyProcessedMitkImage, true, node);
-  preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
 }
 
 void Sams_View::ToggleScanVisible(bool checked) {
@@ -495,13 +496,6 @@ void Sams_View::ThresholdUncertainty() {
   thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(10));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
-
-  // TEST: Volume Rendering.
-  mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
-  transferFunction->AddScalarOpacityPoint(lowerThreshold, 0.0);
-  transferFunction->AddScalarOpacityPoint(upperThreshold, 1.0);
-  transferFunction->AddScalarOpacityPoint(std::min(1.0, upperThreshold + 0.001), 0.0);
-  this->preprocessedUncertainty->SetProperty("Image Rendering.Transfer Function", mitk::TransferFunctionProperty::New(transferFunction));
 
   this->RequestRenderWindowUpdate();
 }
@@ -875,4 +869,32 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   float quarter = std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 4;
   mitk::Image::Pointer quadsphere = DemoUncertainty::generateSphereUncertainty(imageSize, quarter, vtkVector<float, 3>(quarter));
   SaveDataNode("Quadsphere Uncertainty", quadsphere);
+}
+
+void Sams_View::DebugVolumeRenderPreprocessed() {
+  // TEST: Adjust transfer function of uncertainty to highlight the thresholded areas.
+  // mitk::RenderingModeProperty::Pointer renderingModeProperty = mitk::RenderingModeProperty::New(
+  //   mitk::RenderingModeProperty::COLORTRANSFERFUNCTION_LEVELWINDOW_COLOR
+  // );
+  // this->preprocessedUncertainty->SetProperty("Image Rendering.Mode", renderingModeProperty);
+  this->preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+
+  // Opacity Transfer Function
+  mitk::TransferFunction::ControlPoints scalarOpacityPoints;
+  scalarOpacityPoints.push_back(std::make_pair(0.0, 1.0));
+  scalarOpacityPoints.push_back(std::make_pair(1.0, 1.0));
+  // transferFunction->AddScalarOpacityPoint(std::min(1.0, upperThreshold + 0.001), 0.0);
+
+  // Colour Transfer Function
+  vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  colorTransferFunction->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+  colorTransferFunction->AddRGBPoint(1.0, 1.0, 0.0, 0.0);
+  
+  // Combine them.
+  mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+  transferFunction->SetScalarOpacityPoints(scalarOpacityPoints);
+  transferFunction->SetColorTransferFunction(colorTransferFunction);
+
+  this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
+  this->RequestRenderWindowUpdate();
 }

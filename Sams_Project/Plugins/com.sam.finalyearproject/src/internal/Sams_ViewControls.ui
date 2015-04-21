@@ -205,6 +205,13 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="buttonDebug1">
+           <property name="text">
+            <string>VR</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
