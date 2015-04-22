@@ -5,6 +5,7 @@
 #include <vtkTextureMapToSphere.h>
 #include <vtkCubeSource.h>
 #include <vtkCylinderSource.h>
+#include <vtkPlaneSource.h>
 
 // Loading bar
 #include <mitkProgressBar.h>
@@ -66,4 +67,20 @@ mitk::Surface::Pointer SurfaceGenerator::generateCylinder(unsigned int radius, u
   cylinderSurface->SetVtkPolyData(static_cast<vtkPolyData*>(cylinder->GetOutput()));
   mitk::ProgressBar::GetInstance()->Progress();
   return cylinderSurface;
+}
+
+mitk::Surface::Pointer SurfaceGenerator::generatePlane(vtkVector<float, 3> point, vtkVector<float, 3> normal) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
+
+  // Create a plane.
+  vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+  plane->SetCenter(point[0], point[1], point[2]);
+  plane->SetNormal(normal[0], normal[1], normal[2]);
+  plane->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer planeSurface = mitk::Surface::New();
+  planeSurface->SetVtkPolyData(static_cast<vtkPolyData*>(plane->GetOutput()));
+  mitk::ProgressBar::GetInstance()->Progress();
+  return planeSurface;
 }

@@ -795,8 +795,14 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="tabPosition">
+            <enum>QTabWidget::North</enum>
+           </property>
+           <property name="tabShape">
+            <enum>QTabWidget::Rounded</enum>
+           </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="tab3a">
             <attribute name="title">
@@ -1516,9 +1522,25 @@
              </item>
             </layout>
            </widget>
+           <widget class="QWidget" name="tab3d">
+            <attribute name="title">
+             <string>Next Scan</string>
+            </attribute>
+            <layout class="QHBoxLayout" name="horizontalLayout_25">
+             <item>
+              <widget class="QPushButton" name="buttonNextScanPlane">
+               <property name="text">
+                <string>Go</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </widget>
          </item>
         </layout>
+        <zorder>tabs3</zorder>
+        <zorder>label_10</zorder>
        </widget>
       </item>
      </layout>

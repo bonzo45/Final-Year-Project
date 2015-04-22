@@ -17,7 +17,9 @@ class Util {
     // ---- Vectors ---- //
     static vtkVector<float, 3> vectorAdd(vtkVector<float, 3> a, vtkVector<float, 3> b);
     static vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b);
+    static vtkVector<double, 3> vectorSubtract(vtkVector<double, 3> a, vtkVector<double, 3> b);
     static vtkVector<float, 3> vectorScale(vtkVector<float, 3> a, float b);
+    static vtkVector<float, 3> vectorCross(vtkVector<float, 3> a, vtkVector<float, 3> b);
     // ---- MITK ---- //
     static mitk::Image::Pointer MitkImageFromNode(mitk::DataNode::Pointer node);
     static std::string StringFromStringProperty(mitk::BaseProperty * property);

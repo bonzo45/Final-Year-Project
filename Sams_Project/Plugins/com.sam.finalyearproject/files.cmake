@@ -7,6 +7,7 @@ set(SRC_CPP_FILES
   SurfaceGenerator.cpp
   UncertaintySurfaceMapper.cpp
   DemoUncertainty.cpp
+  ScanPlaneCalculator.cpp
 )
 
 set(INTERNAL_CPP_FILES

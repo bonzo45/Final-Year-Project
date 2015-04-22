@@ -75,6 +75,9 @@ class Sams_View : public QmitkAbstractView {
     void GenerateCubeSurface();
     void GenerateCylinderSurface();
 
+    // d
+    void ComputeNextScanPlane();
+
     // 4
     void ToggleCrosshairs(int state);
     void ResetViews();

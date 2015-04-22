@@ -36,7 +36,7 @@ double divide(double a, double b) {
   return a / b;
 }
 
-double passThrough(double a, double b) {
+double passThrough(double a, double /*b*/) {
   return a;
 }
 

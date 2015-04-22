@@ -16,6 +16,7 @@
 #include "SurfaceGenerator.h"
 #include "UncertaintySurfaceMapper.h"
 #include "DemoUncertainty.h"
+#include "ScanPlaneCalculator.h"
 
 // MITK Interaction
 #include <mitkIRenderWindowPart.h>
@@ -110,6 +111,9 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   //  c. Surface Mapping
   connect(UI.buttonSurfaceMapping, SIGNAL(clicked()), this, SLOT(SurfaceMapping()));
 
+  //  d. Next Scan Plane
+  connect(UI.buttonNextScanPlane, SIGNAL(clicked()), this, SLOT(ComputeNextScanPlane()));
+
   // 4. Options
   connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
@@ -152,6 +156,7 @@ void Sams_View::InitializeUI() {
   UI.tab3a->setEnabled(false);
   UI.tab3b->setEnabled(false);
   UI.tab3c->setEnabled(false);
+  UI.tab3d->setEnabled(false);
 }
 
 void Sams_View::ToggleMinimize1() {
@@ -420,6 +425,7 @@ void Sams_View::ConfirmSelection() {
   UI.tab3a->setEnabled(true);
   UI.tab3b->setEnabled(true);
   UI.tab3c->setEnabled(true);
+  UI.tab3d->setEnabled(true);
 }
 
 /**
@@ -840,6 +846,32 @@ void Sams_View::GenerateCylinderSurface() {
   cylinderNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
   cylinderNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   cylinderNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+}
+
+// ------------ //
+// ---- 3d ---- //
+// ------------ //
+
+void Sams_View::ComputeNextScanPlane() {
+  ScanPlaneCalculator * calculator = new ScanPlaneCalculator();
+  calculator->setUncertainty(GetMitkUncertainty());
+  vtkSmartPointer<vtkPlane> plane = calculator->calculateBestScanPlane();
+
+  double * point = plane->GetOrigin();
+  double * normal = plane->GetNormal();
+
+  vtkVector<float, 3> vectorPoint = vtkVector<float, 3>();
+  vectorPoint[0] = point[0];
+  vectorPoint[1] = point[1];
+  vectorPoint[2] = point[2];
+
+  vtkVector<float, 3> vectorNormal = vtkVector<float, 3>();
+  vectorNormal[0] = normal[0];
+  vectorNormal[1] = normal[1];
+  vectorNormal[2] = normal[2];
+
+  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(vectorPoint, vectorNormal);
+  SaveDataNode("Scan Plane", mitkPlane);
 }
 
 // ----------- //

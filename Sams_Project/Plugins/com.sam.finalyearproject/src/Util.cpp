@@ -34,11 +34,27 @@ vtkVector<float, 3> Util::vectorSubtract(vtkVector<float, 3> a, vtkVector<float,
   return c;
 }
 
+vtkVector<double, 3> Util::vectorSubtract(vtkVector<double, 3> a, vtkVector<double, 3> b) {
+  vtkVector<double, 3> c = vtkVector<double, 3>();
+  c[0] = a[0] - b[0];
+  c[1] = a[1] - b[1];
+  c[2] = a[2] - b[2];
+  return c;
+}
+
 vtkVector<float, 3> Util::vectorScale(vtkVector<float, 3> a, float b) {
   vtkVector<float, 3> c = vtkVector<float, 3>();
   c[0] = a[0] * b;
   c[1] = a[1] * b;
   c[2] = a[2] * b;
+  return c;  
+}
+
+vtkVector<float, 3> Util::vectorCross(vtkVector<float, 3> a, vtkVector<float, 3> b) {
+  vtkVector<float, 3> c = vtkVector<float, 3>();
+  c[0] = a[1] * b[2] - a[2] * b[1];
+  c[1] = a[2] * b[0] - a[0] * b[2];
+  c[2] = a[0] * b[1] - a[1] * b[0];
   return c;  
 }
 
