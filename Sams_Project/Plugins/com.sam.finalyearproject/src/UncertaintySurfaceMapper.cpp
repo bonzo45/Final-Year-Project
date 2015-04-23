@@ -280,8 +280,8 @@ void UncertaintySurfaceMapper::map() {
     }
     // Colour
     else if (colour) {
-      normalColour[0] = 255 - intensity;
-      normalColour[1] = 0;
+      normalColour[0] = 0;
+      normalColour[1] = 255 - intensity;
       normalColour[2] = 0;
     }
     colors->InsertNextTupleValue(normalColour);
