@@ -39,6 +39,10 @@
 #include <mitkSurface.h>
 #include <mitkSmartPointerProperty.h>
 
+// c. Surface Mapping
+#include <vtkLookupTable.h>
+#include <mitkLookupTableProperty.h>
+
 // Debug
 //  Overlays
 #include <QmitkRenderWindow.h>
@@ -768,6 +772,19 @@ void Sams_View::SurfaceMapping() {
   surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
   surfaceNode->SetProperty("scalar visibility", mitk::BoolProperty::New(true));
+
+  // Lookup Table (2D Transfer Function)
+  vtkSmartPointer<vtkLookupTable> vtkLUT = vtkSmartPointer<vtkLookupTable>::New();
+  vtkLUT->SetRange(0, 255);
+  vtkLUT->SetNumberOfTableValues(256);
+  for (int i = 0; i < 256; i++) {
+      vtkLUT->SetTableValue(i, 255 - i, 0, 0);
+  }
+  vtkLUT->Build();
+  mitk::LookupTable::Pointer mitkLookupTable = mitk::LookupTable::New();
+  mitkLookupTable->SetVtkLookupTable(vtkLUT);
+  mitk::LookupTableProperty::Pointer LookupTableProp = mitk::LookupTableProperty::New(mitkLookupTable);
+  surfaceNode->SetProperty("LookupTable", LookupTableProp);      
 
   // Cast it to an MITK surface.
   mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
