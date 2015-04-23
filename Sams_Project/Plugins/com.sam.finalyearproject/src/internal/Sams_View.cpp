@@ -854,7 +854,7 @@ void Sams_View::GenerateCylinderSurface() {
 
 void Sams_View::ComputeNextScanPlane() {
   ScanPlaneCalculator * calculator = new ScanPlaneCalculator();
-  calculator->setUncertainty(GetMitkUncertainty());
+  calculator->setUncertainty(GetMitkPreprocessedUncertainty());
   vtkSmartPointer<vtkPlane> plane = calculator->calculateBestScanPlane();
 
   double * point = plane->GetOrigin();
