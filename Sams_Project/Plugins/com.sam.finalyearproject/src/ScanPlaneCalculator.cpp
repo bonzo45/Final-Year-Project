@@ -6,6 +6,7 @@
 #include <itkMultiplyImageFilter.h>
 #include <itkImportImageFilter.h>
 #include <itkStatisticsImageFilter.h>
+#include <itkChangeInformationImageFilter.h>
 
 #include <mitkImageCast.h>
 
@@ -206,11 +207,22 @@ double ScanPlaneCalculator::evaluateScanPlaneGoodness(vtkSmartPointer<vtkPlane> 
   importFilter->Update();
 
   // Do pointwise product between the uncertainty mask and the uncertainty.
+  // NOTE: the MultiplyImageFilter requires (for some reason) that the images are aligned (i.e. they have the same origin and spacing)
   typedef itk::MultiplyImageFilter<itk::Image<double, 3> > MultiplyImageFilterType;
- 
+  typedef itk::ChangeInformationImageFilter<itk::Image<double, 3> > ChangeInformationFilterType;
+
+  ChangeInformationFilterType::Pointer changeInformation = ChangeInformationFilterType::New();
+  changeInformation->UseReferenceImageOn();
+  changeInformation->SetReferenceImage(uncertaintyItk);
+  changeInformation->ChangeOriginOn();
+  changeInformation->ChangeSpacingOn();
+  changeInformation->ChangeDirectionOn();
+  changeInformation->SetInput(importFilter->GetOutput());
+  changeInformation->Update();
+
   MultiplyImageFilterType::Pointer multiplyFilter = MultiplyImageFilterType::New();
   multiplyFilter->SetInput1(uncertaintyItk);
-  multiplyFilter->SetInput2(importFilter->GetOutput());
+  multiplyFilter->SetInput2(changeInformation->GetOutput());
   multiplyFilter->Update();
 
   // The total amount of uncertainty covered by this plane is the sum of all values in this product.
