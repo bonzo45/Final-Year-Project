@@ -252,7 +252,7 @@ mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseDat
 /**
   * What to do when a data node or selection changes.
   */
-void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes) { 
+void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& /*nodes*/) { 
   UpdateSelectionDropDowns();
 }
 
@@ -366,23 +366,23 @@ void Sams_View::ConfirmSelection() {
 
     // If it's supposed to be random.
     if (QString::compare(uncertaintyName, RANDOM_NAME) == 0) {
-      name << "Random Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
+      name << RANDOM_NAME.toStdString(); // "Random Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
       generatedUncertainty = DemoUncertainty::generateRandomUncertainty(scanSize);
     }
     // If it's supposed to be a sphere.
     else if (QString::compare(uncertaintyName, SPHERE_NAME) == 0) {
-      name << "Sphere of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
+      name << SPHERE_NAME.toStdString(); // "Sphere of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
       float half = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 2;
       generatedUncertainty = DemoUncertainty::generateSphereUncertainty(scanSize, half);
     }
     // If it's supposed to be a cube.
     else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
-      name << "Cube of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
+      name << CUBE_NAME.toStdString(); // "Cube of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
       generatedUncertainty = DemoUncertainty::generateCubeUncertainty(scanSize, 10);
     }
     // If it's supposed to be a sphere in a quadrant.
     else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {
-      name << "Quadsphere of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
+      name << QUAD_SPHERE_NAME.toStdString(); // "Quadsphere of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
       float quarter = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 4;
       generatedUncertainty = DemoUncertainty::generateSphereUncertainty(scanSize, quarter, vtkVector<float, 3>(quarter));
     }

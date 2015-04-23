@@ -18,11 +18,36 @@ PURPOSE.  See the above copyright notices for more information.
 #include <Poco/Util/MapConfiguration.h>
 
 #include <QtGui/QApplication>
+#include <iostream>
+#include <QtGui/QMessageBox>
+
+class SamApplication : public QApplication {
+  public:
+    SamApplication(int & a, char **& b) : QApplication(a, b) {};
+
+    bool notify(QObject * receiver, QEvent * event) {
+      QString msg;
+      try {
+        return QApplication::notify(receiver, event);
+      } catch (Poco::Exception& e) {
+        msg = QString::fromStdString(e.displayText());
+      } catch (std::exception& e) {
+        msg = e.what();
+      } catch (...) {
+        msg = "Unknown exception";
+      }
+
+      QString text("Sorry... something has gone wrong. :-( \n\n");
+      text += msg;
+      QMessageBox::critical(0, "Error", text);
+      return false;
+    }
+};
 
 int main(int argc, char** argv)
 {
   // Create a QApplication instance first
-  QApplication myApp(argc, argv);
+  SamApplication myApp(argc, argv);
   myApp.setApplicationName("Sams_App");
   myApp.setOrganizationName("DKFZ, Medical and Biological Informatics");
 
