@@ -14,29 +14,35 @@ ColourLegendOverlay::LocalStorage::~LocalStorage() {
 
 void ColourLegendOverlay::setValue1(double value) {
   this->value1 = value;
+  somethingChanged = true;
 }
 
 void ColourLegendOverlay::setValue2(double value) {
   this->value2 = value;
+  somethingChanged = true;
 }
 
 void ColourLegendOverlay::setColour1(unsigned char red, unsigned char green, unsigned char blue) {
   colour1[0] = red / 255.0;
   colour1[1] = green / 255.0;
   colour1[2] = blue / 255.0;
+  somethingChanged = true;
 }
 
 void ColourLegendOverlay::setColour2(unsigned char red, unsigned char green, unsigned char blue) {
   colour2[0] = red / 255.0;
   colour2[1] = green / 255.0;
   colour2[2] = blue / 255.0;
+  somethingChanged = true;
 }
 
 void ColourLegendOverlay::UpdateVtkOverlay2D(mitk::BaseRenderer *renderer) {
   LocalStorage * ls = this->localStorageHandler.GetLocalStorage(renderer);
 
   // Check if we need to create the legend prop.
-  if (ls->IsGenerateDataRequired(renderer, this)) {
+  if (ls->IsGenerateDataRequired(renderer, this) || somethingChanged) {
+    somethingChanged = false;
+    
     // Create legend.
     vtkSmartPointer<vtkLegendBoxActor> legend = ls->legendActor;
     legend->SetNumberOfEntries(2);

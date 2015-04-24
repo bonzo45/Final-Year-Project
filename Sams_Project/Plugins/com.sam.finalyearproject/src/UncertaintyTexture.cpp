@@ -125,6 +125,12 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
     rescaleFilter->SetOutputMaximum(255);
     rescaleFilter->Update();
     uncertaintyTexture = rescaleFilter->GetOutput();
+    legendMinValue = rescaleFilter->GetInputMinimum() / 255.0;
+    legendMaxValue = rescaleFilter->GetInputMaximum() / 255.0;
+  }
+  else {
+    legendMinValue = 0.0;
+    legendMaxValue = 1.0;
   }
 
   // Convert from ITK to MITK.
@@ -132,4 +138,24 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   mitk::CastToMitkImage(uncertaintyTexture, result);
   mitk::ProgressBar::GetInstance()->Progress();
   return result;
+}
+
+double UncertaintyTexture::getLegendMinValue() {
+  return legendMinValue;
+}
+
+double UncertaintyTexture::getLegendMaxValue() {
+  return legendMaxValue;
+}
+
+void UncertaintyTexture::getLegendMinColour(char * colour) {
+  colour[0] = 0;
+  colour[1] = 0;
+  colour[2] = 0;
+}
+
+void UncertaintyTexture::getLegendMaxColour(char * colour) {
+  colour[0] = 255;
+  colour[1] = 255;
+  colour[2] = 255;
 }

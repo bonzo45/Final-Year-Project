@@ -270,9 +270,13 @@ mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
 void Sams_View::SetLegend(double value1, char * colour1, double value2, char * colour2) {
   mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
 
+  cout << "Updating Legend: " << endl;
+  cout << "(" << value1 << ", [" << (int) colour1[0] << ", " << (int) colour1[1] << ", " << (int) colour1[2] << "])" << endl;
+  cout << "(" << value2 << ", [" << (int) colour2[0] << ", " << (int) colour2[1] << ", " << (int) colour2[2] << "])" << endl;
+
   legendOverlay->setValue1(value1);
   legendOverlay->setColour1(colour1[0], colour1[1], colour1[2]);
-  legendOverlay->setValue2(value1);
+  legendOverlay->setValue2(value2);
   legendOverlay->setColour2(colour2[0], colour2[1], colour2[2]);
 }
 
@@ -750,6 +754,15 @@ void Sams_View::GenerateUncertaintySphere() {
     texturerer->setSamplingMaximum();
   }
   mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
+  
+  // Adjust legend.
+  char colourLow[3];
+  texturerer->getLegendMinColour(colourLow);
+  char colourHigh[3];
+  texturerer->getLegendMaxColour(colourHigh);
+  SetLegend(texturerer->getLegendMinValue(), colourLow, texturerer->getLegendMaxValue(), colourHigh);
+  ShowLegend();
+
   delete texturerer;
 
   // Save texture.

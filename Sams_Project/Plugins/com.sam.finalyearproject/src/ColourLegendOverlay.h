@@ -35,6 +35,8 @@ class ColourLegendOverlay : public mitk::VtkOverlay2D {
     double value2;
     double colour1[3];
     double colour2[3];
+
+    bool somethingChanged;
 };
 
 #endif

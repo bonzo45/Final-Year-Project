@@ -17,6 +17,11 @@ class UncertaintyTexture {
     void setSamplingMaximum();
     mitk::Image::Pointer generateUncertaintyTexture();
 
+    double getLegendMinValue();
+    double getLegendMaxValue();
+    void getLegendMinColour(char * colour);
+    void getLegendMaxColour(char * colour);
+
   private:
     mitk::Image::Pointer uncertainty;
     unsigned int uncertaintyHeight, uncertaintyWidth, uncertaintyDepth;
@@ -27,6 +32,8 @@ class UncertaintyTexture {
 
     bool samplingAverage, samplingMinimum, samplingMaximum;
     void clearSampling();
+
+    double legendMinValue, legendMaxValue;
 };
 
 #endif
