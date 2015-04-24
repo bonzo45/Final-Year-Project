@@ -1005,11 +1005,15 @@ void Sams_View::DebugOverlay() {
   mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
   mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
 
-  mitk::ScaleLegendOverlay::Pointer scaleOverlay = mitk::ScaleLegendOverlay::New();
-  scaleOverlay->SetLeftAxisVisibility(true);
-  overlayManager->AddOverlay(scaleOverlay.GetPointer());
+  // mitk::ScaleLegendOverlay::Pointer scaleOverlay = mitk::ScaleLegendOverlay::New();
+  // scaleOverlay->SetLeftAxisVisibility(true);
+  // overlayManager->AddOverlay(scaleOverlay.GetPointer());
 
   ColourLegendOverlay * legendOverlay = new ColourLegendOverlay();
+  legendOverlay->setValue1(0.0);
+  legendOverlay->setColour1(255, 0, 0);
+  legendOverlay->setValue2(1.0);
+  legendOverlay->setColour2(0, 255, 0);
   overlayManager->AddOverlay(legendOverlay);
 
   // //Create a textOverlay2D
