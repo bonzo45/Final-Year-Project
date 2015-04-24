@@ -14,6 +14,18 @@ std::string Util::StringFromDouble(double value) {
   return(ss.str());
 }
 
+unsigned char Util::IntensityToRed(unsigned char intensity) {
+  return 255 - intensity;
+}
+
+unsigned char Util::IntensityToGreen(unsigned char /*intensity*/) {
+  return 0;
+}
+
+unsigned char Util::IntensityToBlue(unsigned char /*intensity*/) {
+  return 0;
+}
+
 // ----------------- //
 // ---- Vectors ---- //
 // ----------------- //

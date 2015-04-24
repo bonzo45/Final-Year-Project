@@ -778,7 +778,12 @@ void Sams_View::SurfaceMapping() {
   vtkLUT->SetRange(0, 255);
   vtkLUT->SetNumberOfTableValues(256);
   for (int i = 0; i < 256; i++) {
-      vtkLUT->SetTableValue(i, 255 - i, 0, 0);
+      vtkLUT->SetTableValue(
+        i,
+        Util::IntensityToRed(i),
+        Util::IntensityToGreen(i),
+        Util::IntensityToBlue(i)
+      );
   }
   vtkLUT->Build();
   mitk::LookupTable::Pointer mitkLookupTable = mitk::LookupTable::New();

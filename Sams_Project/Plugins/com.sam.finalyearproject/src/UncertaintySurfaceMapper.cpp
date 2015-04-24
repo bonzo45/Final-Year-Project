@@ -1,6 +1,7 @@
 #include "UncertaintySurfaceMapper.h"
 
 #include "UncertaintySampler.h"
+#include "Util.h"
 
 #include <cstdio>
 
@@ -280,9 +281,9 @@ void UncertaintySurfaceMapper::map() {
     }
     // Colour
     else if (colour) {
-      normalColour[0] = 0;
-      normalColour[1] = 255 - intensity;
-      normalColour[2] = 0;
+      normalColour[0] = Util::IntensityToRed(intensity);
+      normalColour[1] = Util::IntensityToGreen(intensity);
+      normalColour[2] = Util::IntensityToBlue(intensity);
     }
     colors->InsertNextTupleValue(normalColour);
   }

@@ -14,6 +14,9 @@ class Util {
 	public:
     // ---- Conversions ---- //
     static std::string StringFromDouble(double value);
+    static unsigned char IntensityToRed(unsigned char intensity);
+    static unsigned char IntensityToGreen(unsigned char intensity);
+    static unsigned char IntensityToBlue(unsigned char intensity);
     // ---- Vectors ---- //
     static vtkVector<float, 3> vectorAdd(vtkVector<float, 3> a, vtkVector<float, 3> b);
     static vtkVector<float, 3> vectorSubtract(vtkVector<float, 3> a, vtkVector<float, 3> b);
