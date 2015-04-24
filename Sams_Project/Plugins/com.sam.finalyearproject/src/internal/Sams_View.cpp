@@ -617,8 +617,8 @@ void Sams_View::TopXPercent(int percentage) {
   bool temp = thresholdingEnabled;
   thresholdingEnabled = false;
   SetLowerThreshold(min);
-  SetUpperThreshold(max);
   thresholdingEnabled = temp;
+  SetUpperThreshold(max);
 
   // Update the spinBox.
   UI.spinBoxTopXPercent->setValue(percentage);
@@ -971,6 +971,11 @@ void Sams_View::DebugVolumeRenderPreprocessed() {
   scalarOpacityPoints.push_back(std::make_pair(upperThreshold, 0.5));
   scalarOpacityPoints.push_back(std::make_pair(std::min(1.0, upperThreshold + 0.001), 0.0));
 
+  // Gradient Opacity Transfer Function (to ignore sharp edges)
+  mitk::TransferFunction::ControlPoints gradientOpacityPoints;
+  gradientOpacityPoints.push_back(std::make_pair(0.0, 1.0));
+  gradientOpacityPoints.push_back(std::make_pair(0.1, 0.0));
+
   // Colour Transfer Function
   vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   colorTransferFunction->AddRGBPoint(lowerThreshold, 0.0, 0.0, 0.0);
@@ -979,6 +984,7 @@ void Sams_View::DebugVolumeRenderPreprocessed() {
   // Combine them.
   mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
   transferFunction->SetScalarOpacityPoints(scalarOpacityPoints);
+  transferFunction->SetGradientOpacityPoints(gradientOpacityPoints);
   transferFunction->SetColorTransferFunction(colorTransferFunction);
 
   this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
