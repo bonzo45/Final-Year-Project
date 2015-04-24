@@ -8,6 +8,7 @@ set(SRC_CPP_FILES
   UncertaintySurfaceMapper.cpp
   DemoUncertainty.cpp
   ScanPlaneCalculator.cpp
+  ColourLegendOverlay.cpp
 )
 
 set(INTERNAL_CPP_FILES

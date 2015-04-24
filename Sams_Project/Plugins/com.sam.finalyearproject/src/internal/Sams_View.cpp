@@ -17,6 +17,7 @@
 #include "UncertaintySurfaceMapper.h"
 #include "DemoUncertainty.h"
 #include "ScanPlaneCalculator.h"
+#include "ColourLegendOverlay.h"
 
 // MITK Interaction
 #include <mitkIRenderWindowPart.h>
@@ -1007,6 +1008,9 @@ void Sams_View::DebugOverlay() {
   mitk::ScaleLegendOverlay::Pointer scaleOverlay = mitk::ScaleLegendOverlay::New();
   scaleOverlay->SetLeftAxisVisibility(true);
   overlayManager->AddOverlay(scaleOverlay.GetPointer());
+
+  ColourLegendOverlay * legendOverlay = new ColourLegendOverlay();
+  overlayManager->AddOverlay(legendOverlay);
 
   // //Create a textOverlay2D
   // mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
