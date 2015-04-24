@@ -1608,6 +1608,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QCheckBox" name="checkBoxLegend">
+           <property name="text">
+            <string>Show Legend</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="buttonResetViews">
            <property name="text">
             <string>Reset Views</string>

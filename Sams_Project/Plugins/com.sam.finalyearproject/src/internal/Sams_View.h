@@ -27,6 +27,7 @@ PURPOSE.  See the above copyright notices for more information.
 // Classes required for method definitions.
 #include <mitkImage.h>
 #include <vtkVector.h>
+#include <mitkOverlayManager.h>
 
 /*!
   \brief Sams_View
@@ -80,6 +81,7 @@ class Sams_View : public QmitkAbstractView {
 
     // 4
     void ToggleCrosshairs(int state);
+    void ToggleLegend(int state);
     void ResetViews();
 
     // UI
@@ -128,7 +130,13 @@ class Sams_View : public QmitkAbstractView {
     mitk::Image::Pointer GetMitkUncertainty();
     mitk::Image::Pointer GetMitkPreprocessedUncertainty();
     mitk::DataNode::Pointer SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite = false, mitk::DataNode::Pointer parent = 0);
-    
+    mitk::OverlayManager::Pointer GetOverlayManager();
+
+    // Legend
+    void SetLegend(double value1, char * colour1, double value2, char * colour2);
+    void ShowLegend();
+    void HideLegend();
+
     // 1
     void UpdateSelectionDropDowns();
     

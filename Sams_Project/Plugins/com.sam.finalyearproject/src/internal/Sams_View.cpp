@@ -47,7 +47,6 @@
 // Debug
 //  Overlays
 #include <QmitkRenderWindow.h>
-#include <mitkOverlayManager.h>
 #include <mitkScaleLegendOverlay.h>
 
 const std::string Sams_View::VIEW_ID = "org.mitk.views.sams_view";
@@ -66,6 +65,9 @@ const double NORMALIZED_MIN = 0.0;
 // ------------------------- //
 // ---- GLOBAL VARIABLES --- //
 // ------------------------- //
+
+// Legend
+ColourLegendOverlay * legendOverlay;
 
 // 3. Visualisation
 //  a. Uncertainty Thresholding
@@ -121,6 +123,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // 4. Options
   connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
+  connect(UI.checkBoxLegend, SIGNAL(stateChanged(int)), this, SLOT(ToggleLegend(int)));
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
   // UI
@@ -162,6 +165,9 @@ void Sams_View::InitializeUI() {
   UI.tab3b->setEnabled(false);
   UI.tab3c->setEnabled(false);
   UI.tab3d->setEnabled(false);
+
+  // Create an overlay for the legend.
+  legendOverlay = new ColourLegendOverlay();
 }
 
 void Sams_View::ToggleMinimize1() {
@@ -248,6 +254,40 @@ mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseDat
   }
 
   return newVersion;
+}
+
+mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
+  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
+  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
+  return renderer->GetOverlayManager();
+}
+
+// ---------------- //
+// ---- Legend ---- //
+// ---------------- //
+
+void Sams_View::SetLegend(double value1, char * colour1, double value2, char * colour2) {
+  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
+
+  legendOverlay->setValue1(value1);
+  legendOverlay->setColour1(colour1[0], colour1[1], colour1[2]);
+  legendOverlay->setValue2(value1);
+  legendOverlay->setColour2(colour2[0], colour2[1], colour2[2]);
+}
+
+void Sams_View::ShowLegend() {
+  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
+  overlayManager->AddOverlay(legendOverlay);
+  UI.checkBoxLegend->setChecked(true);
+  this->RequestRenderWindowUpdate();
+}
+
+void Sams_View::HideLegend() {
+  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
+  overlayManager->RemoveOverlay(legendOverlay);
+  UI.checkBoxLegend->setChecked(false);
+  this->RequestRenderWindowUpdate();
 }
 
 // ----------- //
@@ -911,6 +951,15 @@ void Sams_View::ToggleCrosshairs(int state) {
   }
 }
 
+void Sams_View::ToggleLegend(int state) {
+  if (state > 0) {
+    ShowLegend();
+  }
+  else {
+    HideLegend();
+  }
+}
+
 /**
   * Resets all the cameras. Works, but doesn't call reinit on all the datanodes (which it appears 'Reset Views' does...)
   */
@@ -1000,21 +1049,16 @@ void Sams_View::DebugVolumeRenderPreprocessed() {
 }
 
 void Sams_View::DebugOverlay() {
-  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
-  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
-  mitk::OverlayManager::Pointer overlayManager = renderer->GetOverlayManager();
+  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
 
   // mitk::ScaleLegendOverlay::Pointer scaleOverlay = mitk::ScaleLegendOverlay::New();
   // scaleOverlay->SetLeftAxisVisibility(true);
   // overlayManager->AddOverlay(scaleOverlay.GetPointer());
 
-  ColourLegendOverlay * legendOverlay = new ColourLegendOverlay();
-  legendOverlay->setValue1(0.0);
-  legendOverlay->setColour1(255, 0, 0);
-  legendOverlay->setValue2(1.0);
-  legendOverlay->setColour2(0, 255, 0);
-  overlayManager->AddOverlay(legendOverlay);
+  char colour1[3] = {255, 0, 0};
+  char colour2[3] = {0, 255, 0};
+  SetLegend(0.0, colour1, 1.0, colour2);
+  ShowLegend();
 
   // //Create a textOverlay2D
   // mitk::TextOverlay2D::Pointer textOverlay = mitk::TextOverlay2D::New();
