@@ -954,7 +954,7 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal[2] = normal[2];
 
   // Create a surface to represent it.
-  mitk::Surface::centerer mitkPlane = SurfaceGenerator::generatePlane(vectorOrigin, vectorNormal);
+  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(vectorOrigin, vectorNormal);
 
   // Align it with the scan.
   mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();

@@ -3,8 +3,13 @@
 #include "Util.h"
 
 #include <mitkVector.h>
+#include <mitkImagePixelReadAccessor.h>
 #include <vnl/algo/vnl_svd.h>
 #include <vcl_iostream.h>
+
+SVDScanPlaneGenerator::SVDScanPlaneGenerator() {
+  this->threshold = 0.5;
+}
 
 void SVDScanPlaneGenerator::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
@@ -13,26 +18,13 @@ void SVDScanPlaneGenerator::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertaintyDepth = uncertainty->GetDimension(2);
 }
 
+void SVDScanPlaneGenerator::setThreshold(double threshold) {
+  this->threshold = threshold;
+}
+
 vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
-  // TODO: Get worst x% of points.
-  mitk::PointSet::Pointer pointSet = mitk::PointSet::New();
-  mitk::Point3D point0;
-  point0[0] = 0;
-  point0[1] = 0;
-  point0[2] = 0;
-  pointSet->InsertPoint(0, point0);
-
-  mitk::Point3D point1;
-  point1[0] = 0;
-  point1[1] = 0;
-  point1[2] = 1;
-  pointSet->InsertPoint(1, point1);
-
-  mitk::Point3D point2;
-  point2[0] = 1;
-  point2[1] = 0;
-  point2[2] = 0;
-  pointSet->InsertPoint(2, point2);
+  // Get all points worse than specified threshold.
+  mitk::PointSet::Pointer pointSet = pointsBelowThreshold(threshold);
 
   // Demean them.
   vnl_matrix<mitk::ScalarType> demeanedMatrix(pointSet->GetSize(), 3);
@@ -57,9 +49,47 @@ vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
 
   // The plane consists of the centroid and normal.
   vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
-  plane->SetOrigin(centroid[0], centroid[1], centroid[0]);
+  plane->SetOrigin(centroid[0], centroid[1], centroid[2]);
   plane->SetNormal(normal[0], normal[1], normal[2]);
   return plane;
+}
+
+/**
+  * Get a list of all points in the uncertainty data that are below a given threshold.
+  */
+mitk::PointSet::Pointer SVDScanPlaneGenerator::pointsBelowThreshold(double threshold) {
+  mitk::PointSet::Pointer pointSet = mitk::PointSet::New();
+
+  try  {
+    // See if the uncertainty data is available to be read.
+    mitk::ImagePixelReadAccessor<double, 3> readAccess(this->uncertainty);
+    unsigned int pointCount = 0;
+    for (unsigned int x = 0; x < uncertaintyHeight; x++) {
+      for (unsigned int y = 0; y < uncertaintyWidth; y++) {
+        for (unsigned int z = 0; z < uncertaintyDepth; z++) {
+          itk::Index<3> index;
+          index[0] = x;
+          index[1] = y;
+          index[2] = z;
+          double indexUncertainty = readAccess.GetPixelByIndex(index);
+
+          if (indexUncertainty < threshold) {
+            mitk::Point3D point;
+            point[0] = x;
+            point[1] = y;
+            point[2] = z;
+            pointSet->InsertPoint(pointCount, point);
+            pointCount++;
+          }
+        }
+      }
+    }
+  }
+  catch (mitk::Exception & e) {
+    cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't double? (I've assumed it is)" << e << endl;
+  }
+
+  return pointSet;
 }
 
 void SVDScanPlaneGenerator::calculateCentroid(mitk::PointSet::Pointer pointSet, mitk::Point3D & centroid) {
