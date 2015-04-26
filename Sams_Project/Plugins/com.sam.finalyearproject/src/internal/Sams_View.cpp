@@ -940,13 +940,13 @@ void Sams_View::ComputeNextScanPlane() {
   calculator->setUncertainty(GetMitkPreprocessedUncertainty());
   vtkSmartPointer<vtkPlane> plane = calculator->calculateBestScanPlane();
 
-  double * point = plane->GetOrigin();
+  double * center = plane->GetOrigin();
   double * normal = plane->GetNormal();
 
-  vtkVector<float, 3> vectorPoint = vtkVector<float, 3>();
-  vectorPoint[0] = point[0];
-  vectorPoint[1] = point[1];
-  vectorPoint[2] = point[2];
+  vtkVector<float, 3> vectorOrigin = vtkVector<float, 3>();
+  vectorOrigin[0] = center[0];
+  vectorOrigin[1] = center[1];
+  vectorOrigin[2] = center[2];
 
   vtkVector<float, 3> vectorNormal = vtkVector<float, 3>();
   vectorNormal[0] = normal[0];
@@ -954,7 +954,7 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal[2] = normal[2];
 
   // Create a surface to represent it.
-  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(vectorPoint, vectorNormal);
+  mitk::Surface::centerer mitkPlane = SurfaceGenerator::generatePlane(vectorOrigin, vectorNormal);
 
   // Align it with the scan.
   mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();

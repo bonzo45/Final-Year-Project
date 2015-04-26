@@ -69,15 +69,21 @@ mitk::Surface::Pointer SurfaceGenerator::generateCylinder(unsigned int radius, u
   return cylinderSurface;
 }
 
-mitk::Surface::Pointer SurfaceGenerator::generatePlane(vtkVector<float, 3> point, vtkVector<float, 3> normal, unsigned int scanWidth, unsigned int scanHeight) {
+mitk::Surface::Pointer SurfaceGenerator::generatePlane(vtkVector<float, 3> center, vtkVector<float, 3> normal, unsigned int scanWidth, unsigned int scanHeight) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   // Create a plane.
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
-  plane->SetCenter(point[0], point[1], point[2]);
+  
+  // Get the size sorted.
+  plane->SetOrigin(0, 0, 0);
+  plane->SetPoint1(scanWidth, 0, 0);
+  plane->SetPoint2(0, scanHeight, 0);
+
+  // Then shift it to be in the right place.
+  plane->SetCenter(center[0], center[1], center[2]);
   plane->SetNormal(normal[0], normal[1], normal[2]);
   
-  plane->SetResolution(scanWidth, scanHeight);
   plane->Update();
 
   // Wrap it in some MITK.
