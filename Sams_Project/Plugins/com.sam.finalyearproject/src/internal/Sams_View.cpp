@@ -16,7 +16,8 @@
 #include "SurfaceGenerator.h"
 #include "UncertaintySurfaceMapper.h"
 #include "DemoUncertainty.h"
-#include "ScanPlaneCalculator.h"
+#include "RANSACScanPlaneGenerator.h"
+#include "SVDScanPlaneGenerator.h"
 #include "ColourLegendOverlay.h"
 
 // MITK Interaction
@@ -934,7 +935,8 @@ void Sams_View::GenerateCylinderSurface() {
 // ------------ //
 
 void Sams_View::ComputeNextScanPlane() {
-  ScanPlaneCalculator * calculator = new ScanPlaneCalculator();
+  // Compute the next scan plane.
+  SVDScanPlaneGenerator * calculator = new SVDScanPlaneGenerator();
   calculator->setUncertainty(GetMitkPreprocessedUncertainty());
   vtkSmartPointer<vtkPlane> plane = calculator->calculateBestScanPlane();
 
@@ -951,7 +953,19 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal[1] = normal[1];
   vectorNormal[2] = normal[2];
 
+  // Create a surface to represent it.
   mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(vectorPoint, vectorNormal);
+
+  // Align it with the scan.
+  mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();
+  mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
+  mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
+
+  mitk::BaseGeometry * baseGeometry = mitkPlane->GetGeometry();
+  baseGeometry->SetOrigin(scanOrigin);
+  baseGeometry->SetIndexToWorldTransform(scanTransform);
+
+  // Save it.
   SaveDataNode("Scan Plane", mitkPlane);
 }
 

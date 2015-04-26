@@ -7,7 +7,8 @@ set(SRC_CPP_FILES
   SurfaceGenerator.cpp
   UncertaintySurfaceMapper.cpp
   DemoUncertainty.cpp
-  ScanPlaneCalculator.cpp
+  RANSACScanPlaneGenerator.cpp
+  SVDScanPlaneGenerator.cpp
   ColourLegendOverlay.cpp
 )
 

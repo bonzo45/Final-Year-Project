@@ -97,3 +97,40 @@ bool Util::BoolFromBoolProperty(mitk::BaseProperty * property) {
     return false;
   }
 }
+
+// ---------------- //
+// ---- Planes ---- //
+// ---------------- //
+
+double Util::distanceFromPointToPlane(unsigned int x, unsigned int y, unsigned int z, vtkSmartPointer<vtkPlane> plane) {
+  vtkVector<double, 3> pointVector = vtkVector<double, 3>();
+  pointVector[0] = x;
+  pointVector[1] = y;
+  pointVector[2] = z;
+
+  double * origin = plane->GetOrigin();
+  vtkVector<double, 3> originVector = vtkVector<double, 3>();
+  originVector[0] = origin[0];
+  originVector[1] = origin[1];
+  originVector[2] = origin[2];
+
+  double * normal = plane->GetNormal();
+  vtkVector<double, 3> normalVector = vtkVector<double, 3>();
+  normalVector[0] = normal[0];
+  normalVector[1] = normal[1];
+  normalVector[2] = normal[2];
+
+  // (Point - Center) dot Normal
+  return std::abs(Util::vectorSubtract(pointVector, originVector).Dot(normalVector));
+}
+
+vtkSmartPointer<vtkPlane> Util::planeFromPoints(vtkVector<float, 3> point1, vtkVector<float, 3> point2, vtkVector<float, 3> point3) {
+  vtkSmartPointer<vtkPlane> nextPlane = vtkSmartPointer<vtkPlane>::New();
+  nextPlane->SetOrigin(point1[0], point1[1], point1[0]);
+  
+  vtkVector<float, 3> cross = Util::vectorCross(Util::vectorSubtract(point2, point1), Util::vectorSubtract(point3, point1));
+  cross.Normalize();
+  nextPlane->SetNormal(cross[0], cross[1], cross[2]);
+
+  return nextPlane;
+}

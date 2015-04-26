@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <vtkSmartPointer.h>
+#include <vtkPlane.h>
 #include <vtkVector.h>
 
 #include <mitkImage.h>
@@ -27,6 +29,9 @@ class Util {
     static mitk::Image::Pointer MitkImageFromNode(mitk::DataNode::Pointer node);
     static std::string StringFromStringProperty(mitk::BaseProperty * property);
     static bool BoolFromBoolProperty(mitk::BaseProperty * property);
+    // ---- Planes ---- //
+    static double distanceFromPointToPlane(unsigned int x, unsigned int y, unsigned int z, vtkSmartPointer<vtkPlane> plane);
+    static vtkSmartPointer<vtkPlane> planeFromPoints(vtkVector<float, 3> point1, vtkVector<float, 3> point2, vtkVector<float, 3> point3);
 };
 
 
