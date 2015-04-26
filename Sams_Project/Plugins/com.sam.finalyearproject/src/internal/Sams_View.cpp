@@ -67,7 +67,7 @@ const double NORMALIZED_MIN = 0.0;
 // ------------------------- //
 
 // Legend
-ColourLegendOverlay * legendOverlay;
+ColourLegendOverlay * legendOverlay = NULL;
 
 // 3. Visualisation
 //  a. Uncertainty Thresholding
@@ -165,9 +165,6 @@ void Sams_View::InitializeUI() {
   UI.tab3b->setEnabled(false);
   UI.tab3c->setEnabled(false);
   UI.tab3d->setEnabled(false);
-
-  // Create an overlay for the legend.
-  legendOverlay = new ColourLegendOverlay();
 }
 
 void Sams_View::ToggleMinimize1() {
@@ -268,16 +265,24 @@ mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
 // ---------------- //
 
 void Sams_View::SetLegend(double value1, char * colour1, double value2, char * colour2) {
-  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
-
   cout << "Updating Legend: " << endl;
   cout << "(" << value1 << ", [" << (int) colour1[0] << ", " << (int) colour1[1] << ", " << (int) colour1[2] << "])" << endl;
   cout << "(" << value2 << ", [" << (int) colour2[0] << ", " << (int) colour2[1] << ", " << (int) colour2[2] << "])" << endl;
+  
+  HideLegend();
 
+  if (legendOverlay != NULL) {
+    delete legendOverlay;
+  }
+
+  // Create an overlay for the legend.
+  legendOverlay = new ColourLegendOverlay();
   legendOverlay->setValue1(value1);
   legendOverlay->setColour1(colour1[0], colour1[1], colour1[2]);
   legendOverlay->setValue2(value2);
   legendOverlay->setColour2(colour2[0], colour2[1], colour2[2]);
+
+  ShowLegend();
 }
 
 void Sams_View::ShowLegend() {
