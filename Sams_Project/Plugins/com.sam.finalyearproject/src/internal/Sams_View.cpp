@@ -952,21 +952,35 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal[0] = normal[0];
   vectorNormal[1] = normal[1];
   vectorNormal[2] = normal[2];
+  vectorNormal.Normalize();
 
   // Create a surface to represent it.
-  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(vectorOrigin, vectorNormal);
+  vtkVector<float, 3> newXAxis = vtkVector<float, 3>();
+  vtkVector<float, 3> newYAxis = vtkVector<float, 3>();
+  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(50, 100, vectorOrigin, vectorNormal, newXAxis, newYAxis);
 
   // Align it with the scan.
   mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();
   mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
   mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
 
-  mitk::BaseGeometry * baseGeometry = mitkPlane->GetGeometry();
-  baseGeometry->SetOrigin(scanOrigin);
-  baseGeometry->SetIndexToWorldTransform(scanTransform);
+  mitk::BaseGeometry * basePlaneGeometry = mitkPlane->GetGeometry();
+  basePlaneGeometry->SetOrigin(scanOrigin);
+  basePlaneGeometry->SetIndexToWorldTransform(scanTransform);
 
   // Save it.
   SaveDataNode("Scan Plane", mitkPlane);
+
+  // Create a box to represent all the slices in the scan.
+  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCuboid(50, 100, 300, vectorOrigin, newXAxis, newYAxis, vectorNormal);
+
+  // Align it with the scan
+  mitk::BaseGeometry * baseBoxGeometry = mitkScanBox->GetGeometry();
+  baseBoxGeometry->SetOrigin(scanOrigin);
+  baseBoxGeometry->SetIndexToWorldTransform(scanTransform);
+
+  mitk::DataNode::Pointer box = SaveDataNode("Scan Box", mitkScanBox);
+  box->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 }
 
 // ----------- //
