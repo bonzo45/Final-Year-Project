@@ -1,7 +1,5 @@
 #include "SurfaceGenerator.h"
 
-#include "Util.h"
-
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
 #include <vtkTextureMapToSphere.h>
@@ -74,59 +72,50 @@ mitk::Surface::Pointer SurfaceGenerator::generateCylinder(unsigned int radius, u
   return cylinderSurface;
 }
 
-mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int scanWidth, unsigned int scanHeight, vtkVector<float, 3> center, vtkVector<float, 3> normal, vtkVector<float, 3> & newXAxis, vtkVector<float, 3> & newYAxis) {
+mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int scanWidth, unsigned int scanHeight, vtkVector<float, 3> center, vtkVector<float, 3> normal) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   // Create a plane.
   vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
   
-  cout << "Creating Scan Plane:" << endl;
-  cout << "Origin: (0, 0, 0)" << endl;
-  cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
-  cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  if (DEBUGGING) {
+    cout << "Creating Scan Plane:" << endl;
+    cout << "Origin: (0, 0, 0)" << endl;
+    cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
+    cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  }
 
-  // Get the size sorted.
+  // Set the plane size.
   plane->SetOrigin(0, 0, 0);
   plane->SetPoint1(scanWidth, 0, 0);
   plane->SetPoint2(0, scanHeight, 0);
 
-  cout << "Initial Plane:" << endl;
-  cout << "Origin: (0, 0, 0)" << endl;
-  cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
-  cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  if (DEBUGGING) {
+    cout << "Initial Plane:" << endl;
+    cout << "Origin: (0, 0, 0)" << endl;
+    cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
+    cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  }
 
+  // Point it in the direction of the normal.
   plane->SetNormal(normal[0], normal[1], normal[2]);
   
-  cout << "After Normal: (" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << endl;
-  cout << "Origin: (0, 0, 0)" << endl;
-  cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
-  cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
-
-  vtkVector<float, 3> oldNormal = vtkVector<float, 3>();
-  oldNormal[0] = 0;
-  oldNormal[1] = 0;
-  oldNormal[2] = 1;
-
-  vtkVector<float, 3> rotationVector = Util::vectorCross(oldNormal, normal);
-  newXAxis[0] = rotationVector[0];
-  newXAxis[1] = rotationVector[1];
-  newXAxis[2] = rotationVector[2];
-
-  vtkVector<float, 3> hmmmm = Util::vectorCross(normal, rotationVector);
-  newYAxis[0] = hmmmm[0];
-  newYAxis[1] = hmmmm[1];
-  newYAxis[2] = hmmmm[2];
-
-  newYAxis.Normalize();
-  newXAxis.Normalize();
+  if (DEBUGGING) {
+    cout << "After Setting Normal: (" << normal[0] << ", " << normal[1] << ", " << normal[2] << ")" << endl;
+    cout << "Origin: (0, 0, 0)" << endl;
+    cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
+    cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  }
 
   // Then shift it to be in the right place.
   plane->SetCenter(center[0], center[1], center[2]);
 
-  cout << "After Center: (" << center[0] << ", " << center[1] << ", " << center[2] << ")" << endl;
-  cout << "Origin: (0, 0, 0)" << endl;
-  cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
-  cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  if (DEBUGGING) {
+    cout << "After Setting Center: (" << center[0] << ", " << center[1] << ", " << center[2] << ")" << endl;
+    cout << "Origin: (0, 0, 0)" << endl;
+    cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
+    cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  }
 
   plane->Update();
 
@@ -147,6 +136,25 @@ mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int height, uns
   cube->SetZLength(depth);
   cube->SetCenter(0, 0, 0);
   cube->Update();
+
+  // Convert default parameters (0, 0, 0) to standard (1, 0, 0), (0, 1, 0), (0, 0, 1).
+  if (newXAxis[0] == 0.0f && newXAxis[1] == 0.0f && newXAxis[2] == 0.0f) {
+    newXAxis[0] = 1;
+    newXAxis[1] = 0;
+    newXAxis[2] = 0;
+  }
+
+  if (newYAxis[0] == 0.0f && newYAxis[1] == 0.0f && newYAxis[2] == 0.0f) {
+    newYAxis[0] = 0;
+    newYAxis[1] = 1;
+    newYAxis[2] = 0;
+  }
+
+  if (newZAxis[0] == 0.0f && newZAxis[1] == 0.0f && newZAxis[2] == 0.0f) {
+    newZAxis[0] = 0;
+    newZAxis[1] = 0;
+    newZAxis[2] = 1;
+  }
 
   // Transform it to be centered at center and be aligned by new axes given.
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -171,13 +179,18 @@ mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int height, uns
   matrix->SetElement(3, 2, 0);
   matrix->SetElement(3, 3, 1);
 
-  cout << "Matrix:" << endl;
-  for (unsigned int i = 0; i < 4; i++) {
-    cout << "(";
-    for (unsigned int j = 0; j < 4; j++) {
-      cout << matrix->GetElement(i, j) << ", ";
+  if (DEBUGGING) {
+    cout << "Matrix:" << endl;
+    for (unsigned int i = 0; i < 4; i++) {
+      cout << "(";
+      for (unsigned int j = 0; j < 4; j++) {
+        cout << matrix->GetElement(i, j);
+        if (j < 3) {
+          cout << ", ";
+        }
+      }
+      cout << ")" << endl;
     }
-    cout << ")" << endl;
   }
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();

@@ -955,9 +955,7 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal.Normalize();
 
   // Create a surface to represent it.
-  vtkVector<float, 3> newXAxis = vtkVector<float, 3>();
-  vtkVector<float, 3> newYAxis = vtkVector<float, 3>();
-  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(50, 100, vectorOrigin, vectorNormal, newXAxis, newYAxis);
+  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(50, 100, vectorOrigin, vectorNormal);
 
   // Align it with the scan.
   mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();
@@ -972,7 +970,20 @@ void Sams_View::ComputeNextScanPlane() {
   SaveDataNode("Scan Plane", mitkPlane);
 
   // Create a box to represent all the slices in the scan.
-  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCuboid(50, 100, 300, vectorOrigin, newXAxis, newYAxis, vectorNormal);
+  vtkVector<float, 3> vectorOldNormal = vtkVector<float, 3>();
+  vectorOldNormal[0] = 0;
+  vectorOldNormal[1] = 0;
+  vectorOldNormal[2] = 1;
+
+  vtkVector<float, 3> newXAxis = Util::vectorCross(vectorOldNormal, vectorNormal);
+  vtkVector<float, 3> newYAxis = Util::vectorCross(vectorNormal, newXAxis);
+  vtkVector<float, 3> newZAxis = vectorNormal;
+
+  newXAxis.Normalize();
+  newYAxis.Normalize();
+  newZAxis.Normalize();
+
+  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCuboid(50, 100, 300, vectorOrigin, newXAxis, newYAxis, newZAxis);
 
   // Align it with the scan
   mitk::BaseGeometry * baseBoxGeometry = mitkScanBox->GetGeometry();
