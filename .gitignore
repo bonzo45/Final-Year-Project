@@ -15,6 +15,12 @@ ITK-build/
 gdcm-2.4.4/
 gdcm-2.4.4-build/
 
+# CTK Command Line Examples
+ctk-command-line-modules/
+
+# Bernhard's CUDA code.
+cudarecon/
+
 # Sam's Project
 Sams_Project-build/
 
