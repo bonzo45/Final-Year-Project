@@ -103,6 +103,7 @@ class Sams_View : public QmitkAbstractView {
 
     // RECONSTRUCTION
     void ReconstructGUI();
+    void ReconstructGo();
 
   protected:  
     virtual void SetFocus();

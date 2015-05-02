@@ -145,6 +145,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // RECONSTRUCTION
   connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
+  connect(UI.buttonReconstructGo, SIGNAL(clicked()), this, SLOT(ReconstructGo()));
 
   InitializeUI();
 }
@@ -1158,9 +1159,15 @@ void Sams_View::DebugOverlay() {
 
 #include "QmitkCmdLineModuleFactoryGui.h"
 
+#include <ctkCmdLineModuleFuture.h>
+#include <ctkCmdLineModuleRunException.h>
+
+ctkCmdLineModuleManager* moduleManager;
+ctkCmdLineModuleFrontend* frontend;
+
 void Sams_View::ReconstructGUI() {
   // MODULE MANAGER
-  ctkCmdLineModuleManager moduleManager(
+  moduleManager = new ctkCmdLineModuleManager(
       // Use "weak" validation mode.
       ctkCmdLineModuleManager::WEAK_VALIDATION,
       // Use the default cache location for this application
@@ -1174,14 +1181,14 @@ void Sams_View::ReconstructGUI() {
   // BACKEND
   QScopedPointer<ctkCmdLineModuleBackend> processBackend(new ctkCmdLineModuleBackendLocalProcess);
   // Register the back-end with the module manager.
-  moduleManager.registerBackend(processBackend.data());
+  moduleManager->registerBackend(processBackend.data());
 
   // REGISTER
   ctkCmdLineModuleReference moduleRef;
   try {
     // Register a local executable as a module, the ctkCmdLineModuleBackendLocalProcess
     // can handle it.
-    moduleRef = moduleManager.registerModule(QUrl::fromLocalFile("/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module"));
+    moduleRef = moduleManager->registerModule(QUrl::fromLocalFile("/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module"));
   }
   catch (const ctkInvalidArgumentException& e) {
     // Module validation failed.
@@ -1201,11 +1208,27 @@ void Sams_View::ReconstructGUI() {
   // We use the "Qt Gui" frontend factory.
   QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new QmitkCmdLineModuleFactoryGui(this->GetDataStorage()));
   //myApp.addLibraryPath(QCoreApplication::applicationDirPath() + "/../");
-  QScopedPointer<ctkCmdLineModuleFrontend> frontend(frontendFactory->create(moduleRef));
+  frontend = frontendFactory->create(moduleRef);
   // Create the actual GUI representation.
   QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());
 
   // ADD TO WIDGET
   QLayout *layout = new QVBoxLayout(UI.widgetPutGUIHere);
   layout->addWidget(gui);
+}
+
+void Sams_View::ReconstructGo() {
+  try {
+    ctkCmdLineModuleFuture future = moduleManager->run(frontend);
+    future.waitForFinished();
+    qDebug() << "Console output:";
+    qDebug() << future.readAllOutputData();
+    qDebug() << "Error output:";
+    qDebug() << future.readAllErrorData();
+    qDebug() << "Results:";
+    qDebug() << future.results();
+  }
+  catch (const ctkCmdLineModuleRunException& e) {
+    qWarning() << e;
+  }
 }
