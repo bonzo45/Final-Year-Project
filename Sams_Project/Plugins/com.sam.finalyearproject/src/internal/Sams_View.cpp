@@ -1142,11 +1142,16 @@ void Sams_View::DebugOverlay() {
 // ------------------------ //
 
 #include <ctkCmdLineModuleManager.h>
-#include <ctkCmdLineModuleFrontendFactoryQtGui.h>
 #include <QDesktopServices>
 
+#include <ctkCmdLineModuleBackend.h>
+#include <ctkCmdLineModuleBackendLocalProcess.h>
+
+#include <ctkCmdLineModuleFrontendFactoryQtGui.h>
+
+
 void Sams_View::ReconstructGUI() {
-  // Instantiate a ctkCmdLineModuleManager class.
+  // MODULE MANAGER
   ctkCmdLineModuleManager moduleManager(
       // Use "weak" validation mode.
       ctkCmdLineModuleManager::WEAK_VALIDATION,
@@ -1157,4 +1162,9 @@ void Sams_View::ReconstructGUI() {
         QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
       #endif
   );
+
+  // BACKEND
+  QScopedPointer<ctkCmdLineModuleBackend> processBackend(new ctkCmdLineModuleBackendLocalProcess);
+  // Register the back-end with the module manager.
+  moduleManager.registerBackend(processBackend.data());
 }
