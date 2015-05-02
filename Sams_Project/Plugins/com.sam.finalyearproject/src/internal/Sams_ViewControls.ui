@@ -1688,19 +1688,58 @@
       <layout class="QVBoxLayout" name="verticalLayout_23">
        <item>
         <widget class="QWidget" name="widgetRECONSTRUCTION" native="true">
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+          </font>
+         </property>
          <layout class="QVBoxLayout" name="verticalLayout_24">
           <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Let's see if we can find the module and generate a GUI for it. Wouldn't that be nice.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label2Description_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="font">
              <font>
               <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
-             <string>Some things will appear here, inside widgetRECONSTRUCTION</string>
+             <string>Some things will appear here, inside widgetPutGUIHere</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widgetPutGUIHere" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
            </widget>
           </item>
