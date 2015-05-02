@@ -1156,6 +1156,8 @@ void Sams_View::DebugOverlay() {
 #include <ctkCmdLineModuleFrontendFactoryQtGui.h>
 #include <QWidget>
 
+#include "QmitkCmdLineModuleFactoryGui.h"
+
 void Sams_View::ReconstructGUI() {
   // MODULE MANAGER
   ctkCmdLineModuleManager moduleManager(
@@ -1187,9 +1189,17 @@ void Sams_View::ReconstructGUI() {
     return;
   }
 
-  // FRONTEND
+  // // FRONTEND
+  // // We use the "Qt Gui" frontend factory.
+  // QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new ctkCmdLineModuleFrontendFactoryQtGui);
+  // //myApp.addLibraryPath(QCoreApplication::applicationDirPath() + "/../");
+  // QScopedPointer<ctkCmdLineModuleFrontend> frontend(frontendFactory->create(moduleRef));
+  // // Create the actual GUI representation.
+  // QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());
+
+  // MITK Version
   // We use the "Qt Gui" frontend factory.
-  QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new ctkCmdLineModuleFrontendFactoryQtGui);
+  QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new QmitkCmdLineModuleFactoryGui(this->GetDataStorage()));
   //myApp.addLibraryPath(QCoreApplication::applicationDirPath() + "/../");
   QScopedPointer<ctkCmdLineModuleFrontend> frontend(frontendFactory->create(moduleRef));
   // Create the actual GUI representation.

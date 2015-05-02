@@ -13,6 +13,10 @@ set(SRC_CPP_FILES
 )
 
 set(INTERNAL_CPP_FILES
+  QmitkCmdLineModuleFactoryGui.cpp
+  QmitkCmdLineModuleGui.cpp
+  QmitkDataStorageComboBoxWithSelectNone.cpp
+  QmitkUiLoader.cpp
   com_sam_finalyearproject_Activator.cpp
   Sams_View.cpp
 )
@@ -21,7 +25,11 @@ set(UI_FILES
   src/internal/Sams_ViewControls.ui
 )
 
-set(MOC_H_FILES
+set(MOC_H_FILES  
+  src/internal/QmitkCmdLineModuleFactoryGui.h
+  src/internal/QmitkCmdLineModuleGui.h
+  src/internal/QmitkDataStorageComboBoxWithSelectNone.h
+  src/internal/QmitkUiLoader.h
   src/internal/com_sam_finalyearproject_Activator.h
   src/internal/Sams_View.h
 )
