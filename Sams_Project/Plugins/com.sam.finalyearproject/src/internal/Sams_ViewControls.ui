@@ -1695,7 +1695,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_24">
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="buttonReconstructGUI">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>

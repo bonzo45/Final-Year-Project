@@ -101,6 +101,9 @@ class Sams_View : public QmitkAbstractView {
     void DebugVolumeRenderPreprocessed();
     void DebugOverlay();
 
+    // RECONSTRUCTION
+    void ReconstructGUI();
+
   protected:  
     virtual void SetFocus();
     virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);

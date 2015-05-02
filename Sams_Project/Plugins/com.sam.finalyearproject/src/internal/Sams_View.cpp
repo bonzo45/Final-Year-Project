@@ -143,6 +143,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
   connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(DebugOverlay()));
 
+  // RECONSTRUCTION
+  connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
 
   InitializeUI();
 }
@@ -1133,4 +1135,26 @@ void Sams_View::DebugOverlay() {
   // overlayManager->AddOverlay(textOverlay.GetPointer());
 
   this->RequestRenderWindowUpdate();
+}
+
+// ------------------------ //
+// ---- Reconstruction ---- //
+// ------------------------ //
+
+#include <ctkCmdLineModuleManager.h>
+#include <ctkCmdLineModuleFrontendFactoryQtGui.h>
+#include <QDesktopServices>
+
+void Sams_View::ReconstructGUI() {
+  // Instantiate a ctkCmdLineModuleManager class.
+  ctkCmdLineModuleManager moduleManager(
+      // Use "weak" validation mode.
+      ctkCmdLineModuleManager::WEAK_VALIDATION,
+      // Use the default cache location for this application
+      #if (QT_VERSION < QT_VERSION_CHECK(5,0,0))
+        QDesktopServices::storageLocation(QDesktopServices::CacheLocation)
+      #else
+        QStandardPaths::writableLocation(QStandardPaths::CacheLocation)
+      #endif
+  );
 }
