@@ -1147,8 +1147,14 @@ void Sams_View::DebugOverlay() {
 #include <ctkCmdLineModuleBackend.h>
 #include <ctkCmdLineModuleBackendLocalProcess.h>
 
-#include <ctkCmdLineModuleFrontendFactoryQtGui.h>
+#include <ctkCmdLineModuleReference.h>
+#include <QUrl>
+#include <ctkException.h>
+#include <QDebug>
 
+#include <ctkCmdLineModuleFrontendFactory.h>
+#include <ctkCmdLineModuleFrontendFactoryQtGui.h>
+#include <QWidget>
 
 void Sams_View::ReconstructGUI() {
   // MODULE MANAGER
@@ -1167,4 +1173,29 @@ void Sams_View::ReconstructGUI() {
   QScopedPointer<ctkCmdLineModuleBackend> processBackend(new ctkCmdLineModuleBackendLocalProcess);
   // Register the back-end with the module manager.
   moduleManager.registerBackend(processBackend.data());
+
+  // REGISTER
+  ctkCmdLineModuleReference moduleRef;
+  try {
+    // Register a local executable as a module, the ctkCmdLineModuleBackendLocalProcess
+    // can handle it.
+    moduleRef = moduleManager.registerModule(QUrl::fromLocalFile("/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module"));
+  }
+  catch (const ctkInvalidArgumentException& e) {
+    // Module validation failed.
+    qDebug() << e;
+    return;
+  }
+
+  // FRONTEND
+  // We use the "Qt Gui" frontend factory.
+  QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new ctkCmdLineModuleFrontendFactoryQtGui);
+  //myApp.addLibraryPath(QCoreApplication::applicationDirPath() + "/../");
+  QScopedPointer<ctkCmdLineModuleFrontend> frontend(frontendFactory->create(moduleRef));
+  // Create the actual GUI representation.
+  QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());
+
+  // ADD TO WIDGET
+  QLayout *layout = new QVBoxLayout(UI.widgetPutGUIHere);
+  layout->addWidget(gui);
 }
