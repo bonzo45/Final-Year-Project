@@ -1163,6 +1163,7 @@ void Sams_View::DebugOverlay() {
 #include <ctkCmdLineModuleRunException.h>
 
 ctkCmdLineModuleManager* moduleManager;
+ctkCmdLineModuleBackend* processBackend;
 ctkCmdLineModuleFrontend* frontend;
 
 void Sams_View::ReconstructGUI() {
@@ -1179,9 +1180,9 @@ void Sams_View::ReconstructGUI() {
   );
 
   // BACKEND
-  QScopedPointer<ctkCmdLineModuleBackend> processBackend(new ctkCmdLineModuleBackendLocalProcess);
+  processBackend = new ctkCmdLineModuleBackendLocalProcess();
   // Register the back-end with the module manager.
-  moduleManager->registerBackend(processBackend.data());
+  moduleManager->registerBackend(processBackend);
 
   // REGISTER
   ctkCmdLineModuleReference moduleRef;
@@ -1217,6 +1218,11 @@ void Sams_View::ReconstructGUI() {
   layout->addWidget(gui);
 }
 
+#include <QList>
+#include <ctkCmdLineModuleParameter.h>
+#include <QString>
+#include <mitkIOUtil.h>
+
 void Sams_View::ReconstructGo() {
   try {
     ctkCmdLineModuleFuture future = moduleManager->run(frontend);
@@ -1230,5 +1236,16 @@ void Sams_View::ReconstructGo() {
   }
   catch (const ctkCmdLineModuleRunException& e) {
     qWarning() << e;
+  }
+
+  // Read in the output files.
+  QList<ctkCmdLineModuleParameter> parameters;
+  parameters = frontend->parameters("image", ctkCmdLineModuleFrontend::Output);
+  parameters << frontend->parameters("file", ctkCmdLineModuleFrontend::Output);
+
+  foreach (ctkCmdLineModuleParameter parameter, parameters) {
+    QString parameterName = parameter.name();
+    QString outputFileName = frontend->value(parameterName, ctkCmdLineModuleFrontend::DisplayRole).toString();
+    mitk::IOUtil::Load(outputFileName.toStdString(), *(this->GetDataStorage()));
   }
 }
