@@ -155,7 +155,11 @@ class Sams_View : public QmitkAbstractView {
     //  b
     mitk::Image::Pointer GenerateUncertaintyTexture();
 
-    // c
+    //  c
+
+    // Reconstruction
+    void ClearReconstructionUI();
+
 };
 
 #endif // Sams_View_h

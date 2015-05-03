@@ -169,6 +169,10 @@ void Sams_View::InitializeUI() {
   UI.tab3b->setEnabled(false);
   UI.tab3c->setEnabled(false);
   UI.tab3d->setEnabled(false);
+
+  // ---- Reconstruction ---- //
+  // Hide Reconstruction Error
+  UI.labelReconstructionExecutableError->setVisible(false);
 }
 
 void Sams_View::ToggleMinimize1() {
@@ -1161,6 +1165,10 @@ void Sams_View::DebugOverlay() {
 
 #include <ctkCmdLineModuleFuture.h>
 #include <ctkCmdLineModuleRunException.h>
+#include <ctkCmdLineModuleTimeoutException.h>
+
+#include <QPlainTextEdit>
+
 
 ctkCmdLineModuleManager* moduleManager;
 ctkCmdLineModuleBackend* processBackend;
@@ -1184,44 +1192,57 @@ void Sams_View::ReconstructGUI() {
   // Register the back-end with the module manager.
   moduleManager->registerBackend(processBackend);
 
+  const QString reconstructionExecutableName = UI.textEditReconstructionExecutablePath->toPlainText();
+
   // REGISTER
   ctkCmdLineModuleReference moduleRef;
+  bool moduleValid = false;
   try {
     // Register a local executable as a module, the ctkCmdLineModuleBackendLocalProcess
     // can handle it.
-    moduleRef = moduleManager->registerModule(QUrl::fromLocalFile("/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module"));
+    moduleRef = moduleManager->registerModule(QUrl::fromLocalFile(reconstructionExecutableName));
+    moduleValid = true;
   }
   catch (const ctkInvalidArgumentException& e) {
     // Module validation failed.
+    cerr << "Module validation failed: " << reconstructionExecutableName.toStdString() << endl;
     qDebug() << e;
+  }
+  catch (ctkCmdLineModuleTimeoutException) {
+    cerr << "Retrieving XML from module timed out...: " << reconstructionExecutableName.toStdString() << endl;
+  }
+  catch (ctkCmdLineModuleRunException) {
+    cerr << "There was a problem running the module. Check it exists: " << reconstructionExecutableName.toStdString() << endl;
+  } 
+
+  // If the module couldn't be loaded, show an error and clear the widget.
+  if (!moduleValid) {
+    ClearReconstructionUI();
+    UI.labelReconstructionExecutableError->setVisible(true);
     return;
   }
+  else {
+    UI.labelReconstructionExecutableError->setVisible(false);
+  }
 
-  // // FRONTEND
-  // // We use the "Qt Gui" frontend factory.
-  // QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new ctkCmdLineModuleFrontendFactoryQtGui);
-  // //myApp.addLibraryPath(QCoreApplication::applicationDirPath() + "/../");
-  // QScopedPointer<ctkCmdLineModuleFrontend> frontend(frontendFactory->create(moduleRef));
-  // // Create the actual GUI representation.
-  // QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());
-
-  // MITK Version
+  // FRONTEND
   // We use the "Qt Gui" frontend factory.
   QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new QmitkCmdLineModuleFactoryGui(this->GetDataStorage()));
-  //myApp.addLibraryPath(QCoreApplication::applicationDirPath() + "/../");
   frontend = frontendFactory->create(moduleRef);
   // Create the actual GUI representation.
   QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());
 
-  // ADD TO WIDGET
-  QLayout *layout = new QVBoxLayout(UI.widgetPutGUIHere);
-  layout->addWidget(gui);
+  // ADD TO UI
+  ClearReconstructionUI();
+  UI.widgetPutGUIHere->layout()->addWidget(gui);
 }
 
 #include <QList>
 #include <ctkCmdLineModuleParameter.h>
 #include <QString>
 #include <mitkIOUtil.h>
+
+#include <QLayoutItem>
 
 void Sams_View::ReconstructGo() {
   try {
@@ -1248,4 +1269,13 @@ void Sams_View::ReconstructGo() {
     QString outputFileName = frontend->value(parameterName, ctkCmdLineModuleFrontend::DisplayRole).toString();
     mitk::IOUtil::Load(outputFileName.toStdString(), *(this->GetDataStorage()));
   }
+}
+
+void Sams_View::ClearReconstructionUI() {
+  QLayout *layout = UI.widgetPutGUIHere->layout();
+  if (layout != NULL) {
+    delete layout;
+    qDeleteAll(UI.widgetPutGUIHere->children());
+  }
+  layout = new QVBoxLayout(UI.widgetPutGUIHere);
 }
