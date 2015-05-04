@@ -1243,6 +1243,14 @@ void Sams_View::ReconstructGUI() {
   // FRONTEND
   // We use the "Qt Gui" frontend factory.
   QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new QmitkCmdLineModuleFactoryGui(this->GetDataStorage()));
+  std::cout << "----------------------" << std::endl;
+  std::cout << "Adding Library Path: " << QCoreApplication::applicationDirPath().toStdString() << "/../../MITK-superbuild/CTK-build/CTK-build/bin" << endl;
+  std::cout << "----------------------" << std::endl;
+  qApp->addLibraryPath(QCoreApplication::applicationDirPath() + "/../../MITK-superbuild/CTK-build/CTK-build/bin");
+  
+  std::cout << "All paths: " << std::endl;
+  foreach (QString path, qApp->libraryPaths())
+    std::cout << path.toStdString() << endl;
   frontend = frontendFactory->create(moduleRef);
   // Create the actual GUI representation.
   QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());
