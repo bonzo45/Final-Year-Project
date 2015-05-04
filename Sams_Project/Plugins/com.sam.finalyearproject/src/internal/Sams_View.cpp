@@ -91,7 +91,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // Add event handlers.
   // 1. Select Scan & Uncertainty
   connect(UI.comboBoxScan, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(ScanDropdownChanged(const QString &)));
-  connect(UI.comboBoxUncertainty, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(UncertaintyDropdownChanged(const QString &)));
+  connect(UI.comboBoxUncertainty, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(UncertaintyDropdownChanged(const QString &)));  
   connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
   connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
   connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
@@ -147,6 +147,13 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
   connect(UI.buttonReconstructGo, SIGNAL(clicked()), this, SLOT(ReconstructGo()));
 
+  // SCAN SIMULATION
+  connect(UI.comboBoxSimulateScanVolume, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(ScanSimulationDropdownChanged(const QString &)));
+  connect(UI.buttonScanPointCenter, SIGNAL(clicked()), this, SLOT(ScanSimulationSetPointCenter()));
+  connect(UI.buttonDirectionAxial, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionAxial()));
+  connect(UI.buttonDirectionCoronal, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionCoronal()));
+  connect(UI.buttonDirectionSagittal, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionSagittal()));
+  
   InitializeUI();
 }
 
@@ -322,11 +329,13 @@ void Sams_View::UpdateSelectionDropDowns() {
   // Remember our previous selection.
   QString scanName = UI.comboBoxScan->currentText();
   QString uncertaintyName = UI.comboBoxUncertainty->currentText();
+  QString simulatedScanName = UI.comboBoxSimulateScanVolume->currentText();
   QString surfaceName = UI.comboBoxSurface->currentText();
 
   // Clear the dropdowns.
   UI.comboBoxScan->clear();
   UI.comboBoxUncertainty->clear();
+  UI.comboBoxSimulateScanVolume->clear();
   UI.comboBoxSurface->clear();
 
   // Get all the potential images.
@@ -339,6 +348,7 @@ void Sams_View::UpdateSelectionDropDowns() {
     QString name = QString::fromStdString(Util::StringFromStringProperty(image->Value()->GetProperty("name")));
     UI.comboBoxScan->addItem(name);
     UI.comboBoxUncertainty->addItem(name);
+    UI.comboBoxSimulateScanVolume->addItem(name);
     ++image;
   }
 
@@ -374,6 +384,11 @@ void Sams_View::UpdateSelectionDropDowns() {
   int uncertaintyStillThere = UI.comboBoxUncertainty->findText(uncertaintyName);
   if (uncertaintyStillThere != -1) {
     UI.comboBoxUncertainty->setCurrentIndex(uncertaintyStillThere);
+  }
+
+  int simulatedScanStillThere = UI.comboBoxSimulateScanVolume->findText(simulatedScanName);
+  if (simulatedScanStillThere != -1) {
+    UI.comboBoxSimulateScanVolume->setCurrentIndex(simulatedScanStillThere);
   }
 
   int surfaceStillThere = UI.comboBoxSurface->findText(surfaceName);
@@ -1278,4 +1293,40 @@ void Sams_View::ClearReconstructionUI() {
     qDeleteAll(UI.widgetPutGUIHere->children());
   }
   layout = new QVBoxLayout(UI.widgetPutGUIHere);
+}
+
+// ------------------------ //
+// ---- Simulated Scan ---- //
+// ------------------------ //
+
+void Sams_View::ScanSimulationDropdownChanged(const QString & scanSimulationName) {
+  mitk::DataNode::Pointer potentialScanSimulation = this->GetDataStorage()->GetNamedNode(scanSimulationName.toStdString());
+  this->scanSimulationVolume = potentialScanSimulation;
+}
+
+void Sams_View::ScanSimulationSetPointCenter() {
+  if (scanSimulationVolume.IsNotNull()) {
+    mitk::Image::Pointer mitkSimulationVolume = Util::MitkImageFromNode(scanSimulationVolume);
+    UI.doubleSpinBoxScanPointX->setValue(mitkSimulationVolume->GetDimension(0) / 2.0);
+    UI.doubleSpinBoxScanPointY->setValue(mitkSimulationVolume->GetDimension(1) / 2.0);
+    UI.doubleSpinBoxScanPointZ->setValue(mitkSimulationVolume->GetDimension(2) / 2.0);
+  }
+}
+
+void Sams_View::ScanSimulationSetDirectionAxial() {
+  UI.doubleSpinBoxScanDirectionX->setValue(0.0);
+  UI.doubleSpinBoxScanDirectionY->setValue(1.0);
+  UI.doubleSpinBoxScanDirectionZ->setValue(0.0);
+}
+
+void Sams_View::ScanSimulationSetDirectionCoronal() {
+  UI.doubleSpinBoxScanDirectionX->setValue(0.0);
+  UI.doubleSpinBoxScanDirectionY->setValue(0.0);
+  UI.doubleSpinBoxScanDirectionZ->setValue(1.0);
+}
+
+void Sams_View::ScanSimulationSetDirectionSagittal() {
+  UI.doubleSpinBoxScanDirectionX->setValue(1.0);
+  UI.doubleSpinBoxScanDirectionY->setValue(0.0);
+  UI.doubleSpinBoxScanDirectionZ->setValue(0.0);
 }

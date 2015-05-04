@@ -105,6 +105,13 @@ class Sams_View : public QmitkAbstractView {
     void ReconstructGUI();
     void ReconstructGo();
 
+    // SCAN SIMULATION
+    void ScanSimulationDropdownChanged(const QString & scanName);
+    void ScanSimulationSetPointCenter();
+    void ScanSimulationSetDirectionAxial();
+    void ScanSimulationSetDirectionCoronal();
+    void ScanSimulationSetDirectionSagittal();
+
   protected:  
     virtual void SetFocus();
     virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source, const QList<mitk::DataNode::Pointer>& nodes);
@@ -127,6 +134,9 @@ class Sams_View : public QmitkAbstractView {
     unsigned int uncertaintyHeight;
     unsigned int uncertaintyWidth;
     unsigned int uncertaintyDepth;
+
+    // - Scan Simulation Volume
+    mitk::DataNode::Pointer scanSimulationVolume;
 
     // General
     void InitializeUI();
