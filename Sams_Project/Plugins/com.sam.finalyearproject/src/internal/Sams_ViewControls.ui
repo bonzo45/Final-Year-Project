@@ -50,7 +50,7 @@ font-weight: bold;</string>
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <property name="tabSpacing">
       <number>0</number>
@@ -210,7 +210,8 @@ font-weight: normal;</string>
             </property>
             <property name="styleSheet">
              <string notr="true">font-weight: bold;
-margin-left: 5px;</string>
+margin-left: 5px;
+margin-top: 4px;</string>
             </property>
             <property name="text">
              <string>SCAN CENTER:</string>
@@ -671,7 +672,8 @@ QPushButton:pressed {
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">font-size: 11pt;</string>
+       <string notr="true">font-size: 11pt;
+font-weight: normal;</string>
       </property>
       <attribute name="label">
        <string> Reconstruct</string>
@@ -688,6 +690,9 @@ QPushButton:pressed {
          <layout class="QVBoxLayout" name="verticalLayout_25">
           <item>
            <widget class="QLabel" name="labelReconstructionDescription">
+            <property name="styleSheet">
+             <string notr="true">font-size: 9pt;</string>
+            </property>
             <property name="text">
              <string>Performs GPU-accelerated construction of a super-resolution image from many slice stacks. Reconstruction code developed by Bernhard Kainz.</string>
             </property>
@@ -710,8 +715,11 @@ QPushButton:pressed {
           </item>
           <item>
            <widget class="QLabel" name="labelReconstructionExecutableTitle">
+            <property name="styleSheet">
+             <string notr="true">font-size: 20pt;</string>
+            </property>
             <property name="text">
-             <string>Where is the executable 'reconstruction_GPU2_wrapper'?</string>
+             <string>Find Executable</string>
             </property>
             <property name="textFormat">
              <enum>Qt::AutoText</enum>
@@ -721,6 +729,65 @@ QPushButton:pressed {
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelReconstructionDescription_3">
+            <property name="styleSheet">
+             <string notr="true">font-size: 9pt;</string>
+            </property>
+            <property name="text">
+             <string>Where is the executable &quot;reconstruction_GPU2_wrapper&quot;?</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::AutoText</enum>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelReconstructionExecutableError">
+            <property name="font">
+             <font>
+              <family>Quicksand</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font-size: 9pt;
+color: rgb(200, 0, 0);</string>
+            </property>
+            <property name="text">
+             <string>---- Sorry, that path doesn't appear to be valid. ----</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::AutoText</enum>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -753,6 +820,9 @@ QPushButton:pressed {
                  <height>50</height>
                 </size>
                </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 9pt;</string>
+               </property>
                <property name="lineWrapMode">
                 <enum>QPlainTextEdit::WidgetWidth</enum>
                </property>
@@ -765,21 +835,14 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="buttonReconstructGUI">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>50</height>
-                </size>
-               </property>
+              <widget class="QToolButton" name="buttonReconstructGUI">
                <property name="text">
-                <string>Find</string>
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset theme="system-search">
+                 <normaloff/>
+                </iconset>
                </property>
               </widget>
              </item>
@@ -787,9 +850,12 @@ QPushButton:pressed {
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="labelReconstructionExecutableError">
+           <widget class="QLabel" name="labelReconstructionExecutableTitle_2">
+            <property name="styleSheet">
+             <string notr="true">font-size: 20pt;</string>
+            </property>
             <property name="text">
-             <string>---- Sorry, that path doesn't appear to be valid. ----</string>
+             <string>Configure</string>
             </property>
             <property name="textFormat">
              <enum>Qt::AutoText</enum>
@@ -798,7 +864,7 @@ QPushButton:pressed {
              <bool>false</bool>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -822,13 +888,48 @@ QPushButton:pressed {
               <height>50</height>
              </size>
             </property>
+            <property name="styleSheet">
+             <string notr="true">ctkCollapsibleGroupBox {
+	font-size: 11pt;
+	font-weight: bold;
+}</string>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="buttonReconstructGo">
-            <property name="text">
-             <string>Reconstruct</string>
-            </property>
+           <widget class="QWidget" name="widget_7" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_23">
+             <item>
+              <widget class="QPushButton" name="buttonReconstructGo">
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+	background-color: rgb(0, 128, 0);
+	color: rgb(225, 225, 225);
+	font-size: 26pt;
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 240px;
+	max-height: 100px;
+	min-width: 240px;
+	min-height: 100px;
+	border-radius: 50px;
+    border-style: outset;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(0, 100, 0);
+}
+
+
+</string>
+               </property>
+               <property name="text">
+                <string>Reconstruct</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
           <item>
