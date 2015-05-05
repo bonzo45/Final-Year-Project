@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
-    <height>753</height>
+    <width>531</width>
+    <height>1030</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -50,7 +50,7 @@ font-weight: bold;</string>
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <property name="tabSpacing">
       <number>0</number>
@@ -60,8 +60,8 @@ font-weight: bold;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>402</width>
-        <height>606</height>
+        <width>531</width>
+        <height>883</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -578,21 +578,11 @@ QPushButton:pressed {
            </widget>
           </item>
           <item>
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>0</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
            <widget class="QWidget" name="widget_6" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_22">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QPushButton" name="buttonSimulateScan">
                <property name="sizePolicy">
@@ -604,13 +594,13 @@ QPushButton:pressed {
                <property name="minimumSize">
                 <size>
                  <width>244</width>
-                 <height>144</height>
+                 <height>104</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>244</width>
-                 <height>144</height>
+                 <height>104</height>
                 </size>
                </property>
                <property name="styleSheet">
@@ -620,10 +610,10 @@ QPushButton:pressed {
 	font-size: 26pt;
 	border: 2px solid rgb(128, 128, 128);
 	max-width: 240px;
-	max-height: 140px;
+	max-height: 100px;
 	min-width: 240px;
-	min-height: 140px;
-	border-radius: 70px;
+	min-height: 100px;
+	border-radius: 50px;
     border-style: outset;
 }
 
@@ -667,8 +657,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>402</width>
-        <height>606</height>
+        <width>531</width>
+        <height>883</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -817,7 +807,7 @@ color: rgb(200, 0, 0);</string>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>50</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="styleSheet">
@@ -899,6 +889,9 @@ color: rgb(200, 0, 0);</string>
           <item>
            <widget class="QWidget" name="widget_7" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_23">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QPushButton" name="buttonReconstructGo">
                <property name="styleSheet">
@@ -940,7 +933,7 @@ QPushButton:pressed {
             <property name="sizeHint" stdset="0">
              <size>
               <width>20</width>
-              <height>40</height>
+              <height>0</height>
              </size>
             </property>
            </spacer>
@@ -955,8 +948,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>476</width>
-        <height>918</height>
+        <width>518</width>
+        <height>1001</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -971,6 +964,10 @@ QPushButton:pressed {
        </property>
        <item>
         <widget class="QWidget" name="widgetVISUALIZATION" native="true">
+         <property name="styleSheet">
+          <string notr="true">font-size: 11pt;
+font-weight: normal;</string>
+         </property>
          <layout class="QVBoxLayout" name="verticalLayout_21">
           <property name="margin">
            <number>0</number>
@@ -992,6 +989,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label1Title">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 20pt;</string>
+                  </property>
                   <property name="text">
                    <string>1. Select Scan &amp; Uncertainty</string>
                   </property>
@@ -1001,9 +1001,26 @@ QPushButton:pressed {
                  <widget class="QPushButton" name="buttonToggleDebug">
                   <property name="maximumSize">
                    <size>
-                    <width>20</width>
-                    <height>20</height>
+                    <width>24</width>
+                    <height>24</height>
                    </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	max-width: 20px;
+	max-height: 20px;
+	min-width: 20px;
+	min-height: 20px;
+    border: 2px solid rgb(85, 85, 85);
+    border-style: outset;
+	border-radius: 5px;
+	font-size: 10pt;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	background-color: rgb(220, 220, 220)
+}</string>
                   </property>
                   <property name="text">
                    <string>*</string>
@@ -1014,9 +1031,26 @@ QPushButton:pressed {
                  <widget class="QPushButton" name="buttonMinimize1">
                   <property name="maximumSize">
                    <size>
-                    <width>20</width>
-                    <height>20</height>
+                    <width>24</width>
+                    <height>24</height>
                    </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	max-width: 20px;
+	max-height: 20px;
+	min-width: 20px;
+	min-height: 20px;
+    border: 2px solid rgb(85, 85, 85);
+    border-style: outset;
+	border-radius: 5px;
+	font-size: 10pt;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	background-color: rgb(220, 220, 220)
+}</string>
                   </property>
                   <property name="text">
                    <string>-</string>
@@ -1167,6 +1201,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label2Description">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 9pt;</string>
+                  </property>
                   <property name="text">
                    <string>Pick the volume images for your scan and uncertainty.</string>
                   </property>
@@ -1197,9 +1234,14 @@ QPushButton:pressed {
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>100</width>
+                       <width>120</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font-weight: bold;
+margin-left: 5px;
+margin-top: 4px;</string>
                      </property>
                      <property name="text">
                       <string>SCAN:</string>
@@ -1211,6 +1253,12 @@ QPushButton:pressed {
                    </item>
                    <item>
                     <widget class="QComboBox" name="comboBoxScan">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>30</height>
+                      </size>
+                     </property>
                      <property name="maximumSize">
                       <size>
                        <width>16777215</width>
@@ -1257,9 +1305,14 @@ QPushButton:pressed {
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>100</width>
+                       <width>120</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">font-weight: bold;
+margin-left: 5px;
+margin-top: 4px;</string>
                      </property>
                      <property name="text">
                       <string>UNCERTAINTY:</string>
@@ -1271,6 +1324,12 @@ QPushButton:pressed {
                    </item>
                    <item>
                     <widget class="QComboBox" name="comboBoxUncertainty">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>30</height>
+                      </size>
+                     </property>
                      <property name="maximumSize">
                       <size>
                        <width>16777215</width>
@@ -1312,6 +1371,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label_2">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 20pt;</string>
+                  </property>
                   <property name="text">
                    <string>2. Preprocess Uncertainty</string>
                   </property>
@@ -1322,8 +1384,23 @@ QPushButton:pressed {
                   <property name="maximumSize">
                    <size>
                     <width>50</width>
-                    <height>20</height>
+                    <height>24</height>
                    </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	max-height: 20px;
+	min-height: 20px;
+    border: 2px solid rgb(85, 85, 85);
+    border-style: outset;
+	border-radius: 5px;
+	font-size: 10pt;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	background-color: rgb(220, 220, 220)
+}</string>
                   </property>
                   <property name="text">
                    <string>Reset</string>
@@ -1334,9 +1411,26 @@ QPushButton:pressed {
                  <widget class="QPushButton" name="buttonMinimize2">
                   <property name="maximumSize">
                    <size>
-                    <width>20</width>
-                    <height>20</height>
+                    <width>24</width>
+                    <height>24</height>
                    </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	max-width: 20px;
+	max-height: 20px;
+	min-width: 20px;
+	min-height: 20px;
+    border: 2px solid rgb(85, 85, 85);
+    border-style: outset;
+	border-radius: 5px;
+	font-size: 10pt;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	background-color: rgb(220, 220, 220)
+}</string>
                   </property>
                   <property name="text">
                    <string>-</string>
@@ -1354,6 +1448,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label_3">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 9pt;</string>
+                  </property>
                   <property name="text">
                    <string>Preprocessing is applied to the uncertainty before visualisation.</string>
                   </property>
@@ -1566,9 +1663,32 @@ QPushButton:pressed {
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>16777215</width>
-                       <height>16777215</height>
+                       <width>244</width>
+                       <height>54</height>
                       </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton {
+	background-color: rgb(0, 0, 128);
+	color: rgb(225, 225, 225);
+	font-size: 26pt;
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 240px;
+	max-height: 50px;
+	min-width: 240px;
+	min-height: 50px;
+	border-radius: 25px;
+    border-style: outset;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(0, 0, 100);
+}
+
+
+</string>
                      </property>
                      <property name="text">
                       <string>Confirm</string>
@@ -1604,6 +1724,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label2">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 20pt;</string>
+                  </property>
                   <property name="text">
                    <string>3. Visualise Uncertainty</string>
                   </property>
@@ -1613,9 +1736,26 @@ QPushButton:pressed {
                  <widget class="QPushButton" name="buttonMinimize3">
                   <property name="maximumSize">
                    <size>
-                    <width>20</width>
-                    <height>20</height>
+                    <width>24</width>
+                    <height>24</height>
                    </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	max-width: 20px;
+	max-height: 20px;
+	min-width: 20px;
+	min-height: 20px;
+    border: 2px solid rgb(85, 85, 85);
+    border-style: outset;
+	border-radius: 5px;
+	font-size: 10pt;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	background-color: rgb(220, 220, 220)
+}</string>
                   </property>
                   <property name="text">
                    <string>-</string>
@@ -1633,6 +1773,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label_10">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 9pt;</string>
+                  </property>
                   <property name="text">
                    <string>Click 'Confirm' above, then start visualising.</string>
                   </property>
@@ -1659,7 +1802,7 @@ QPushButton:pressed {
                    <enum>QTabWidget::Rounded</enum>
                   </property>
                   <property name="currentIndex">
-                   <number>3</number>
+                   <number>2</number>
                   </property>
                   <widget class="QWidget" name="tab3a">
                    <attribute name="title">
@@ -1671,10 +1814,13 @@ QPushButton:pressed {
                       <property name="font">
                        <font>
                         <family>Quicksand</family>
-                        <pointsize>11</pointsize>
-                        <weight>75</weight>
-                        <bold>true</bold>
+                        <pointsize>9</pointsize>
+                        <weight>50</weight>
+                        <bold>false</bold>
                        </font>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
                       </property>
                       <property name="text">
                        <string>Allows you to view areas of uncertainty in a specific range.</string>
@@ -1958,10 +2104,13 @@ QPushButton:pressed {
                       <property name="font">
                        <font>
                         <family>Quicksand</family>
-                        <pointsize>11</pointsize>
-                        <weight>75</weight>
-                        <bold>true</bold>
+                        <pointsize>9</pointsize>
+                        <weight>50</weight>
+                        <bold>false</bold>
                        </font>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
                       </property>
                       <property name="text">
                        <string>Shows the uncertainty on a sphere by generating a texture.</string>
@@ -2139,10 +2288,45 @@ QPushButton:pressed {
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="buttonSphere">
-                      <property name="text">
-                       <string>Visualise</string>
-                      </property>
+                     <widget class="QWidget" name="widget_9" native="true">
+                      <layout class="QHBoxLayout" name="horizontalLayout_24">
+                       <property name="spacing">
+                        <number>6</number>
+                       </property>
+                       <property name="margin">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QPushButton" name="buttonSphere">
+                         <property name="styleSheet">
+                          <string notr="true">QPushButton {
+	background-color: rgb(0, 128, 0);
+	color: rgb(225, 225, 225);
+	font-size: 26pt;
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 240px;
+	max-height: 50px;
+	min-width: 240px;
+	min-height: 50px;
+	border-radius: 25px;
+    border-style: outset;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(0, 100, 0);
+}
+
+
+</string>
+                         </property>
+                         <property name="text">
+                          <string>Visualise</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
                      </widget>
                     </item>
                     <item>
@@ -2166,23 +2350,17 @@ QPushButton:pressed {
                    </attribute>
                    <layout class="QVBoxLayout" name="verticalLayout_13">
                     <item>
-                     <widget class="QWidget" name="widget_8" native="true">
-                      <layout class="QHBoxLayout" name="horizontalLayout_15">
-                       <property name="margin">
-                        <number>0</number>
-                       </property>
-                      </layout>
-                     </widget>
-                    </item>
-                    <item>
                      <widget class="QLabel" name="label_4">
                       <property name="font">
                        <font>
                         <family>Quicksand</family>
-                        <pointsize>11</pointsize>
-                        <weight>75</weight>
-                        <bold>true</bold>
+                        <pointsize>9</pointsize>
+                        <weight>50</weight>
+                        <bold>false</bold>
                        </font>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
                       </property>
                       <property name="text">
                        <string>Maps the uncertainty to a surface model.</string>
@@ -2216,8 +2394,8 @@ QPushButton:pressed {
                           <font>
                            <family>Quicksand</family>
                            <pointsize>11</pointsize>
-                           <weight>75</weight>
-                           <bold>true</bold>
+                           <weight>50</weight>
+                           <bold>false</bold>
                           </font>
                          </property>
                          <property name="text">
@@ -2230,6 +2408,12 @@ QPushButton:pressed {
                        </item>
                        <item>
                         <widget class="QComboBox" name="comboBoxSurface">
+                         <property name="minimumSize">
+                          <size>
+                           <width>0</width>
+                           <height>30</height>
+                          </size>
+                         </property>
                          <property name="maximumSize">
                           <size>
                            <width>16777215</width>
@@ -2287,8 +2471,8 @@ QPushButton:pressed {
                             <font>
                              <family>Quicksand</family>
                              <pointsize>11</pointsize>
-                             <weight>75</weight>
-                             <bold>true</bold>
+                             <weight>50</weight>
+                             <bold>false</bold>
                             </font>
                            </property>
                            <property name="text">
@@ -2384,10 +2568,42 @@ QPushButton:pressed {
                      </layout>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="buttonSurfaceMapping">
-                      <property name="text">
-                       <string>Visualise</string>
-                      </property>
+                     <widget class="QWidget" name="widget_10" native="true">
+                      <layout class="QHBoxLayout" name="horizontalLayout_26">
+                       <property name="margin">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QPushButton" name="buttonSurfaceMapping">
+                         <property name="styleSheet">
+                          <string notr="true">QPushButton {
+	background-color: rgb(0, 128, 0);
+	color: rgb(225, 225, 225);
+	font-size: 26pt;
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 240px;
+	max-height: 50px;
+	min-width: 240px;
+	min-height: 50px;
+	border-radius: 25px;
+    border-style: outset;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(0, 100, 0);
+}
+
+
+</string>
+                         </property>
+                         <property name="text">
+                          <string>Visualise</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
                      </widget>
                     </item>
                    </layout>
@@ -2399,6 +2615,29 @@ QPushButton:pressed {
                    <layout class="QHBoxLayout" name="horizontalLayout_25">
                     <item>
                      <widget class="QPushButton" name="buttonNextScanPlane">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+	background-color: rgb(0, 0, 128);
+	color: rgb(225, 225, 225);
+	font-size: 26pt;
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 240px;
+	max-height: 50px;
+	min-width: 240px;
+	min-height: 50px;
+	border-radius: 25px;
+    border-style: outset;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(0, 0, 100);
+}
+
+
+</string>
+                      </property>
                       <property name="text">
                        <string>Go</string>
                       </property>
@@ -2433,6 +2672,9 @@ QPushButton:pressed {
                 </property>
                 <item>
                  <widget class="QLabel" name="label4Title">
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 20pt;</string>
+                  </property>
                   <property name="text">
                    <string>4. Options</string>
                   </property>
@@ -2442,9 +2684,26 @@ QPushButton:pressed {
                  <widget class="QPushButton" name="buttonMinimize4">
                   <property name="maximumSize">
                    <size>
-                    <width>20</width>
-                    <height>20</height>
+                    <width>24</width>
+                    <height>24</height>
                    </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	max-width: 20px;
+	max-height: 20px;
+	min-width: 20px;
+	min-height: 20px;
+    border: 2px solid rgb(85, 85, 85);
+    border-style: outset;
+	border-radius: 5px;
+	font-size: 10pt;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	background-color: rgb(220, 220, 220)
+}</string>
                   </property>
                   <property name="text">
                    <string>-</string>

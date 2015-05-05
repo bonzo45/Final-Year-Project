@@ -1295,6 +1295,7 @@ void Sams_View::ClearReconstructionUI() {
     qDeleteAll(UI.widgetPutGUIHere->children());
   }
   layout = new QVBoxLayout(UI.widgetPutGUIHere);
+  layout->setContentsMargins(0, 0, 0, 0);
 }
 
 // ------------------------ //
