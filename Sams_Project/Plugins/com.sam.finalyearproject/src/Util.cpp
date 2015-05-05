@@ -62,6 +62,14 @@ vtkVector<float, 3> Util::vectorScale(vtkVector<float, 3> a, float b) {
   return c;  
 }
 
+vtkVector<double, 3> Util::vectorScale(vtkVector<double, 3> a, double b) {
+  vtkVector<double, 3> c = vtkVector<double, 3>();
+  c[0] = a[0] * b;
+  c[1] = a[1] * b;
+  c[2] = a[2] * b;
+  return c;
+}
+
 vtkVector<float, 3> Util::vectorCross(vtkVector<float, 3> a, vtkVector<float, 3> b) {
   vtkVector<float, 3> c = vtkVector<float, 3>();
   c[0] = a[1] * b[2] - a[2] * b[1];

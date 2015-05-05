@@ -10,6 +10,7 @@ set(SRC_CPP_FILES
   RANSACScanPlaneGenerator.cpp
   SVDScanPlaneGenerator.cpp
   ColourLegendOverlay.cpp
+  ScanSimulator.cpp
 )
 
 set(INTERNAL_CPP_FILES

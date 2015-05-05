@@ -111,6 +111,7 @@ class Sams_View : public QmitkAbstractView {
     void ScanSimulationSetDirectionAxial();
     void ScanSimulationSetDirectionCoronal();
     void ScanSimulationSetDirectionSagittal();
+    void ScanSimulationSimulateScan();
 
   protected:  
     virtual void SetFocus();

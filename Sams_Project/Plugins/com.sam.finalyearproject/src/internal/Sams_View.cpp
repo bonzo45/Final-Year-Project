@@ -19,6 +19,7 @@
 #include "RANSACScanPlaneGenerator.h"
 #include "SVDScanPlaneGenerator.h"
 #include "ColourLegendOverlay.h"
+#include "ScanSimulator.h"
 
 // MITK Interaction
 #include <mitkIRenderWindowPart.h>
@@ -153,6 +154,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDirectionAxial, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionAxial()));
   connect(UI.buttonDirectionCoronal, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionCoronal()));
   connect(UI.buttonDirectionSagittal, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionSagittal()));
+  connect(UI.buttonSimulateScan, SIGNAL(clicked()), this, SLOT(ScanSimulationSimulateScan()));
   
   InitializeUI();
 }
@@ -1317,19 +1319,87 @@ void Sams_View::ScanSimulationSetPointCenter() {
 }
 
 void Sams_View::ScanSimulationSetDirectionAxial() {
-  UI.doubleSpinBoxScanDirectionX->setValue(0.0);
-  UI.doubleSpinBoxScanDirectionY->setValue(1.0);
-  UI.doubleSpinBoxScanDirectionZ->setValue(0.0);
+  // X is X
+  UI.doubleSpinBoxScanXAxisX->setValue(1.0);
+  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
+  UI.doubleSpinBoxScanXAxisZ->setValue(0.0);
+
+  // Y is -Z
+  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
+  UI.doubleSpinBoxScanYAxisY->setValue(0.0);
+  UI.doubleSpinBoxScanYAxisZ->setValue(-1.0);
+
+  // Z is Y
+  UI.doubleSpinBoxScanZAxisX->setValue(0.0);
+  UI.doubleSpinBoxScanZAxisY->setValue(1.0);
+  UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
 }
 
 void Sams_View::ScanSimulationSetDirectionCoronal() {
-  UI.doubleSpinBoxScanDirectionX->setValue(0.0);
-  UI.doubleSpinBoxScanDirectionY->setValue(0.0);
-  UI.doubleSpinBoxScanDirectionZ->setValue(1.0);
+  // X is X
+  UI.doubleSpinBoxScanXAxisX->setValue(1.0);
+  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
+  UI.doubleSpinBoxScanXAxisZ->setValue(0.0);
+
+  // Y is Y
+  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
+  UI.doubleSpinBoxScanYAxisY->setValue(1.0);
+  UI.doubleSpinBoxScanYAxisZ->setValue(0.0);
+
+  // Z is Z
+  UI.doubleSpinBoxScanZAxisX->setValue(0.0);
+  UI.doubleSpinBoxScanZAxisY->setValue(0.0);
+  UI.doubleSpinBoxScanZAxisZ->setValue(1.0);
 }
 
 void Sams_View::ScanSimulationSetDirectionSagittal() {
-  UI.doubleSpinBoxScanDirectionX->setValue(1.0);
-  UI.doubleSpinBoxScanDirectionY->setValue(0.0);
-  UI.doubleSpinBoxScanDirectionZ->setValue(0.0);
+  // X is -Z
+  UI.doubleSpinBoxScanXAxisX->setValue(0.0);
+  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
+  UI.doubleSpinBoxScanXAxisZ->setValue(-1.0);
+
+  // Y is Y
+  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
+  UI.doubleSpinBoxScanYAxisY->setValue(1.0);
+  UI.doubleSpinBoxScanYAxisZ->setValue(0.0);
+
+  // Z is X
+  UI.doubleSpinBoxScanZAxisX->setValue(1.0);
+  UI.doubleSpinBoxScanZAxisY->setValue(0.0);
+  UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
+}
+
+void Sams_View::ScanSimulationSimulateScan() {
+  vtkVector<float, 3> xAxis = vtkVector<float, 3>();
+  xAxis[0] = UI.doubleSpinBoxScanXAxisX->value();
+  xAxis[1] = UI.doubleSpinBoxScanXAxisY->value();
+  xAxis[2] = UI.doubleSpinBoxScanXAxisZ->value();
+
+  vtkVector<float, 3> yAxis = vtkVector<float, 3>();
+  yAxis[0] = UI.doubleSpinBoxScanYAxisX->value();
+  yAxis[1] = UI.doubleSpinBoxScanYAxisY->value();
+  yAxis[2] = UI.doubleSpinBoxScanYAxisZ->value();
+
+  vtkVector<float, 3> zAxis = vtkVector<float, 3>();
+  zAxis[0] = UI.doubleSpinBoxScanZAxisX->value();
+  zAxis[1] = UI.doubleSpinBoxScanZAxisY->value();
+  zAxis[2] = UI.doubleSpinBoxScanZAxisZ->value();
+
+  vtkVector<float, 3> center = vtkVector<float, 3>();
+  center[0] = UI.doubleSpinBoxScanPointX->value();
+  center[1] = UI.doubleSpinBoxScanPointY->value();
+  center[2] = UI.doubleSpinBoxScanPointZ->value();
+
+  ScanSimulator * simulator = new ScanSimulator();
+  simulator->setVolume(GetMitkScan());
+  simulator->setScanAxes(xAxis, yAxis, zAxis);
+  simulator->setScanResolution(1.0, 1.0, 2.0);
+  simulator->setScanSize(160, 90, 10);
+  simulator->setMotionCorruption(true);
+  simulator->setScanCenter(center);
+
+  mitk::Image::Pointer sliceStack = simulator->scan();
+
+  // Store it as a DataNode.
+  mitk::DataNode::Pointer cubeNode = SaveDataNode("Slice Stack", sliceStack, true);
 }
