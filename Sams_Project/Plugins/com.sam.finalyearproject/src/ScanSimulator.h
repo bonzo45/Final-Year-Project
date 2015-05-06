@@ -30,7 +30,7 @@ class ScanSimulator {
 
     vtkVector<float, 3> scanToVolumePosition(unsigned int w, unsigned int h, unsigned int s);
     vtkSmartPointer<vtkTransform> generateRandomMotion();
-    std::list<vtkSmartPointer<vtkTransform> > * generateRandomMotionSequence();
+    std::list<vtkSmartPointer<vtkTransform> > * generateRandomMotionSequence(unsigned int steps);
 
     template <typename TPixel, unsigned int VImageDimension>
     void ItkInterpolateValue(itk::Image<TPixel, VImageDimension>* itkImage, vtkVector<float, 3> position, double & value);

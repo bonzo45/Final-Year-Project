@@ -77,15 +77,37 @@ mitk::Image::Pointer ScanSimulator::scan() {
   scan->SetRegions(region);
   scan->Allocate();
 
+  // Compute motion corruption.
+  std::list<vtkSmartPointer<vtkTransform> > * motion;
+  std::list<vtkSmartPointer<vtkTransform> >::iterator motionIterator;
+  if (motionCorruptionOn) {
+    motion = generateRandomMotionSequence(numSlices);
+    motionIterator = motion->begin();
+    std::cout << "Motion: " << *motionIterator << endl;
+    for (std::list<vtkSmartPointer<vtkTransform> >::iterator it = motion->begin(); it != motion->end(); ++it)
+      std::cout << ' ' << *it;
+    std::cout << endl;
+  }
+
   // Go through each slice.
   for (unsigned int s = 0; s < scanSize[2]; s++) {
     cout << "Slice (" << s << ")" << endl;
+    vtkSmartPointer<vtkTransform> movement;
+    if (motionCorruptionOn) {
+      movement = *motionIterator;
+      motionIterator++;
+    }
     // Go through pixels within a slice.
     for (unsigned int w = 0; w < scanSize[0]; w++) {
       for (unsigned int h = 0; h < scanSize[1]; h++) {
         // cout << " - (" << w << ", " << h << ")" << endl;
         // Convert the slice pixel to coordinates in the volume.
         vtkVector<float, 3> volumePosition = scanToVolumePosition(w, h, s);
+
+        if (motionCorruptionOn) {
+          movement->TransformPoint(&(volumePosition[0]), &(volumePosition[0]));
+        }
+
         double volumeValue;
         AccessByItk_2(this->volume, ItkInterpolateValue, volumePosition, volumeValue);
 
@@ -105,7 +127,7 @@ mitk::Image::Pointer ScanSimulator::scan() {
   return result;
 }
 
-vtkSmartPointer<vtkTransform> generateRandomMotion() {
+vtkSmartPointer<vtkTransform> ScanSimulator::generateRandomMotion() {
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->RotateWXYZ(
     (rand() % 90) * (rand() % 90) / 90,   // Angle to rotate by. Between 0 and 90. Biased towards lower values?
@@ -117,10 +139,11 @@ vtkSmartPointer<vtkTransform> generateRandomMotion() {
   return transform;
 }
 
-std::list<vtkSmartPointer<vtkTransform> > * generateRandomMotionSequence(unsigned int steps) {
+std::list<vtkSmartPointer<vtkTransform> > * ScanSimulator::generateRandomMotionSequence(unsigned int steps) {
   std::list<vtkSmartPointer<vtkTransform> > * list = new std::list<vtkSmartPointer<vtkTransform> >();
   for (unsigned int i = 0; i < steps; i++) {
-    list->push_back(generateRandomMotion());
+    vtkSmartPointer<vtkTransform> movement = generateRandomMotion();
+    list->push_back(movement);
   }
 
   return list;
