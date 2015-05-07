@@ -129,9 +129,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
 
   // UI
-  connect(UI.buttonMinimize1, SIGNAL(clicked()), this, SLOT(ToggleMinimize1()));
-  connect(UI.buttonMinimize2, SIGNAL(clicked()), this, SLOT(ToggleMinimize2()));
-  connect(UI.buttonMinimize3, SIGNAL(clicked()), this, SLOT(ToggleMinimize3()));
   connect(UI.buttonMinimize4, SIGNAL(clicked()), this, SLOT(ToggleMinimize4()));
   connect(UI.buttonReset2, SIGNAL(clicked()), this, SLOT(ResetPreprocessingSettings()));
 
@@ -141,7 +138,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebugCube, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonDebugSphere, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
   connect(UI.buttonDebugQuadSphere, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
-  connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
+  connect(UI.buttonVolumeRenderThreshold, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
   connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(DebugOverlay()));
 
   // RECONSTRUCTION
@@ -167,6 +164,9 @@ void Sams_View::InitializeUI() {
   // Hide Debug Widget.
   UI.widgetDebug->setVisible(false);
 
+  // Hide Options Widget
+  UI.widget4Minimizable->setVisible(false);
+
   // Initialize Drop-Down boxes.
   UpdateSelectionDropDowns();
 
@@ -182,18 +182,6 @@ void Sams_View::InitializeUI() {
   // ---- Reconstruction ---- //
   // Hide Reconstruction Error
   UI.labelReconstructionExecutableError->setVisible(false);
-}
-
-void Sams_View::ToggleMinimize1() {
-  UI.widget1Minimizable->setVisible(!UI.widget1Minimizable->isVisible());
-}
-
-void Sams_View::ToggleMinimize2() {
-  UI.widget2Minimizable->setVisible(!UI.widget2Minimizable->isVisible());
-}
-
-void Sams_View::ToggleMinimize3() {
-  UI.widget3Minimizable->setVisible(!UI.widget3Minimizable->isVisible());
 }
 
 void Sams_View::ToggleMinimize4() {
@@ -1394,8 +1382,9 @@ void Sams_View::ScanSimulationSimulateScan() {
   simulator->setVolume(GetMitkScan());
   simulator->setScanAxes(xAxis, yAxis, zAxis);
   simulator->setScanResolution(1.0, 1.0, 2.0);
-  simulator->setScanSize(160, 90, 10);
-  simulator->setMotionCorruption(true);
+  simulator->setScanSize(160, 160, 10);
+  simulator->setMotionCorruption(UI.checkBoxMotionCorruptionEnabled->isChecked());
+  simulator->setMotionCorruptionMaxAngle(UI.spinBoxMotionCorruptionAngle->value());
   simulator->setScanCenter(center);
 
   mitk::Image::Pointer sliceStack = simulator->scan();

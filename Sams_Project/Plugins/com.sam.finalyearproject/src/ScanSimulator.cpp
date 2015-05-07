@@ -5,8 +5,14 @@
 #include <mitkImageCast.h>
 #include <itkLinearInterpolateImageFunction.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 void ScanSimulator::setVolume(mitk::Image::Pointer volume) {
   this->volume = volume;
+  this->volumeHeight = volume->GetDimension(0);
+  this->volumeWidth = volume->GetDimension(1);
+  this->volumeDepth = volume->GetDimension(2);
 }
 
 void ScanSimulator::setScanOrigin(vtkVector<float, 3> origin) {
@@ -46,6 +52,10 @@ void ScanSimulator::setMotionCorruption(bool corruption) {
   this->motionCorruptionOn = corruption;
 }
 
+void ScanSimulator::setMotionCorruptionMaxAngle(double angle) {
+  this->motionCorruptionMaxAngle = angle;
+}
+
 vtkVector<float, 3> ScanSimulator::scanToVolumePosition(unsigned int w, unsigned int h, unsigned int s) {
   vtkVector<float, 3> position = scanOrigin;
 
@@ -53,6 +63,8 @@ vtkVector<float, 3> ScanSimulator::scanToVolumePosition(unsigned int w, unsigned
   position = Util::vectorAdd(position, Util::vectorScale(xDirection, w * xResolution));
   position = Util::vectorAdd(position, Util::vectorScale(yDirection, h * yResolution));
   position = Util::vectorAdd(position, Util::vectorScale(zDirection, s * zResolution));
+
+  std::cout << "(" << w << ", " << h << ", " << s << ") became (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
 
   return position;
 }
@@ -63,12 +75,14 @@ mitk::Image::Pointer ScanSimulator::scan() {
   ScanImageType::IndexType start;
   start[0] = 0;
   start[1] = 0;
-  start[2] = 0; 
+  start[2] = 0;
 
   ScanImageType::SizeType scanSize;
   scanSize[0] = scanWidth;
   scanSize[1] = scanHeight;
   scanSize[2] = numSlices;
+
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(scanSize[2] + 2);
 
   region.SetSize(scanSize);
   region.SetIndex(start);
@@ -76,6 +90,7 @@ mitk::Image::Pointer ScanSimulator::scan() {
   ScanImageType::Pointer scan = ScanImageType::New();
   scan->SetRegions(region);
   scan->Allocate();
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // Compute motion corruption.
   std::list<vtkSmartPointer<vtkTransform> > * motion;
@@ -88,6 +103,8 @@ mitk::Image::Pointer ScanSimulator::scan() {
       std::cout << ' ' << *it;
     std::cout << endl;
   }
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // Go through each slice.
   for (unsigned int s = 0; s < scanSize[2]; s++) {
@@ -102,14 +119,17 @@ mitk::Image::Pointer ScanSimulator::scan() {
       for (unsigned int h = 0; h < scanSize[1]; h++) {
         // cout << " - (" << w << ", " << h << ")" << endl;
         // Convert the slice pixel to coordinates in the volume.
-        vtkVector<float, 3> volumePosition = scanToVolumePosition(w, h, s);
+        vtkVector<float, 3> volumePosition = scanToVolumePosition(h, w, s);
 
         if (motionCorruptionOn) {
           movement->TransformPoint(&(volumePosition[0]), &(volumePosition[0]));
         }
 
-        double volumeValue;
-        AccessByItk_2(this->volume, ItkInterpolateValue, volumePosition, volumeValue);
+        double volumeValue = -1.0;
+        if (volumePosition[0] >= 0 && volumePosition[1] >= 0 && volumePosition[2] >= 0 &&
+            volumePosition[0] < volumeHeight && volumePosition[1] < volumeWidth && volumePosition[2] < volumeDepth) {
+          AccessByItk_2(this->volume, ItkInterpolateValue, volumePosition, volumeValue);
+        }
 
         ScanImageType::IndexType pixelIndex;
         pixelIndex[0] = w;
@@ -119,6 +139,7 @@ mitk::Image::Pointer ScanSimulator::scan() {
         scan->SetPixel(pixelIndex, volumeValue);
       }
     }
+    mitk::ProgressBar::GetInstance()->Progress();
   }
 
   // Convert from ITK to MITK.
@@ -130,8 +151,8 @@ mitk::Image::Pointer ScanSimulator::scan() {
 vtkSmartPointer<vtkTransform> ScanSimulator::generateRandomMotion() {
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->RotateWXYZ(
-    (rand() % 90) * (rand() % 90) / 90,   // Angle to rotate by. Between 0 and 90. Biased towards lower values?
-    rand() % 100,                         // Pick a random axis to rotate about.
+    ((double)rand() / RAND_MAX) * motionCorruptionMaxAngle,   // Random value between 0 and motionCorruptionMaxAngle
+    rand() % 100,         // Pick a random axis to rotate about.
     rand() % 100,
     rand() % 100
   );
