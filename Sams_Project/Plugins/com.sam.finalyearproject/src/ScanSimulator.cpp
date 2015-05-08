@@ -64,7 +64,9 @@ vtkVector<float, 3> ScanSimulator::scanToVolumePosition(unsigned int w, unsigned
   position = Util::vectorAdd(position, Util::vectorScale(yDirection, h * yResolution));
   position = Util::vectorAdd(position, Util::vectorScale(zDirection, s * zResolution));
 
-  std::cout << "(" << w << ", " << h << ", " << s << ") became (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+  if (DEBUGGING) {
+    std::cout << "(" << w << ", " << h << ", " << s << ") became (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+  }
 
   return position;
 }
@@ -82,7 +84,7 @@ mitk::Image::Pointer ScanSimulator::scan() {
   scanSize[1] = scanHeight;
   scanSize[2] = numSlices;
 
-  mitk::ProgressBar::GetInstance()->AddStepsToDo(scanSize[2] + 2);
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(scanSize[2]*scanSize[0] + 2);
 
   region.SetSize(scanSize);
   region.SetIndex(start);
@@ -98,17 +100,22 @@ mitk::Image::Pointer ScanSimulator::scan() {
   if (motionCorruptionOn) {
     motion = generateRandomMotionSequence(numSlices);
     motionIterator = motion->begin();
-    std::cout << "Motion: " << *motionIterator << endl;
-    for (std::list<vtkSmartPointer<vtkTransform> >::iterator it = motion->begin(); it != motion->end(); ++it)
-      std::cout << ' ' << *it;
-    std::cout << endl;
+    if (DEBUGGING) {
+      std::cout << "Motion: " << *motionIterator << endl;
+      for (std::list<vtkSmartPointer<vtkTransform> >::iterator it = motion->begin(); it != motion->end(); ++it) {
+        std::cout << ' ' << *it;
+      }
+      std::cout << endl;
+    }
   }
 
   mitk::ProgressBar::GetInstance()->Progress();
 
   // Go through each slice.
   for (unsigned int s = 0; s < scanSize[2]; s++) {
-    cout << "Slice (" << s << ")" << endl;
+    if (DEBUGGING) {
+      cout << "Slice (" << s << ")" << endl;
+    }
     vtkSmartPointer<vtkTransform> movement;
     if (motionCorruptionOn) {
       movement = *motionIterator;
@@ -117,7 +124,6 @@ mitk::Image::Pointer ScanSimulator::scan() {
     // Go through pixels within a slice.
     for (unsigned int w = 0; w < scanSize[0]; w++) {
       for (unsigned int h = 0; h < scanSize[1]; h++) {
-        // cout << " - (" << w << ", " << h << ")" << endl;
         // Convert the slice pixel to coordinates in the volume.
         vtkVector<float, 3> volumePosition = scanToVolumePosition(h, w, s);
 
@@ -138,8 +144,8 @@ mitk::Image::Pointer ScanSimulator::scan() {
 
         scan->SetPixel(pixelIndex, volumeValue);
       }
+      mitk::ProgressBar::GetInstance()->Progress();
     }
-    mitk::ProgressBar::GetInstance()->Progress();
   }
 
   // Convert from ITK to MITK.

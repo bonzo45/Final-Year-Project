@@ -37,6 +37,8 @@ class ScanSimulator {
 
     template <typename TPixel, unsigned int VImageDimension>
     void ItkInterpolateValue(itk::Image<TPixel, VImageDimension>* itkImage, vtkVector<float, 3> position, double & value);
+
+    static const bool DEBUGGING = false;
 };
 
 #endif

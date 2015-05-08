@@ -182,6 +182,7 @@ void Sams_View::InitializeUI() {
   // ---- Reconstruction ---- //
   // Hide Reconstruction Error
   UI.labelReconstructExecutableError->setVisible(false);
+  UI.labelReconstructExecutableSuccess->setVisible(false);
 }
 
 void Sams_View::ToggleMinimize4() {
@@ -1175,6 +1176,7 @@ void Sams_View::DebugOverlay() {
 
 #include <QPlainTextEdit>
 
+#include <QFileDialog>
 
 ctkCmdLineModuleManager* moduleManager;
 ctkCmdLineModuleBackend* processBackend;
@@ -1198,7 +1200,8 @@ void Sams_View::ReconstructGUI() {
   // Register the back-end with the module manager.
   moduleManager->registerBackend(processBackend);
 
-  const QString reconstructionExecutableName = UI.textEditReconstructionExecutablePath->toPlainText();
+  const QString reconstructionExecutableName = QFileDialog::getOpenFileName(UI.widgetReconstructExecutableWrapper, tr("Where is reconstruction_GPU2_wrapper?"), "~");
+  UI.textEditReconstructionExecutablePath->setPlainText(reconstructionExecutableName);
 
   // REGISTER
   ctkCmdLineModuleReference moduleRef;
@@ -1225,10 +1228,12 @@ void Sams_View::ReconstructGUI() {
   if (!moduleValid) {
     ClearReconstructionUI();
     UI.labelReconstructExecutableError->setVisible(true);
+    UI.labelReconstructExecutableSuccess->setVisible(false);
     return;
   }
   else {
     UI.labelReconstructExecutableError->setVisible(false);
+    UI.labelReconstructExecutableSuccess->setVisible(true);
   }
 
   // FRONTEND
@@ -1383,7 +1388,7 @@ void Sams_View::ScanSimulationSimulateScan() {
   simulator->setVolume(GetMitkScan());
   simulator->setScanAxes(xAxis, yAxis, zAxis);
   simulator->setScanResolution(1.0, 1.0, 2.0);
-  simulator->setScanSize(160, 160, 10);
+  simulator->setScanSize(UI.spinBoxScanDimensionX->value(), UI.spinBoxScanDimensionY->value(), UI.spinBoxScanDimensionZ->value());
   simulator->setMotionCorruption(UI.checkBoxMotionCorruptionEnabled->isChecked());
   simulator->setMotionCorruptionMaxAngle(UI.spinBoxMotionCorruptionAngle->value());
   simulator->setScanCenter(center);

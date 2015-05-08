@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>456</width>
-    <height>668</height>
+    <width>405</width>
+    <height>1036</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -50,7 +50,7 @@ font-weight: bold;</string>
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -60,8 +60,8 @@ font-weight: bold;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>456</width>
-        <height>548</height>
+        <width>405</width>
+        <height>916</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -112,15 +112,15 @@ font-weight: normal;</string>
           <item>
            <widget class="QToolBox" name="toolBoxScan">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="pageScanSelect">
              <property name="geometry">
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>438</width>
-               <height>433</height>
+               <width>387</width>
+               <height>801</height>
               </rect>
              </property>
              <attribute name="label">
@@ -229,21 +229,21 @@ font-weight: normal;</string>
                    </layout>
                   </widget>
                  </item>
+                 <item>
+                  <spacer name="verticalSpacerScanSelect">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacerScanSelect">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
              </layout>
             </widget>
@@ -251,9 +251,9 @@ font-weight: normal;</string>
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>-26</y>
-               <width>425</width>
-               <height>510</height>
+               <y>0</y>
+               <width>387</width>
+               <height>801</height>
               </rect>
              </property>
              <attribute name="label">
@@ -273,7 +273,32 @@ font-weight: normal;</string>
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="labelSCAN_3">
+                  <widget class="QLabel" name="labelScanConfigureDescription">
+                   <property name="styleSheet">
+                    <string notr="true">font-size: 9pt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Adjust the scan settings and press scan to generate a slice stack.</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::AutoText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelSCAN_11">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -294,17 +319,197 @@ font-weight: normal;</string>
                    </property>
                    <property name="styleSheet">
                     <string notr="true">font-weight: bold;
-margin-left: 5px;
 margin-top: 4px;</string>
+                   </property>
+                   <property name="text">
+                    <string>SCAN DIMENSIONS:</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelReconstructionDescription_9">
+                   <property name="styleSheet">
+                    <string notr="true">font-size: 9pt;</string>
+                   </property>
+                   <property name="text">
+                    <string>Width, Height &amp; Depth (Number of Slices).</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::AutoText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget1Scan_8" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_38">
+                    <property name="margin">
+                     <number>9</number>
+                    </property>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanDimensionX">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>160</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanDimensionY">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>160</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanDimensionZ">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>10</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="labelReconstructionDescription_10">
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
+                      </property>
+                      <property name="text">
+                       <string>(pixels)</string>
+                      </property>
+                      <property name="textFormat">
+                       <enum>Qt::AutoText</enum>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>false</bool>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
+                      <property name="textInteractionFlags">
+                       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_10">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelSCAN_9">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>140</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font-weight: bold;</string>
                    </property>
                    <property name="text">
                     <string>SCAN CENTER:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="margin">
-                    <number>0</number>
                    </property>
                   </widget>
                  </item>
@@ -480,8 +685,7 @@ QPushButton:pressed {
                     </size>
                    </property>
                    <property name="styleSheet">
-                    <string notr="true">font-weight: bold;
-margin-left: 5px;</string>
+                    <string notr="true">font-weight: bold;</string>
                    </property>
                    <property name="text">
                     <string>SCAN DIRECTION:</string>
@@ -1050,35 +1254,63 @@ margin-left: 5px;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="labelSCAN_8">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>140</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font-weight: bold;
-margin-left: 5px;</string>
-                   </property>
-                   <property name="text">
-                    <string>MOTION CORRUPTION:</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                   </property>
+                  <widget class="QWidget" name="widget" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <property name="margin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="labelSCAN_8">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>140</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font-weight: bold;</string>
+                      </property>
+                      <property name="text">
+                       <string>MOTION CORRUPTION:</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_2">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBoxMotionCorruptionEnabled">
+                      <property name="text">
+                       <string>Enabled</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
@@ -1119,21 +1351,10 @@ margin-left: 5px;</string>
                      <number>9</number>
                     </property>
                     <item>
-                     <widget class="QCheckBox" name="checkBoxMotionCorruptionEnabled">
-                      <property name="text">
-                       <string>Enabled</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="Line" name="line_4">
-                      <property name="orientation">
-                       <enum>Qt::Vertical</enum>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
                      <widget class="QLabel" name="label_11">
+                      <property name="styleSheet">
+                       <string notr="true">font-weight: bold;</string>
+                      </property>
                       <property name="text">
                        <string>Maximum Rotation:</string>
                       </property>
@@ -1193,7 +1414,7 @@ margin-left: 5px;</string>
                       </property>
                       <property name="sizeHint" stdset="0">
                        <size>
-                        <width>0</width>
+                        <width>40</width>
                         <height>20</height>
                        </size>
                       </property>
@@ -1219,13 +1440,13 @@ margin-left: 5px;</string>
                       <property name="minimumSize">
                        <size>
                         <width>244</width>
-                        <height>104</height>
+                        <height>64</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
                         <width>244</width>
-                        <height>104</height>
+                        <height>64</height>
                        </size>
                       </property>
                       <property name="styleSheet">
@@ -1235,10 +1456,10 @@ margin-left: 5px;</string>
 	font-size: 26pt;
 	border: 2px solid rgb(128, 128, 128);
 	max-width: 240px;
-	max-height: 100px;
+	max-height: 60px;
 	min-width: 240px;
-	min-height: 100px;
-	border-radius: 50px;
+	min-height: 60px;
+	border-radius: 30px;
     border-style: outset;
 }
 
@@ -1259,6 +1480,19 @@ QPushButton:pressed {
                    </layout>
                   </widget>
                  </item>
+                 <item>
+                  <spacer name="verticalSpacerScanConfigure">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </widget>
               </item>
@@ -1276,8 +1510,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>456</width>
-        <height>548</height>
+        <width>405</width>
+        <height>916</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1331,15 +1565,15 @@ font-weight: normal;</string>
           <item>
            <widget class="QToolBox" name="toolBoxReconstruct">
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="pageReconstructExecutable">
              <property name="geometry">
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>438</width>
-               <height>467</height>
+               <width>387</width>
+               <height>769</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1352,7 +1586,8 @@ font-weight: normal;</string>
               <item>
                <widget class="QLabel" name="labelReconstructExecutableDescription">
                 <property name="styleSheet">
-                 <string notr="true">font-size: 9pt;</string>
+                 <string notr="true">font-size: 9pt;
+font-weight: bold;</string>
                 </property>
                 <property name="text">
                  <string>Where is the executable &quot;reconstruction_GPU2_wrapper&quot;?</string>
@@ -1409,6 +1644,40 @@ color: rgb(200, 0, 0);</string>
                </widget>
               </item>
               <item>
+               <widget class="QLabel" name="labelReconstructExecutableSuccess">
+                <property name="font">
+                 <font>
+                  <family>Quicksand</family>
+                  <pointsize>9</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size: 9pt;
+color: rgb(0, 150, 0);</string>
+                </property>
+                <property name="text">
+                 <string>---- Success! ----</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::AutoText</enum>
+                </property>
+                <property name="scaledContents">
+                 <bool>false</bool>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+                <property name="textInteractionFlags">
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QWidget" name="widgetReconstructExecutableWrapper" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -1434,8 +1703,14 @@ color: rgb(200, 0, 0);</string>
                    <property name="styleSheet">
                     <string notr="true">font-size: 9pt;</string>
                    </property>
+                   <property name="verticalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAsNeeded</enum>
+                   </property>
+                   <property name="horizontalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAsNeeded</enum>
+                   </property>
                    <property name="lineWrapMode">
-                    <enum>QPlainTextEdit::WidgetWidth</enum>
+                    <enum>QPlainTextEdit::NoWrap</enum>
                    </property>
                    <property name="plainText">
                     <string>/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module</string>
@@ -1475,6 +1750,14 @@ color: rgb(200, 0, 0);</string>
              </layout>
             </widget>
             <widget class="QWidget" name="pageReconstructLandmarks">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>387</width>
+               <height>769</height>
+              </rect>
+             </property>
              <attribute name="label">
               <string>Mark Landmarks (optional)</string>
              </attribute>
@@ -1492,8 +1775,8 @@ color: rgb(200, 0, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>438</width>
-               <height>416</height>
+               <width>387</width>
+               <height>769</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1603,8 +1886,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>456</width>
-        <height>548</height>
+        <width>405</width>
+        <height>916</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1659,8 +1942,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>438</width>
-               <height>463</height>
+               <width>407</width>
+               <height>818</height>
               </rect>
              </property>
              <attribute name="label">
@@ -2162,7 +2445,7 @@ QPushButton:pressed {
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>425</width>
+               <width>388</width>
                <height>652</height>
               </rect>
              </property>
