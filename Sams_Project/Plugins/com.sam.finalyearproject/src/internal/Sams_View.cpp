@@ -171,7 +171,7 @@ void Sams_View::InitializeUI() {
   UpdateSelectionDropDowns();
 
   // Hide erode options boxes.
-  UI.widgetErodeOptions->setVisible(false);
+  UI.widgetVisualizeSelectErodeOptions->setVisible(false);
 
   // Disable visualisation
   UI.tab3a->setEnabled(false);
@@ -181,7 +181,7 @@ void Sams_View::InitializeUI() {
 
   // ---- Reconstruction ---- //
   // Hide Reconstruction Error
-  UI.labelReconstructionExecutableError->setVisible(false);
+  UI.labelReconstructExecutableError->setVisible(false);
 }
 
 void Sams_View::ToggleMinimize4() {
@@ -198,7 +198,7 @@ void Sams_View::ResetPreprocessingSettings() {
 }
 
 void Sams_View::ToggleErosionEnabled(bool checked) {
-  UI.widgetErodeOptions->setVisible(checked);
+  UI.widgetVisualizeSelectErodeOptions->setVisible(checked);
 }
 
 /**
@@ -903,6 +903,7 @@ void Sams_View::SurfaceMapping() {
   else if (UI.radioButtonColourColour->isChecked()) {
     mapper->setColour();
   }
+  mapper->setInvertNormals(UI.checkBoxSurfaceInvertNormals->isChecked());
   mapper->map();
   delete mapper;
   
@@ -1223,11 +1224,11 @@ void Sams_View::ReconstructGUI() {
   // If the module couldn't be loaded, show an error and clear the widget.
   if (!moduleValid) {
     ClearReconstructionUI();
-    UI.labelReconstructionExecutableError->setVisible(true);
+    UI.labelReconstructExecutableError->setVisible(true);
     return;
   }
   else {
-    UI.labelReconstructionExecutableError->setVisible(false);
+    UI.labelReconstructExecutableError->setVisible(false);
   }
 
   // FRONTEND

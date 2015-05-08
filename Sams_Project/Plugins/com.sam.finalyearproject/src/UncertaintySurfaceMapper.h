@@ -19,6 +19,7 @@ class UncertaintySurfaceMapper {
     void setSamplingAverage();
     void setSamplingMinimum();
     void setSamplingMaximum();
+    void setInvertNormals(bool invertNormals);
     void map();
 
   private:
@@ -42,6 +43,8 @@ class UncertaintySurfaceMapper {
     bool samplingMinimum;
     bool samplingMaximum;
     void clearSampling();
+
+    bool invertNormals;
 
     static const bool DEBUGGING = false;
 };

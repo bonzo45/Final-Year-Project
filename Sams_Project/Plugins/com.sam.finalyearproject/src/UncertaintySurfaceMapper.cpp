@@ -99,6 +99,10 @@ void UncertaintySurfaceMapper::clearSampling() {
   this->samplingMaximum = false;
 }
 
+void UncertaintySurfaceMapper::setInvertNormals(bool invertNormals) {
+  this->invertNormals = invertNormals;
+}
+
 void UncertaintySurfaceMapper::map() {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(7);
 
@@ -160,6 +164,8 @@ void UncertaintySurfaceMapper::map() {
 
   mitk::ProgressBar::GetInstance()->Progress();
 
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(numberOfPoints);
+
   for (unsigned int i = 0; i < numberOfPoints; i++) {
     // Get the position of point i
     double positionOfPoint[3];
@@ -176,9 +182,15 @@ void UncertaintySurfaceMapper::map() {
     double normalAtPoint[3];
     normals->GetTuple(i, normalAtPoint);
     vtkVector<float, 3> normal = vtkVector<float, 3>();
-    normal[0] = -normalAtPoint[0];
-    normal[1] = -normalAtPoint[1];
-    normal[2] = -normalAtPoint[2];
+    normal[0] = normalAtPoint[0];
+    normal[1] = normalAtPoint[1];
+    normal[2] = normalAtPoint[2];
+
+    if (invertNormals) {
+      normal[0] = -normal[0];
+      normal[1] = -normal[1];
+      normal[2] = -normal[2];
+    }
 
     // Use the position and normal to sample the uncertainty data.
     if (samplingFull) {
@@ -187,6 +199,8 @@ void UncertaintySurfaceMapper::map() {
     else if (samplingHalf) {
       intensityArray[i] = sampler->sampleUncertainty(position, normal, 50);
     }
+
+    mitk::ProgressBar::GetInstance()->Progress();
   }
   
   mitk::ProgressBar::GetInstance()->Progress();
