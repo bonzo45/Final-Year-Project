@@ -7,6 +7,9 @@
 #include <vnl/algo/vnl_svd.h>
 #include <vcl_iostream.h>
 
+// Loading bar
+#include <mitkProgressBar.h>
+
 SVDScanPlaneGenerator::SVDScanPlaneGenerator() {
   this->threshold = 0.5;
 }
@@ -23,8 +26,12 @@ void SVDScanPlaneGenerator::setThreshold(double threshold) {
 }
 
 vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(3);
+  
   // Get all points worse than specified threshold.
   mitk::PointSet::Pointer pointSet = pointsBelowThreshold(threshold);
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // Demean them.
   vnl_matrix<mitk::ScalarType> demeanedMatrix(pointSet->GetSize(), 3);
@@ -40,12 +47,16 @@ vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
     demeanedMatrix[i][2] = point[2] - centroid[2];
   }
 
+  mitk::ProgressBar::GetInstance()->Progress();
+
   // Run SVD.
   vnl_svd<mitk::ScalarType> svd(demeanedMatrix, 0.0);
   vnl_vector<mitk::ScalarType> normal = svd.nullvector();
   if (normal[0] < 0) {
     normal = -normal;
   }
+
+  mitk::ProgressBar::GetInstance()->Progress();
 
   // The plane consists of the centroid and normal.
   vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
@@ -58,6 +69,8 @@ vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
   * Get a list of all points in the uncertainty data that are below a given threshold.
   */
 mitk::PointSet::Pointer SVDScanPlaneGenerator::pointsBelowThreshold(double threshold) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(uncertaintyHeight);
+
   mitk::PointSet::Pointer pointSet = mitk::PointSet::New();
 
   try  {
@@ -83,6 +96,7 @@ mitk::PointSet::Pointer SVDScanPlaneGenerator::pointsBelowThreshold(double thres
           }
         }
       }
+      mitk::ProgressBar::GetInstance()->Progress();
     }
   }
   catch (mitk::Exception & e) {

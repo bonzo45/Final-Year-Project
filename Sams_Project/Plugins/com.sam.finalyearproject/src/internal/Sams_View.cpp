@@ -1005,7 +1005,7 @@ void Sams_View::ComputeNextScanPlane() {
   basePlaneGeometry->SetIndexToWorldTransform(scanTransform);
 
   // Save it.
-  SaveDataNode("Scan Plane", mitkPlane);
+  SaveDataNode("Scan Plane", mitkPlane, true);
 
   // Create a box to represent all the slices in the scan.
   vtkVector<float, 3> vectorOldNormal = vtkVector<float, 3>();
@@ -1028,8 +1028,24 @@ void Sams_View::ComputeNextScanPlane() {
   baseBoxGeometry->SetOrigin(scanOrigin);
   baseBoxGeometry->SetIndexToWorldTransform(scanTransform);
 
-  mitk::DataNode::Pointer box = SaveDataNode("Scan Box", mitkScanBox);
+  mitk::DataNode::Pointer box = SaveDataNode("Scan Box", mitkScanBox, true);
   box->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+
+  UI.spinBoxNextBestPointX->setValue(center[0]);
+  UI.spinBoxNextBestPointY->setValue(center[1]);
+  UI.spinBoxNextBestPointZ->setValue(center[2]);
+
+  UI.spinBoxNextBestXDirectionX->setValue(newXAxis[0]);
+  UI.spinBoxNextBestXDirectionY->setValue(newXAxis[1]);
+  UI.spinBoxNextBestXDirectionZ->setValue(newXAxis[2]);
+
+  UI.spinBoxNextBestYDirectionX->setValue(newYAxis[0]);
+  UI.spinBoxNextBestYDirectionY->setValue(newYAxis[1]);
+  UI.spinBoxNextBestYDirectionZ->setValue(newYAxis[2]);
+
+  UI.spinBoxNextBestZDirectionX->setValue(newZAxis[0]);
+  UI.spinBoxNextBestZDirectionY->setValue(newZAxis[1]);
+  UI.spinBoxNextBestZDirectionZ->setValue(newZAxis[2]);
 }
 
 // ----------- //
