@@ -23,7 +23,10 @@ PURPOSE.  See the above copyright notices for more information.
 
 class SamApplication : public QApplication {
   public:
-    SamApplication(int & a, char **& b) : QApplication(a, b) {};
+    SamApplication(int & a, char **& b) : QApplication(a, b) {
+      // Important: Dynamically load the libCTKWidgetsPlugins.so library.
+      addLibraryPath(QCoreApplication::applicationDirPath() + "/../../MITK-superbuild/CTK-build/CTK-build/bin");
+    };
 
     bool notify(QObject * receiver, QEvent * event) {
       QString msg;

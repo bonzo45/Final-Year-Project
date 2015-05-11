@@ -26,7 +26,7 @@ class SurfaceGenerator {
     );
 
   private:
-    static const bool DEBUGGING = true;
+    static const bool DEBUGGING = false;
 };
 
 #endif

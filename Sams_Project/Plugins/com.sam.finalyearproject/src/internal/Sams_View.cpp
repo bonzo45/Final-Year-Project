@@ -73,10 +73,13 @@ ColourLegendOverlay * legendOverlay = NULL;
 
 // 3. Visualisation
 //  a. Uncertainty Thresholding
+UncertaintyThresholder * thresholder;
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
 bool thresholdingEnabled = false;
 double lowerThreshold = 0;
 double upperThreshold = 0;
+
+
 
 // ----------------------- //
 // ---- IMPLEMENTATION --- //
@@ -102,10 +105,11 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // 3.
   //  a. Thresholding
-  connect(UI.checkBoxEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
-  connect(UI.sliderMinThreshold, SIGNAL(sliderMoved (int)), this, SLOT(LowerThresholdChanged(int)));
-  connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved (int)), this, SLOT(UpperThresholdChanged(int)));
-  connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(int)), this, SLOT(TopXPercent(int)));
+  connect(UI.pushButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
+  connect(UI.sliderMinThreshold, SIGNAL(sliderMoved(int)), this, SLOT(LowerThresholdChanged(int)));
+  connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved(int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(double)), this, SLOT(TopXPercent(double)));
+  connect(UI.sliderTopXPercent, SIGNAL(sliderMoved(double)), this, SLOT(TopXPercent(double)));
   connect(UI.buttonTop1Percent, SIGNAL(clicked()), this, SLOT(TopOnePercent()));
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
@@ -194,10 +198,10 @@ void Sams_View::InitializeUI() {
   UI.widgetVisualizeSelectErodeOptions->setVisible(false);
 
   // Disable visualisation
-  UI.tab3a->setEnabled(false);
-  UI.tab3b->setEnabled(false);
-  UI.tab3c->setEnabled(false);
-  UI.tab3d->setEnabled(false);
+  UI.pageVisualizeThreshold->setEnabled(false);
+  UI.pageVisualizeSphere->setEnabled(false);
+  UI.pageVisualizeSurface->setEnabled(false);
+  UI.pageVisualizeNextScan->setEnabled(false);
 
   // ---- Reconstruction ---- //
   // Hide Reconstruction Error
@@ -253,18 +257,7 @@ mitk::Image::Pointer Sams_View::GetMitkScanVolume() {
 mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite, mitk::DataNode::Pointer parent) {
   // If overwrite is set to true, check for previous version and delete.
   if (overwrite) {
-    mitk::DataNode::Pointer previousVersion;
-    // If parent is set, look under the parent.
-    if (parent.IsNull()) {
-      previousVersion = this->GetDataStorage()->GetNamedNode(name);
-    }
-    else {
-      previousVersion = this->GetDataStorage()->GetNamedDerivedNode(name, parent);
-    }
-
-    if (previousVersion) {
-      this->GetDataStorage()->Remove(previousVersion);
-    }
+    RemoveDataNode(name, parent);
   }
 
   // Create a new version.
@@ -281,6 +274,21 @@ mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseDat
   }
 
   return newVersion;
+}
+
+void Sams_View::RemoveDataNode(const char * name, mitk::DataNode::Pointer parent) {
+  mitk::DataNode::Pointer nodeToDelete;
+  // If parent is set, look under the parent.
+  if (parent.IsNull()) {
+    nodeToDelete = this->GetDataStorage()->GetNamedNode(name);
+  }
+  else {
+    nodeToDelete = this->GetDataStorage()->GetNamedDerivedNode(name, parent);
+  }
+
+  if (nodeToDelete) {
+    this->GetDataStorage()->Remove(nodeToDelete);
+  }
 }
 
 mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
@@ -514,10 +522,10 @@ void Sams_View::ConfirmSelection() {
   SetUpperThreshold(NORMALIZED_MAX);
 
   // Enable visualisations.
-  UI.tab3a->setEnabled(true);
-  UI.tab3b->setEnabled(true);
-  UI.tab3c->setEnabled(true);
-  UI.tab3d->setEnabled(true);
+  UI.pageVisualizeThreshold->setEnabled(true);
+  UI.pageVisualizeSphere->setEnabled(true);
+  UI.pageVisualizeSurface->setEnabled(true);
+  UI.pageVisualizeNextScan->setEnabled(true);
 }
 
 /**
@@ -586,10 +594,16 @@ void Sams_View::ToggleUncertaintyVisible(bool checked) {
 void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   if (checked) {
     thresholdingEnabled = true;
+    thresholder = new UncertaintyThresholder();
     ThresholdUncertainty();
   }
   else {
     thresholdingEnabled = false;
+    if (thresholder) {
+      delete thresholder;
+      thresholder = NULL;
+    }
+    RemoveThresholdedUncertainty();
   }
 }
 
@@ -612,6 +626,10 @@ void Sams_View::ThresholdUncertainty() {
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 
   this->RequestRenderWindowUpdate();
+}
+
+void Sams_View::RemoveThresholdedUncertainty() {
+  RemoveDataNode("Thresholded", preprocessedUncertainty);
 }
 
 /**
@@ -675,15 +693,15 @@ void Sams_View::SetUpperThreshold(double upper) {
 }
 
 void Sams_View::TopOnePercent() {
-  TopXPercent(1);
+  TopXPercent(1.0);
 }
 
 void Sams_View::TopFivePercent() {
-  TopXPercent(5);
+  TopXPercent(5.0);
 }
 
 void Sams_View::TopTenPercent() {
-  TopXPercent(10);
+  TopXPercent(10.0);
 }
 
 /**
@@ -691,25 +709,28 @@ void Sams_View::TopTenPercent() {
   *   percentage - between 0 and 100
   *   e.g. percentage = 10 will create a threshold to show the worst 10% of uncertainty.
   */
-void Sams_View::TopXPercent(int percentage) {
+void Sams_View::TopXPercent(double percentage) {
   mitk::Image::Pointer uncertaintyImage = GetMitkPreprocessedUncertainty();
 
-  UncertaintyThresholder * thresholder = new UncertaintyThresholder();
-  thresholder->setUncertainty(GetMitkPreprocessedUncertainty());
-  thresholder->setIgnoreZeros(UI.checkBoxIgnoreZeros->isChecked());
-  double min, max;
-  thresholder->getTopXPercentThreshold(percentage, min, max);
-  delete thresholder;
-
-  // Filter the uncertainty to only show the top 10%. Avoid filtering twice by disabling thresholding.
-  bool temp = thresholdingEnabled;
-  thresholdingEnabled = false;
-  SetLowerThreshold(min);
-  thresholdingEnabled = temp;
-  SetUpperThreshold(max);
-
   // Update the spinBox.
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
   UI.spinBoxTopXPercent->setValue(percentage);
+  UI.sliderTopXPercent->setValue(percentage);
+  thresholdingEnabled = wasEnabled;
+
+  if (thresholdingEnabled) {
+    thresholder->setUncertainty(GetMitkPreprocessedUncertainty());
+    thresholder->setIgnoreZeros(UI.checkBoxIgnoreZeros->isChecked());
+    double min, max;
+    thresholder->getTopXPercentThreshold(percentage / 100.0, min, max);
+
+    // Filter the uncertainty to only show the top 10%. Avoid filtering twice by disabling thresholding.
+    thresholdingEnabled = false;
+    SetLowerThreshold(min);
+    thresholdingEnabled = true;
+    SetUpperThreshold(max);
+  }
 }
 
 /**
@@ -1515,6 +1536,5 @@ void Sams_View::ScanSimulationPreview() {
 }
 
 void Sams_View::ScanSimulationRemovePreview() {
-  mitk::DataNode::Pointer preview = this->GetDataStorage()->GetNamedNode(SCAN_PREVIEW_NAME.c_str());
-  this->GetDataStorage()->Remove(preview);
+  RemoveDataNode(SCAN_PREVIEW_NAME.c_str());
 }

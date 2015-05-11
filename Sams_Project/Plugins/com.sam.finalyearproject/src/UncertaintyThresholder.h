@@ -6,10 +6,11 @@
 class UncertaintyThresholder {
 	public:
     UncertaintyThresholder();
+    ~UncertaintyThresholder();
     void setUncertainty(mitk::Image::Pointer image);
     void setIgnoreZeros(bool ignoreZeros);
     mitk::Image::Pointer thresholdUncertainty(double min, double max);
-    void getTopXPercentThreshold(int percentage, double & min, double & max);
+    void getTopXPercentThreshold(double percentage, double & min, double & max);
 
   private:
     mitk::Image::Pointer uncertainty;
@@ -19,11 +20,20 @@ class UncertaintyThresholder {
     double min;
     double max;
 
+    // Histogram (so we don't have to keep computing it)
+    unsigned int * histogram;
+    unsigned int totalPixels;
+
+    unsigned int measurementComponents;
+    unsigned int binsPerDimension;
+
+    static const bool DEBUGGING = false;
+
     // ITK Methods
     template <typename TPixel, unsigned int VImageDimension>
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkTopXPercentThreshold(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold);
+    void ItkComputePercentages(itk::Image<TPixel, VImageDimension>* itkImage, unsigned int * histogram, unsigned int & totalPixels);
 };
 
 #endif

@@ -11,10 +11,28 @@
 
 UncertaintyThresholder::UncertaintyThresholder() {
   this->ignoreZeros = false;
-} 
+  this->measurementComponents = 1; // Grayscale
+  this->binsPerDimension = 1000;
+  this->histogram = NULL;
+  this->totalPixels = 0;
+}
+
+UncertaintyThresholder::~UncertaintyThresholder() {
+  if (histogram) {
+    delete histogram;
+  }
+}
 
 void UncertaintyThresholder::setUncertainty(mitk::Image::Pointer uncertainty) {
+  if (this->uncertainty == uncertainty) {
+    return;
+  }
   this->uncertainty = uncertainty;
+  if (histogram) {
+    delete histogram;
+    histogram = NULL;
+    totalPixels = 0;
+  }
 }
 
 void UncertaintyThresholder::setIgnoreZeros(bool ignoreZeros) {
@@ -27,9 +45,41 @@ mitk::Image::Pointer UncertaintyThresholder::thresholdUncertainty(double min, do
 	return thresholdedImage;
 }
 
-void UncertaintyThresholder::getTopXPercentThreshold(int percentage, double & min, double & max) {
-  // Get the thresholds corresponding to percentage%
-  AccessByItk_3(this->uncertainty, ItkTopXPercentThreshold, percentage / 100.0, min, max);
+void UncertaintyThresholder::getTopXPercentThreshold(double percentage, double & min, double & max) {
+  // If we've not previously generated the histogram, generate it.
+  if (!histogram) {
+    histogram = new unsigned int[binsPerDimension];
+    AccessByItk_2(this->uncertainty, ItkComputePercentages, histogram, totalPixels);
+  }
+
+  // Work out the number of pixels we need to get to reach percentage.
+  unsigned int goalPixels;
+  unsigned int i;
+  // If we're ignoring zeros the goal will be less.
+  if (ignoreZeros) {
+    goalPixels = (totalPixels - histogram[0]) * percentage;
+    i = 1;
+  }
+  else {
+    goalPixels = totalPixels * percentage;
+    i = 0;
+  }
+
+  if (DEBUGGING) {
+    std::cout << "Total Pixels: " << totalPixels << std::endl << 
+                 "Goal Pixels: " << goalPixels << std::endl;
+  }
+
+  // Go through the histogram (effectively comuting the CDF) until we reach our goal.
+  unsigned int pixelCount = 0;
+  while ((pixelCount < goalPixels) && (i < binsPerDimension)) {
+    pixelCount += histogram[i];
+    i++;
+  }
+
+  // 'Return' the threshold values.
+  min = 0.0;
+  max = (double) i / (double) binsPerDimension;
 }
 
 /**
@@ -65,14 +115,11 @@ void UncertaintyThresholder::ItkThresholdUncertainty(itk::Image<TPixel, VImageDi
 }
 
 template <typename TPixel, unsigned int VImageDimension>
-void UncertaintyThresholder::ItkTopXPercentThreshold(itk::Image<TPixel, VImageDimension>* itkImage, double percentage, double & lowerThreshold, double & upperThreshold) {
+void UncertaintyThresholder::ItkComputePercentages(itk::Image<TPixel, VImageDimension>* itkImage, unsigned int * histogram, unsigned int & totalPixels) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   typedef itk::Image<TPixel, VImageDimension> ImageType;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType> ImageToHistogramFilterType;
-
-  const unsigned int measurementComponents = 1; // Grayscale
-  const unsigned int binsPerDimension = 1000;
 
   // Customise the filter.
   typename ImageToHistogramFilterType::HistogramType::MeasurementVectorType lowerBound(binsPerDimension);
@@ -93,29 +140,17 @@ void UncertaintyThresholder::ItkTopXPercentThreshold(itk::Image<TPixel, VImageDi
   imageToHistogramFilter->Update();
 
   // Get the resultant histogram. It has binsPerDimension buckets.
-  typename ImageToHistogramFilterType::HistogramType * histogram = imageToHistogramFilter->GetOutput();
+  typename ImageToHistogramFilterType::HistogramType::Pointer computedHistogram = imageToHistogramFilter->GetOutput();
 
   // We know that in total there are uncertaintyX * uncertaintyY * uncertaintyZ pixels.
   typename ImageType::RegionType region = itkImage->GetLargestPossibleRegion();
   typename ImageType::SizeType regionSize = region.GetSize();
-  unsigned int totalPixels = regionSize[0] * regionSize[1] * regionSize[2];  
+  totalPixels = regionSize[0] * regionSize[1] * regionSize[2];  
 
-  // If we're ignoring zero values then the total gets reduced. The histogram entry gets zeroed as well.
-  if (ignoreZeros) {
-    totalPixels -= histogram->GetFrequency(0);
-    histogram->SetFrequency(0, 0);
-  }
-
-  // The 10% threshold is therefore at 0.1 * total. Go through the histogram (effectively compute CDF) until we reach this.
   unsigned int pixelCount = 0;
-  unsigned int i = 0;
-  while ((pixelCount < totalPixels * percentage) && (i < binsPerDimension)) {
-    pixelCount += histogram->GetFrequency(i);
-    i++;
+  for (unsigned int i = 0; i < binsPerDimension; i++) {
+    histogram[i] = computedHistogram->GetFrequency(i);
   }
 
-  // 'Return' the threshold values.
-  lowerThreshold = 0.0;
-  upperThreshold = (double) i / (double) binsPerDimension;
   mitk::ProgressBar::GetInstance()->Progress();
 }
