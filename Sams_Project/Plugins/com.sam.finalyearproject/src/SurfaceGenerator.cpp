@@ -126,13 +126,13 @@ mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int scanWidth, u
   return planeSurface;
 }
 
-mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int height, unsigned int width, unsigned int depth, vtkVector<float, 3> center, vtkVector<float, 3> newXAxis, vtkVector<float, 3> newYAxis, vtkVector<float, 3> newZAxis) {
+mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int width, unsigned int height, unsigned int depth, vtkVector<float, 3> center, vtkVector<float, 3> newXAxis, vtkVector<float, 3> newYAxis, vtkVector<float, 3> newZAxis) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   // Create a simple (VTK) box.
   vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
-  cube->SetXLength(height);
-  cube->SetYLength(width);
+  cube->SetXLength(width);
+  cube->SetYLength(height);
   cube->SetZLength(depth);
   cube->SetCenter(0, 0, 0);
   cube->Update();
@@ -158,25 +158,46 @@ mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int height, uns
 
   // Transform it to be centered at center and be aligned by new axes given.
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  // Row 1
+  // // Row 1
+  // matrix->SetElement(0, 0, newXAxis[0]);
+  // matrix->SetElement(0, 1, newXAxis[1]);
+  // matrix->SetElement(0, 2, newXAxis[2]);
+  // matrix->SetElement(0, 3, center[0]);
+  // // Row 2
+  // matrix->SetElement(1, 0, newYAxis[0]);
+  // matrix->SetElement(1, 1, newYAxis[1]);
+  // matrix->SetElement(1, 2, newYAxis[2]);
+  // matrix->SetElement(1, 3, center[1]);
+  // // Row 3
+  // matrix->SetElement(2, 0, newZAxis[0]);
+  // matrix->SetElement(2, 1, newZAxis[1]);
+  // matrix->SetElement(2, 2, newZAxis[2]);
+  // matrix->SetElement(2, 3, center[2]);
+  // // Row 4
+  // matrix->SetElement(3, 0, 0);
+  // matrix->SetElement(3, 1, 0);
+  // matrix->SetElement(3, 2, 0);
+  // matrix->SetElement(3, 3, 1);
+
+  // Col 1
   matrix->SetElement(0, 0, newXAxis[0]);
-  matrix->SetElement(0, 1, newXAxis[1]);
-  matrix->SetElement(0, 2, newXAxis[2]);
-  matrix->SetElement(0, 3, center[0]);
-  // Row 2
-  matrix->SetElement(1, 0, newYAxis[0]);
-  matrix->SetElement(1, 1, newYAxis[1]);
-  matrix->SetElement(1, 2, newYAxis[2]);
-  matrix->SetElement(1, 3, center[1]);
-  // Row 3
-  matrix->SetElement(2, 0, newZAxis[0]);
-  matrix->SetElement(2, 1, newZAxis[1]);
-  matrix->SetElement(2, 2, newZAxis[2]);
-  matrix->SetElement(2, 3, center[2]);
-  // Row 4
+  matrix->SetElement(1, 0, newXAxis[1]);
+  matrix->SetElement(2, 0, newXAxis[2]);
   matrix->SetElement(3, 0, 0);
+  // Col 2
+  matrix->SetElement(0, 1, newYAxis[0]);
+  matrix->SetElement(1, 1, newYAxis[1]);
+  matrix->SetElement(2, 1, newYAxis[2]);
   matrix->SetElement(3, 1, 0);
+  // Col 3
+  matrix->SetElement(0, 2, newZAxis[0]);
+  matrix->SetElement(1, 2, newZAxis[1]);
+  matrix->SetElement(2, 2, newZAxis[2]);
   matrix->SetElement(3, 2, 0);
+  // Col 4
+  matrix->SetElement(0, 3, center[0]);
+  matrix->SetElement(1, 3, center[1]);
+  matrix->SetElement(2, 3, center[2]);
   matrix->SetElement(3, 3, 1);
 
   if (DEBUGGING) {

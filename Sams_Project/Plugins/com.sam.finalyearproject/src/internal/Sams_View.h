@@ -109,6 +109,9 @@ class Sams_View : public QmitkAbstractView {
     void ScanSimulationSetDirectionCoronal();
     void ScanSimulationSetDirectionSagittal();
     void ScanSimulationSimulateScan();
+    void ToggleScanSimulationPreview(bool checked);
+    void ScanSimulationPreview();
+    void ScanSimulationRemovePreview();
 
   protected:  
     virtual void SetFocus();
@@ -141,6 +144,7 @@ class Sams_View : public QmitkAbstractView {
     mitk::Image::Pointer GetMitkScan();
     mitk::Image::Pointer GetMitkUncertainty();
     mitk::Image::Pointer GetMitkPreprocessedUncertainty();
+    mitk::Image::Pointer GetMitkScanVolume();
     mitk::DataNode::Pointer SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite = false, mitk::DataNode::Pointer parent = 0);
     mitk::OverlayManager::Pointer GetOverlayManager();
 
@@ -167,6 +171,9 @@ class Sams_View : public QmitkAbstractView {
 
     // Reconstruction
     void ClearReconstructionUI();
+
+    // SCAN
+    bool scanPreviewEnabled;
 
 };
 

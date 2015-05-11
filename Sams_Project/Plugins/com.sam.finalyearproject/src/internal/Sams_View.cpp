@@ -152,8 +152,28 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDirectionCoronal, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionCoronal()));
   connect(UI.buttonDirectionSagittal, SIGNAL(clicked()), this, SLOT(ScanSimulationSetDirectionSagittal()));
   connect(UI.buttonSimulateScan, SIGNAL(clicked()), this, SLOT(ScanSimulationSimulateScan()));
-  
+  connect(UI.buttonScanPreview, SIGNAL(clicked()), this, SLOT(ScanSimulationPreview()));
+
+  connect(UI.buttonScanPreview, SIGNAL(toggled(bool)), this, SLOT(ToggleScanSimulationPreview(bool)));
+  connect(UI.spinBoxScanDimensionX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanDimensionY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanDimensionZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanPointX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanPointY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanPointZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanXAxisX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanXAxisY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanXAxisZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanYAxisX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanYAxisY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanYAxisZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanZAxisX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanZAxisY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.doubleSpinBoxScanZAxisZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
+
   InitializeUI();
+  UI.buttonScanPreview->setChecked(false);
+  scanPreviewEnabled = false;
 }
 
 // ------------ //
@@ -224,6 +244,10 @@ mitk::Image::Pointer Sams_View::GetMitkUncertainty() {
 
 mitk::Image::Pointer Sams_View::GetMitkPreprocessedUncertainty() {
   return Util::MitkImageFromNode(preprocessedUncertainty);
+}
+
+mitk::Image::Pointer Sams_View::GetMitkScanVolume() {
+  return Util::MitkImageFromNode(scanSimulationVolume);
 }
 
 mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite, mitk::DataNode::Pointer parent) {
@@ -969,7 +993,7 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal.Normalize();
 
   // Create a surface to represent it.
-  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(50, 100, vectorOrigin, vectorNormal);
+  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(100, 100, vectorOrigin, vectorNormal);
 
   // Align it with the scan.
   mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();
@@ -989,15 +1013,15 @@ void Sams_View::ComputeNextScanPlane() {
   vectorOldNormal[1] = 0;
   vectorOldNormal[2] = 1;
 
-  vtkVector<float, 3> newXAxis = Util::vectorCross(vectorOldNormal, vectorNormal);
-  vtkVector<float, 3> newYAxis = Util::vectorCross(vectorNormal, newXAxis);
+  vtkVector<float, 3> newYAxis = Util::vectorCross(vectorOldNormal, vectorNormal);
+  vtkVector<float, 3> newXAxis = Util::vectorCross(vectorNormal, newYAxis);
   vtkVector<float, 3> newZAxis = vectorNormal;
 
   newXAxis.Normalize();
   newYAxis.Normalize();
   newZAxis.Normalize();
 
-  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCuboid(50, 100, 300, vectorOrigin, newXAxis, newYAxis, newZAxis);
+  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCuboid(120, 120, 300, vectorOrigin, newXAxis, newYAxis, newZAxis);
 
   // Align it with the scan
   mitk::BaseGeometry * baseBoxGeometry = mitkScanBox->GetGeometry();
@@ -1305,14 +1329,20 @@ void Sams_View::ScanSimulationDropdownChanged(const QString & scanSimulationName
 
 void Sams_View::ScanSimulationSetPointCenter() {
   if (scanSimulationVolume.IsNotNull()) {
+    bool previousEnabled = scanPreviewEnabled;
+    scanPreviewEnabled = false;
     mitk::Image::Pointer mitkSimulationVolume = Util::MitkImageFromNode(scanSimulationVolume);
     UI.doubleSpinBoxScanPointX->setValue(mitkSimulationVolume->GetDimension(0) / 2.0);
     UI.doubleSpinBoxScanPointY->setValue(mitkSimulationVolume->GetDimension(1) / 2.0);
+    scanPreviewEnabled = previousEnabled;
     UI.doubleSpinBoxScanPointZ->setValue(mitkSimulationVolume->GetDimension(2) / 2.0);
   }
 }
 
 void Sams_View::ScanSimulationSetDirectionAxial() {
+  bool previousEnabled = scanPreviewEnabled;
+  scanPreviewEnabled = false;
+
   // X is X
   UI.doubleSpinBoxScanXAxisX->setValue(1.0);
   UI.doubleSpinBoxScanXAxisY->setValue(0.0);
@@ -1326,10 +1356,14 @@ void Sams_View::ScanSimulationSetDirectionAxial() {
   // Z is Y
   UI.doubleSpinBoxScanZAxisX->setValue(0.0);
   UI.doubleSpinBoxScanZAxisY->setValue(1.0);
+  scanPreviewEnabled = previousEnabled;
   UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
 }
 
 void Sams_View::ScanSimulationSetDirectionCoronal() {
+  bool previousEnabled = scanPreviewEnabled;
+  scanPreviewEnabled = false;
+
   // X is X
   UI.doubleSpinBoxScanXAxisX->setValue(1.0);
   UI.doubleSpinBoxScanXAxisY->setValue(0.0);
@@ -1343,10 +1377,14 @@ void Sams_View::ScanSimulationSetDirectionCoronal() {
   // Z is Z
   UI.doubleSpinBoxScanZAxisX->setValue(0.0);
   UI.doubleSpinBoxScanZAxisY->setValue(0.0);
+  scanPreviewEnabled = previousEnabled;
   UI.doubleSpinBoxScanZAxisZ->setValue(1.0);
 }
 
 void Sams_View::ScanSimulationSetDirectionSagittal() {
+  bool previousEnabled = scanPreviewEnabled;
+  scanPreviewEnabled = false;
+  
   // X is -Z
   UI.doubleSpinBoxScanXAxisX->setValue(0.0);
   UI.doubleSpinBoxScanXAxisY->setValue(0.0);
@@ -1360,6 +1398,7 @@ void Sams_View::ScanSimulationSetDirectionSagittal() {
   // Z is X
   UI.doubleSpinBoxScanZAxisX->setValue(1.0);
   UI.doubleSpinBoxScanZAxisY->setValue(0.0);
+  scanPreviewEnabled = previousEnabled;
   UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
 }
 
@@ -1385,7 +1424,7 @@ void Sams_View::ScanSimulationSimulateScan() {
   center[2] = UI.doubleSpinBoxScanPointZ->value();
 
   ScanSimulator * simulator = new ScanSimulator();
-  simulator->setVolume(GetMitkScan());
+  simulator->setVolume(GetMitkScanVolume());
   simulator->setScanAxes(xAxis, yAxis, zAxis);
   simulator->setScanResolution(1.0, 1.0, 2.0);
   simulator->setScanSize(UI.spinBoxScanDimensionX->value(), UI.spinBoxScanDimensionY->value(), UI.spinBoxScanDimensionZ->value());
@@ -1397,4 +1436,69 @@ void Sams_View::ScanSimulationSimulateScan() {
 
   // Store it as a DataNode.
   mitk::DataNode::Pointer cubeNode = SaveDataNode("Slice Stack", sliceStack, true);
+}
+
+const std::string SCAN_PREVIEW_NAME = "Scan Preview";
+
+void Sams_View::ToggleScanSimulationPreview(bool checked) {
+  scanPreviewEnabled = checked;
+  if (scanPreviewEnabled) {
+    ScanSimulationPreview();
+  }
+  else {
+    ScanSimulationRemovePreview();
+  }
+}
+
+void Sams_View::ScanSimulationPreview() {
+  if (scanPreviewEnabled) {
+    vtkVector<float, 3> center = vtkVector<float, 3>();
+    center[0] = UI.doubleSpinBoxScanPointX->value();
+    center[1] = UI.doubleSpinBoxScanPointY->value();
+    center[2] = UI.doubleSpinBoxScanPointZ->value();
+
+    vtkVector<float, 3> xAxis = vtkVector<float, 3>();
+    xAxis[0] = UI.doubleSpinBoxScanXAxisX->value();
+    xAxis[1] = UI.doubleSpinBoxScanXAxisY->value();
+    xAxis[2] = UI.doubleSpinBoxScanXAxisZ->value();
+
+    vtkVector<float, 3> yAxis = vtkVector<float, 3>();
+    yAxis[0] = UI.doubleSpinBoxScanYAxisX->value();
+    yAxis[1] = UI.doubleSpinBoxScanYAxisY->value();
+    yAxis[2] = UI.doubleSpinBoxScanYAxisZ->value();
+
+    vtkVector<float, 3> zAxis = vtkVector<float, 3>();
+    zAxis[0] = UI.doubleSpinBoxScanZAxisX->value();
+    zAxis[1] = UI.doubleSpinBoxScanZAxisY->value();
+    zAxis[2] = UI.doubleSpinBoxScanZAxisZ->value();
+
+    mitk::Surface::Pointer scanPreview = SurfaceGenerator::generateCuboid(
+        UI.spinBoxScanDimensionY->value(),
+        UI.spinBoxScanDimensionX->value(),
+        UI.spinBoxScanDimensionZ->value() * 2.0,
+        center,
+        xAxis,
+        yAxis,
+        zAxis
+    );
+
+    // Align it with the ground truth volume.
+    if (scanSimulationVolume.IsNotNull()) {
+      mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScanVolume()->GetSlicedGeometry();
+      mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
+      mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
+
+      mitk::BaseGeometry * baseBoxGeometry = scanPreview->GetGeometry();
+      baseBoxGeometry->SetOrigin(scanOrigin);
+      baseBoxGeometry->SetIndexToWorldTransform(scanTransform);
+    }
+
+    mitk::DataNode::Pointer previewBox = SaveDataNode(SCAN_PREVIEW_NAME.c_str(), scanPreview, true);
+    previewBox->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+  }
+}
+
+void Sams_View::ScanSimulationRemovePreview() {
+  mitk::DataNode::Pointer preview = this->GetDataStorage()->GetNamedNode(SCAN_PREVIEW_NAME.c_str());
+  this->GetDataStorage()->Remove(preview);
 }

@@ -16,8 +16,8 @@ class SurfaceGenerator {
       vtkVector<float, 3> normal
     );
     static mitk::Surface::Pointer generateCuboid(
-      unsigned int height,
       unsigned int width,
+      unsigned int height,
       unsigned int depth,
       vtkVector<float, 3> center = vtkVector<float, 3>(0.0f),
       vtkVector<float, 3> newXAxis = vtkVector<float, 3>(0.0f),
@@ -26,7 +26,7 @@ class SurfaceGenerator {
     );
 
   private:
-    static const bool DEBUGGING = false;
+    static const bool DEBUGGING = true;
 };
 
 #endif
