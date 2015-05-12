@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
+    <width>413</width>
     <height>830</height>
    </rect>
   </property>
@@ -60,8 +60,8 @@ font-weight: bold;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>460</width>
-        <height>710</height>
+        <width>101</width>
+        <height>727</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -119,8 +119,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>457</width>
-               <height>475</height>
+               <width>174</width>
+               <height>130</height>
               </rect>
              </property>
              <attribute name="label">
@@ -252,8 +252,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>429</width>
-               <height>603</height>
+               <width>340</width>
+               <height>618</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1559,8 +1559,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>460</width>
-        <height>710</height>
+        <width>107</width>
+        <height>424</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1621,8 +1621,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>442</width>
-               <height>578</height>
+               <width>202</width>
+               <height>157</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1985,8 +1985,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>460</width>
-        <height>710</height>
+        <width>400</width>
+        <height>732</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -2134,6 +2134,9 @@ QPushButton:pressed {
                 <item>
                  <widget class="QWidget" name="widget_10" native="true">
                   <layout class="QHBoxLayout" name="horizontalLayout_6">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
                    <property name="margin">
                     <number>0</number>
                    </property>
@@ -2196,9 +2199,12 @@ QPushButton:pressed {
                  <widget class="QDoubleSpinBox" name="double1">
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>40</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="buttonSymbols">
+                   <enum>QAbstractSpinBox::NoButtons</enum>
                   </property>
                  </widget>
                 </item>
@@ -2206,25 +2212,15 @@ QPushButton:pressed {
                  <widget class="QSpinBox" name="int1">
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>40</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="buttonSymbols">
+                   <enum>QAbstractSpinBox::NoButtons</enum>
                   </property>
                   <property name="maximum">
                    <number>9999</number>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="buttonDebug2">
-                  <property name="maximumSize">
-                   <size>
-                    <width>30</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>O</string>
                   </property>
                  </widget>
                 </item>
@@ -2237,7 +2233,20 @@ QPushButton:pressed {
                    </size>
                   </property>
                   <property name="text">
-                   <string>VR</string>
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="buttonDebug2">
+                  <property name="maximumSize">
+                   <size>
+                    <width>30</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>2</string>
                   </property>
                  </widget>
                 </item>
@@ -2350,7 +2359,7 @@ QPushButton:pressed {
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>444</width>
+               <width>407</width>
                <height>334</height>
               </rect>
              </property>
@@ -2855,9 +2864,9 @@ QPushButton:pressed {
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>-22</y>
-               <width>429</width>
-               <height>341</height>
+               <y>0</y>
+               <width>369</width>
+               <height>355</height>
               </rect>
              </property>
              <attribute name="label">
@@ -2998,7 +3007,7 @@ margin-top: 4px;</string>
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="buttonTop10Percent_2">
+                     <widget class="QPushButton" name="buttonThresholdingReset">
                       <property name="maximumSize">
                        <size>
                         <width>39</width>
@@ -3429,7 +3438,7 @@ QPushButton:pressed {
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>444</width>
+               <width>380</width>
                <height>320</height>
               </rect>
              </property>
@@ -4004,7 +4013,7 @@ QPushButton:pressed {
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>381</width>
+               <width>377</width>
                <height>378</height>
               </rect>
              </property>

@@ -106,10 +106,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // 3.
   //  a. Thresholding
   connect(UI.pushButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
-  connect(UI.sliderMinThreshold, SIGNAL(sliderMoved(int)), this, SLOT(LowerThresholdChanged(int)));
-  connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved(int)), this, SLOT(UpperThresholdChanged(int)));
+  connect(UI.sliderMinThreshold, SIGNAL(valueChanged(int)), this, SLOT(LowerThresholdChanged(int)));
+  connect(UI.sliderMaxThreshold, SIGNAL(valueChanged(int)), this, SLOT(UpperThresholdChanged(int)));
   connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(double)), this, SLOT(TopXPercent(double)));
-  connect(UI.sliderTopXPercent, SIGNAL(sliderMoved(double)), this, SLOT(TopXPercent(double)));
+  connect(UI.sliderTopXPercent, SIGNAL(valueChanged(double)), this, SLOT(TopXPercent(double)));
   connect(UI.buttonTop1Percent, SIGNAL(clicked()), this, SLOT(TopOnePercent()));
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
@@ -144,6 +144,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebugQuadSphere, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
   connect(UI.buttonVolumeRenderThreshold, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
   connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(DebugOverlay()));
+  connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(HideAllDataNodes()));
 
   // RECONSTRUCTION
   connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
@@ -289,6 +290,20 @@ void Sams_View::RemoveDataNode(const char * name, mitk::DataNode::Pointer parent
   if (nodeToDelete) {
     this->GetDataStorage()->Remove(nodeToDelete);
   }
+}
+
+void Sams_View::HideAllDataNodes() {
+  // Get all the images.
+  mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetAll();
+
+  // Add property "visible = false"
+  mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
+  while(image != allImages->End()) {
+    image->Value()->SetProperty("visible", mitk::BoolProperty::New(false));
+    ++image;
+  }
+
+  this->RequestRenderWindowUpdate();
 }
 
 mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
@@ -1300,8 +1315,6 @@ void Sams_View::ReconstructGUI() {
   // FRONTEND
   // We use the "Qt Gui" frontend factory.
   QScopedPointer<ctkCmdLineModuleFrontendFactory> frontendFactory(new QmitkCmdLineModuleFactoryGui(this->GetDataStorage()));
-  // Important: Dynamically load the libCTKWidgetsPlugins.so library.
-  qApp->addLibraryPath(QCoreApplication::applicationDirPath() + "/../../MITK-superbuild/CTK-build/CTK-build/bin");
   frontend = frontendFactory->create(moduleRef);
   // Create the actual GUI representation.
   QWidget* gui = qobject_cast<QWidget*>(frontend->guiHandle());

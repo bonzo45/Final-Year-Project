@@ -52,6 +52,7 @@ class Sams_View : public QmitkAbstractView {
     void ConfirmSelection();
     void ToggleScanVisible(bool checked);
     void ToggleUncertaintyVisible(bool checked);
+    void HideAllDataNodes();
 
     // 3
     //  a
