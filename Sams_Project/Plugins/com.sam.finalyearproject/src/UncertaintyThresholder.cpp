@@ -102,8 +102,7 @@ void UncertaintyThresholder::ItkThresholdUncertainty(itk::Image<TPixel, VImageDi
 
   // Create a thresholder.
   typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
-  MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
-  thresholdFilter->AddObserver(itk::ProgressEvent(), command);
+  thresholdFilter->AddObserver(itk::ProgressEvent(), MitkLoadingBarCommand::New());
   thresholdFilter->SetInput(itkImage);
   thresholdFilter->SetInsideValue(1);
   thresholdFilter->SetOutsideValue(0);

@@ -22,6 +22,7 @@
 // ---- MITK ---- //
 // -------------- //
 // Loading bar
+#include "MitkLoadingBarCommand.h"
 #include <mitkProgressBar.h>
 
 // ------------------------ //
@@ -48,15 +49,27 @@ void UncertaintyPreprocessor::setErodeParams(int erodeThickness, double erodeThr
 }
 
 mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert, bool erode, bool align) {
-  mitk::ProgressBar::GetInstance()->AddStepsToDo(4);
+  unsigned int stepsToDo = 0;
+  // if (normalize) {
+    stepsToDo += 100;
+  // }
+  if (invert) {
+    stepsToDo += 100;
+  }
+  if (erode) {
+    stepsToDo += 100;
+  }
+  if (align) {
+    stepsToDo += 1;
+  }
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(stepsToDo);
 
   // ------------------- //
   // ---- Normalize ---- //
   // ------------------- //
   mitk::Image::Pointer normalizedMitkImage;
   AccessByItk_1(this->uncertainty, ItkNormalizeUncertainty, normalizedMitkImage);
-  
-  mitk::ProgressBar::GetInstance()->Progress();
+
   
   // ------------------- //
   // ------ Invert ----- //
@@ -66,7 +79,6 @@ mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert,
   if (invert) {
     AccessByItk_1(normalizedMitkImage, ItkInvertUncertainty, invertedMitkImage);
   }
-  mitk::ProgressBar::GetInstance()->Progress();
   
   // ------------------- //
   // ------ Erode ------ //
@@ -76,8 +88,6 @@ mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert,
   if (erode) {
     AccessByItk_1(invertedMitkImage, ItkErodeUncertainty, erodedMitkImage);
   }
-
-  mitk::ProgressBar::GetInstance()->Progress();
 
   // ------------------- //
   // ------ Align ------ //
@@ -95,9 +105,9 @@ mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert,
     mitk::SlicedGeometry3D * uncertaintySlicedGeometry = fullyProcessedMitkImage->GetSlicedGeometry();
     uncertaintySlicedGeometry->SetOrigin(scanOrigin);
     uncertaintySlicedGeometry->SetIndexToWorldTransform(scanTransform);
-  }
 
-  mitk::ProgressBar::GetInstance()->Progress();
+    mitk::ProgressBar::GetInstance()->Progress();
+  }
 
   return fullyProcessedMitkImage;
 }
@@ -122,6 +132,9 @@ void UncertaintyPreprocessor::ItkNormalizeUncertainty(itk::Image<TPixel, VImageD
     windowFilter->SetOutputMaximum(1.0);
     windowFilter->SetWindowMinimum(0);
     windowFilter->SetWindowMaximum(255);
+    MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
+    command->Initialize(100, false);
+    windowFilter->AddObserver(itk::ProgressEvent(), command);
     windowFilter->Update();
 
     // Convert to MITK
@@ -137,6 +150,9 @@ void UncertaintyPreprocessor::ItkNormalizeUncertainty(itk::Image<TPixel, VImageD
     rescaleFilter->SetInput(itkImage);
     rescaleFilter->SetOutputMinimum(normalizationMin);
     rescaleFilter->SetOutputMaximum(normalizationMax);
+    MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
+    command->Initialize(100, false);
+    rescaleFilter->AddObserver(itk::ProgressEvent(), command);
     rescaleFilter->Update();
 
     // Convert to MITK
@@ -154,6 +170,9 @@ void UncertaintyPreprocessor::ItkInvertUncertainty(itk::Image<TPixel, VImageDime
   typename InvertIntensityImageFilterType::Pointer invertIntensityFilter = InvertIntensityImageFilterType::New();
   invertIntensityFilter->SetInput(itkImage);
   invertIntensityFilter->SetMaximum(normalizationMax);
+  MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
+  command->Initialize(100, false);
+  invertIntensityFilter->AddObserver(itk::ProgressEvent(), command);
   invertIntensityFilter->Update();
 
   // Convert to MITK
@@ -179,6 +198,9 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
   erodeFilter->SetInput(itkImage);
   erodeFilter->SetKernel(structuringElement);
+  MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
+  command->Initialize(20, false);
+  erodeFilter->AddObserver(itk::ProgressEvent(), command);
   erodeFilter->Update();
 
   // ------------------------- //
@@ -189,6 +211,9 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   typename SubtractType::Pointer diff = SubtractType::New();
   diff->SetInput1(itkImage);
   diff->SetInput2(erodeFilter->GetOutput());
+  command = MitkLoadingBarCommand::New();
+  command->Initialize(20, false);
+  diff->AddObserver(itk::ProgressEvent(), command);
   diff->Update();
 
   // ------------------------- //
@@ -202,6 +227,9 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   thresholdFilter->SetOutsideValue(0.0);
   thresholdFilter->SetLowerThreshold(erodeThreshold);
   thresholdFilter->SetUpperThreshold(1.0);
+  command = MitkLoadingBarCommand::New();
+  command->Initialize(20, false);
+  thresholdFilter->AddObserver(itk::ProgressEvent(), command);
   thresholdFilter->Update();
 
   // ------------------------- //
@@ -216,6 +244,9 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   typename GrayscaleDilateImageFilterType::Pointer dilateFilter = GrayscaleDilateImageFilterType::New();
   dilateFilter->SetInput(thresholdFilter->GetOutput());
   dilateFilter->SetKernel(dilationStructuringElement);
+  command = MitkLoadingBarCommand::New();
+  command->Initialize(20, false);
+  dilateFilter->AddObserver(itk::ProgressEvent(), command);
   dilateFilter->Update();
 
   // ------------------------- //
@@ -227,6 +258,9 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   masker->SetMaskImage(dilateFilter->GetOutput());
   masker->SetMaskingValue(1.0);
   masker->SetOutsideValue(0.0);
+  command = MitkLoadingBarCommand::New();
+  command->Initialize(20, false);
+  masker->AddObserver(itk::ProgressEvent(), command);
   masker->Update();
 
   // ------------------------- //
