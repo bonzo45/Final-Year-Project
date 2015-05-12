@@ -852,20 +852,33 @@ void Sams_View::VolumeRenderThreshold(bool checked) {
     this->preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
 
     // Opacity Transfer Function
+    double epsilon = 0.001;
+    double lowest = UI.checkBoxIgnoreZeros->isChecked()? epsilon : 0.0;
+    double lower = std::max(lowest, lowerThreshold);
+    double upper = std::max(lowest, upperThreshold);
     mitk::TransferFunction::ControlPoints scalarOpacityPoints;
-    scalarOpacityPoints.push_back(std::make_pair(lowerThreshold, 0.0));
-    scalarOpacityPoints.push_back(std::make_pair(upperThreshold, 0.5));
-    scalarOpacityPoints.push_back(std::make_pair(std::min(1.0, upperThreshold + 0.001), 0.0));
+    if (UI.checkBoxIgnoreZeros->isChecked()) {
+      scalarOpacityPoints.push_back(std::make_pair(0.0, 0.0));
+    }
+    scalarOpacityPoints.push_back(std::make_pair(std::max(lowest, lower - epsilon), 0.0));
+    scalarOpacityPoints.push_back(std::make_pair(lower, 1.0));
+    scalarOpacityPoints.push_back(std::make_pair(upper, 1.0));
+    scalarOpacityPoints.push_back(std::make_pair(std::min(1.0, upper + epsilon), 0.0));
+
+    std::cout << "(" << std::max(lowest, lower - epsilon) << ", " <<
+                   lower << ", " <<
+                   upper << ", " << 
+                   std::min(1.0, upper + epsilon) << ")" << std::endl;
 
     // Gradient Opacity Transfer Function (to ignore sharp edges)
     mitk::TransferFunction::ControlPoints gradientOpacityPoints;
     gradientOpacityPoints.push_back(std::make_pair(0.0, 1.0));
-    gradientOpacityPoints.push_back(std::make_pair(0.1, 0.0));
+    gradientOpacityPoints.push_back(std::make_pair(UI.double1->value(), 0.0));
 
     // Colour Transfer Function
     vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-    colorTransferFunction->AddRGBPoint(lowerThreshold, 0.0, 0.0, 0.0);
-    colorTransferFunction->AddRGBPoint(upperThreshold, 1.0, 0.0, 0.0);
+    colorTransferFunction->AddRGBPoint(lower, 1.0, 0.0, 0.0);
+    colorTransferFunction->AddRGBPoint(upper, 1.0, 0.0, 0.0);
     
     // Combine them.
     mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
@@ -874,7 +887,6 @@ void Sams_View::VolumeRenderThreshold(bool checked) {
     transferFunction->SetColorTransferFunction(colorTransferFunction);
 
     this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
-    cout << "Lower Threshold: " << lowerThreshold << ", Upper Threshold: " << upperThreshold << endl;
   }
   // Disable Volume Rendering.
   else {
