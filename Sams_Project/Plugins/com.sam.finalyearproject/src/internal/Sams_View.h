@@ -63,8 +63,12 @@ class Sams_View : public QmitkAbstractView {
     void TopOnePercent();
     void TopFivePercent();
     void TopTenPercent();
+    void TopXPercent();
     void TopXPercent(double percentage);
+    void TopXPercentSliderMoved(double percentage);
     void OverlayThreshold();
+    void ResetThresholds();
+    void VolumeRenderThreshold(bool checked);
 
     //  b
     void GenerateUncertaintySphere();
@@ -96,7 +100,6 @@ class Sams_View : public QmitkAbstractView {
     void GenerateCubeUncertainty();
     void GenerateSphereUncertainty();
     void GenerateQuadrantSphereUncertainty();
-    void DebugVolumeRenderPreprocessed();
     void DebugOverlay();
 
     // RECONSTRUCTION
@@ -148,6 +151,9 @@ class Sams_View : public QmitkAbstractView {
     mitk::Image::Pointer GetMitkScanVolume();
     mitk::DataNode::Pointer SaveDataNode(const char * name, mitk::BaseData * data, bool overwrite = false, mitk::DataNode::Pointer parent = 0);
     void RemoveDataNode(const char * name, mitk::DataNode::Pointer parent = 0);
+    void ShowDataNode(mitk::DataNode::Pointer node);
+    void HideDataNode(mitk::DataNode::Pointer node);
+    void SetDataNodeLayer(mitk::DataNode::Pointer node, int layer);
     mitk::OverlayManager::Pointer GetOverlayManager();
 
     // Legend

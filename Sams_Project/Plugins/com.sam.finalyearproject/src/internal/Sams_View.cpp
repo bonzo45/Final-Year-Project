@@ -109,12 +109,15 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.sliderMinThreshold, SIGNAL(valueChanged(int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(valueChanged(int)), this, SLOT(UpperThresholdChanged(int)));
   connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(double)), this, SLOT(TopXPercent(double)));
-  connect(UI.sliderTopXPercent, SIGNAL(valueChanged(double)), this, SLOT(TopXPercent(double)));
+  connect(UI.sliderTopXPercent, SIGNAL(sliderReleased()), this, SLOT(TopXPercent()));
+  connect(UI.sliderTopXPercent, SIGNAL(sliderMoved(double)), this, SLOT(TopXPercentSliderMoved(double)));
   connect(UI.buttonTop1Percent, SIGNAL(clicked()), this, SLOT(TopOnePercent()));
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
   connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertainty()));
   connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
+  connect(UI.buttonThresholdingReset, SIGNAL(clicked()), this, SLOT(ResetThresholds()));
+  connect(UI.buttonVolumeRenderThreshold, SIGNAL(toggled(bool)), SLOT(VolumeRenderThreshold(bool)));
 
   //  b. Texture Mapping
   connect(UI.spinBoxTextureWidth, SIGNAL(valueChanged(int)), this, SLOT(TextureWidthChanged(int)));
@@ -142,7 +145,6 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebugCube, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonDebugSphere, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
   connect(UI.buttonDebugQuadSphere, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
-  connect(UI.buttonVolumeRenderThreshold, SIGNAL(clicked()), SLOT(DebugVolumeRenderPreprocessed()));
   connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(DebugOverlay()));
   connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(HideAllDataNodes()));
 
@@ -299,11 +301,30 @@ void Sams_View::HideAllDataNodes() {
   // Add property "visible = false"
   mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
   while(image != allImages->End()) {
-    image->Value()->SetProperty("visible", mitk::BoolProperty::New(false));
+    HideDataNode(image->Value());
     ++image;
   }
 
   this->RequestRenderWindowUpdate();
+}
+
+void Sams_View::SetDataNodeLayer(mitk::DataNode::Pointer node, int layer) {
+  mitk::IntProperty::Pointer layerProperty = mitk::IntProperty::New(layer);
+  if (node) {
+    node->SetProperty("layer", layerProperty);
+  }
+}
+
+void Sams_View::ShowDataNode(mitk::DataNode::Pointer node) {
+  if (node) {
+    node->SetProperty("visible", mitk::BoolProperty::New(true));
+  }
+}
+
+void Sams_View::HideDataNode(mitk::DataNode::Pointer node) {
+  if (node) {
+    node->SetProperty("visible", mitk::BoolProperty::New(false));
+  }
 }
 
 mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
@@ -691,7 +712,10 @@ void Sams_View::SetLowerThreshold(double lower) {
   sliderValue = std::min(sliderValue, 1000);
   sliderValue = std::max(sliderValue, 0);
 
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
   UI.sliderMinThreshold->setValue(sliderValue);
+  thresholdingEnabled = wasEnabled;
   LowerThresholdChanged(sliderValue);
 }
 
@@ -703,7 +727,10 @@ void Sams_View::SetUpperThreshold(double upper) {
   sliderValue = std::min(sliderValue, 1000);
   sliderValue = std::max(sliderValue, 0);
 
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
   UI.sliderMaxThreshold->setValue(sliderValue);
+  thresholdingEnabled = wasEnabled;  
   UpperThresholdChanged(sliderValue);
 }
 
@@ -717,6 +744,10 @@ void Sams_View::TopFivePercent() {
 
 void Sams_View::TopTenPercent() {
   TopXPercent(10.0);
+}
+
+void Sams_View::TopXPercent() {
+  TopXPercent(UI.spinBoxTopXPercent->value());
 }
 
 /**
@@ -748,42 +779,80 @@ void Sams_View::TopXPercent(double percentage) {
   }
 }
 
+void Sams_View::TopXPercentSliderMoved(double percentage) {
+  // Update the spinBox.
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
+  UI.spinBoxTopXPercent->setValue(percentage);
+  thresholdingEnabled = wasEnabled;
+}
+
 /**
   * Sets the layers and visibility required for the thresholded uncertainty to be displayed on top of the scan.
   */
 void Sams_View::OverlayThreshold() {
-  // Make Scan and Thresholded Visible  
-  if (this->scan) {
-    this->scan->SetProperty("visible", mitk::BoolProperty::New(true));
-  }
+  // Hide Everything
+  HideAllDataNodes();
 
-  if (thresholdedUncertainty) {
-    thresholdedUncertainty->SetProperty("visible", mitk::BoolProperty::New(true));
-  }
+  // Make Scan and Thresholded Visible  
+  ShowDataNode(this->scan);
+  ShowDataNode(thresholdedUncertainty);
 
   // Put Scan behind Thresholded Uncertainty
-  mitk::IntProperty::Pointer behindProperty = mitk::IntProperty::New(0);
-  mitk::IntProperty::Pointer infrontProperty = mitk::IntProperty::New(1);
-  if (this->scan) {
-    this->scan->SetProperty("layer", behindProperty);
+  SetDataNodeLayer(this->scan, 0);
+  SetDataNodeLayer(thresholdedUncertainty, 1);
+
+  this->RequestRenderWindowUpdate();
+}
+
+void Sams_View::ResetThresholds() {
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
+  SetLowerThreshold(0.0);
+  thresholdingEnabled = wasEnabled;
+  SetUpperThreshold(1.0);
+}
+
+void Sams_View::VolumeRenderThreshold(bool checked) {
+  // If we don't have any preprocessed uncertainty, do nothing.
+  if (!this->preprocessedUncertainty) {
+    return;
   }
 
-  if (thresholdedUncertainty) {
-    thresholdedUncertainty->SetProperty("layer", infrontProperty);  
-  }
-  
-  // Everything else is invisible.
-  mitk::BoolProperty::Pointer propertyFalse = mitk::BoolProperty::New(false);
+  // Enable Volume Rendering.
+  if (checked) {
+    HideAllDataNodes();
+    ShowDataNode(this->preprocessedUncertainty);
+    this->preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
 
-  // Uncertainty -> Invisible.
-  if (this->uncertainty) {
-    this->uncertainty->SetProperty("visible", propertyFalse);
-  }
+    // Opacity Transfer Function
+    mitk::TransferFunction::ControlPoints scalarOpacityPoints;
+    scalarOpacityPoints.push_back(std::make_pair(lowerThreshold, 0.0));
+    scalarOpacityPoints.push_back(std::make_pair(upperThreshold, 0.5));
+    scalarOpacityPoints.push_back(std::make_pair(std::min(1.0, upperThreshold + 0.001), 0.0));
 
-  // Preprocessed -> Invisible.
-  preprocessedUncertainty = this->GetDataStorage()->GetNamedDerivedNode("Preprocessed", this->uncertainty);
-  if (preprocessedUncertainty) {
-    preprocessedUncertainty->SetProperty("visible", propertyFalse);
+    // Gradient Opacity Transfer Function (to ignore sharp edges)
+    mitk::TransferFunction::ControlPoints gradientOpacityPoints;
+    gradientOpacityPoints.push_back(std::make_pair(0.0, 1.0));
+    gradientOpacityPoints.push_back(std::make_pair(0.1, 0.0));
+
+    // Colour Transfer Function
+    vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+    colorTransferFunction->AddRGBPoint(lowerThreshold, 0.0, 0.0, 0.0);
+    colorTransferFunction->AddRGBPoint(upperThreshold, 1.0, 0.0, 0.0);
+    
+    // Combine them.
+    mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+    transferFunction->SetScalarOpacityPoints(scalarOpacityPoints);
+    transferFunction->SetGradientOpacityPoints(gradientOpacityPoints);
+    transferFunction->SetColorTransferFunction(colorTransferFunction);
+
+    this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
+    cout << "Lower Threshold: " << lowerThreshold << ", Upper Threshold: " << upperThreshold << endl;
+  }
+  // Disable Volume Rendering.
+  else {
+    this->preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(false));
   }
 
   this->RequestRenderWindowUpdate();
@@ -1157,42 +1226,6 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   float quarter = std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 4;
   mitk::Image::Pointer quadsphere = DemoUncertainty::generateSphereUncertainty(imageSize, quarter, vtkVector<float, 3>(quarter));
   SaveDataNode("Quadsphere Uncertainty", quadsphere);
-}
-
-void Sams_View::DebugVolumeRenderPreprocessed() {
-  // TEST: Adjust transfer function of uncertainty to highlight the thresholded areas.
-  // mitk::RenderingModeProperty::Pointer renderingModeProperty = mitk::RenderingModeProperty::New(
-  //   mitk::RenderingModeProperty::COLORTRANSFERFUNCTION_LEVELWINDOW_COLOR
-  // );
-  // this->preprocessedUncertainty->SetProperty("Image Rendering.Mode", renderingModeProperty);
-  this->preprocessedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
-
-  // Opacity Transfer Function
-  mitk::TransferFunction::ControlPoints scalarOpacityPoints;
-  scalarOpacityPoints.push_back(std::make_pair(lowerThreshold, 0.0));
-  scalarOpacityPoints.push_back(std::make_pair(upperThreshold, 0.5));
-  scalarOpacityPoints.push_back(std::make_pair(std::min(1.0, upperThreshold + 0.001), 0.0));
-
-  // Gradient Opacity Transfer Function (to ignore sharp edges)
-  mitk::TransferFunction::ControlPoints gradientOpacityPoints;
-  gradientOpacityPoints.push_back(std::make_pair(0.0, 1.0));
-  gradientOpacityPoints.push_back(std::make_pair(0.1, 0.0));
-
-  // Colour Transfer Function
-  vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-  colorTransferFunction->AddRGBPoint(lowerThreshold, 0.0, 0.0, 0.0);
-  colorTransferFunction->AddRGBPoint(upperThreshold, 1.0, 0.0, 0.0);
-  
-  // Combine them.
-  mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
-  transferFunction->SetScalarOpacityPoints(scalarOpacityPoints);
-  transferFunction->SetGradientOpacityPoints(gradientOpacityPoints);
-  transferFunction->SetColorTransferFunction(colorTransferFunction);
-
-  this->preprocessedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
-
-  cout << "Lower Threshold: " << lowerThreshold << ", Upper Threshold: " << upperThreshold << endl;
-  this->RequestRenderWindowUpdate();
 }
 
 void Sams_View::DebugOverlay() {

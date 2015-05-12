@@ -60,8 +60,8 @@ font-weight: bold;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>101</width>
-        <height>727</height>
+        <width>413</width>
+        <height>710</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -252,7 +252,7 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>340</width>
+               <width>382</width>
                <height>618</height>
               </rect>
              </property>
@@ -1559,8 +1559,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>107</width>
-        <height>424</height>
+        <width>413</width>
+        <height>710</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1621,8 +1621,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>202</width>
-               <height>157</height>
+               <width>395</width>
+               <height>563</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1984,7 +1984,7 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-22</y>
         <width>400</width>
         <height>732</height>
        </rect>
@@ -2864,7 +2864,7 @@ QPushButton:pressed {
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>0</y>
+               <y>-14</y>
                <width>369</width>
                <height>355</height>
               </rect>
@@ -3307,6 +3307,9 @@ QPushButton:pressed {
                     </property>
                     <item>
                      <widget class="ctkDoubleSlider" name="sliderTopXPercent">
+                      <property name="singleStep">
+                       <double>1.000000000000000</double>
+                      </property>
                       <property name="maximum">
                        <double>100.000000000000000</double>
                       </property>
@@ -3337,6 +3340,12 @@ QPushButton:pressed {
                       </property>
                       <property name="decimals">
                        <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <double>100.000000000000000</double>
+                      </property>
+                      <property name="singleStep">
+                       <double>1.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -3409,6 +3418,9 @@ QPushButton:pressed {
                       </property>
                       <property name="text">
                        <string>Volume Render</string>
+                      </property>
+                      <property name="checkable">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
