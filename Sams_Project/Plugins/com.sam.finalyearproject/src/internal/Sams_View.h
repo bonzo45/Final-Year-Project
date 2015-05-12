@@ -58,7 +58,11 @@ class Sams_View : public QmitkAbstractView {
     //  a
     void ToggleUncertaintyThresholding(bool checked);    
     void ThresholdUncertainty();
+    void LowerThresholdChanged();
+    void LowerThresholdSliderMoved(int lower);
     void LowerThresholdChanged(int lower);
+    void UpperThresholdChanged();
+    void UpperThresholdSliderMoved(int upper);
     void UpperThresholdChanged(int upper);
     void TopOnePercent();
     void TopFivePercent();

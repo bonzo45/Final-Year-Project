@@ -106,7 +106,9 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // 3.
   //  a. Thresholding
   connect(UI.pushButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
+  connect(UI.sliderMinThreshold, SIGNAL(sliderMoved(int)), this, SLOT(LowerThresholdSliderMoved(int)));
   connect(UI.sliderMinThreshold, SIGNAL(valueChanged(int)), this, SLOT(LowerThresholdChanged(int)));
+  connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved(int)), this, SLOT(UpperThresholdSliderMoved(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(valueChanged(int)), this, SLOT(UpperThresholdChanged(int)));
   connect(UI.spinBoxTopXPercent, SIGNAL(valueChanged(double)), this, SLOT(TopXPercent(double)));
   connect(UI.sliderTopXPercent, SIGNAL(sliderReleased()), this, SLOT(TopXPercent()));
@@ -668,6 +670,17 @@ void Sams_View::RemoveThresholdedUncertainty() {
   RemoveDataNode("Thresholded", preprocessedUncertainty);
 }
 
+void Sams_View::LowerThresholdSliderMoved(int lower) {
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
+  LowerThresholdChanged(lower);
+  thresholdingEnabled = wasEnabled;
+}
+
+void Sams_View::LowerThresholdChanged() {
+  LowerThresholdChanged(UI.sliderMinThreshold->value());
+}
+
 /**
   * Set Lower Threshold (called by sliders)
   * - lower is between 0 and 1000
@@ -675,6 +688,7 @@ void Sams_View::RemoveThresholdedUncertainty() {
 void Sams_View::LowerThresholdChanged(int lower) {
   float translatedLowerValue = ((NORMALIZED_MAX - NORMALIZED_MIN) / 1000) * lower + NORMALIZED_MIN;
   if (translatedLowerValue > upperThreshold) {
+    std::cout << "Lower (" << translatedLowerValue << ") higher than Upper (" << upperThreshold << ") - setting to (" << UI.sliderMaxThreshold->value() << ")" << std::endl;
     UI.sliderMinThreshold->setValue(UI.sliderMaxThreshold->value());
     return;
   }
@@ -686,6 +700,17 @@ void Sams_View::LowerThresholdChanged(int lower) {
   }
 }
 
+void Sams_View::UpperThresholdSliderMoved(int upper) {
+  bool wasEnabled = thresholdingEnabled;
+  thresholdingEnabled = false;
+  UpperThresholdChanged(upper);
+  thresholdingEnabled = wasEnabled;
+}
+
+void Sams_View::UpperThresholdChanged() {
+  UpperThresholdChanged(UI.sliderMaxThreshold->value());
+}
+
 /**
   * Set Upper Threshold (called by sliders)
     * - upper is between 0 and 1000
@@ -693,6 +718,7 @@ void Sams_View::LowerThresholdChanged(int lower) {
 void Sams_View::UpperThresholdChanged(int upper) {
   float translatedUpperValue = ((NORMALIZED_MAX - NORMALIZED_MIN) / 1000) * upper + NORMALIZED_MIN;
   if (translatedUpperValue < lowerThreshold) {
+    std::cout << "Upper (" << translatedUpperValue << ") higher than Lower (" << lowerThreshold << ") - setting to (" << UI.sliderMinThreshold->value() << ")" << std::endl;
     UI.sliderMaxThreshold->setValue(UI.sliderMinThreshold->value());
     return;
   }
