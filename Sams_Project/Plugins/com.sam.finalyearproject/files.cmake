@@ -11,6 +11,7 @@ set(SRC_CPP_FILES
   SVDScanPlaneGenerator.cpp
   ColourLegendOverlay.cpp
   ScanSimulator.cpp
+  MitkLoadingBarCommand.cpp
 )
 
 set(INTERNAL_CPP_FILES

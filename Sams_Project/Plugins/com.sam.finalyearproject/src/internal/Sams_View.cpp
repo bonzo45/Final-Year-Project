@@ -730,7 +730,7 @@ void Sams_View::SetUpperThreshold(double upper) {
   bool wasEnabled = thresholdingEnabled;
   thresholdingEnabled = false;
   UI.sliderMaxThreshold->setValue(sliderValue);
-  thresholdingEnabled = wasEnabled;  
+  thresholdingEnabled = wasEnabled;
   UpperThresholdChanged(sliderValue);
 }
 
