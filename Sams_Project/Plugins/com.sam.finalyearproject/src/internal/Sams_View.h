@@ -79,8 +79,8 @@ class Sams_View : public QmitkAbstractView {
 
     //  b
     void GenerateUncertaintySphere();
-    void TextureWidthChanged(int);
-    void TextureHeightChanged(int);
+    void ThetaResolutionChanged(int);
+    void PhiResolutionChanged(int);
 
     //  c
     void SurfaceMapping();

@@ -251,7 +251,7 @@ font-weight: normal;</string>
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>0</y>
+               <y>-138</y>
                <width>463</width>
                <height>603</height>
               </rect>
@@ -1614,7 +1614,7 @@ font-weight: normal;</string>
           <item>
            <widget class="QToolBox" name="toolBoxReconstruct">
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="pageReconstructExecutable">
              <property name="geometry">
@@ -1803,8 +1803,8 @@ color: rgb(0, 150, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>171</width>
-               <height>72</height>
+               <width>476</width>
+               <height>448</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1874,8 +1874,8 @@ color: rgb(0, 150, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>280</width>
-               <height>184</height>
+               <width>476</width>
+               <height>448</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1984,9 +1984,9 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-977</y>
+        <y>-900</y>
         <width>481</width>
-        <height>2118</height>
+        <height>2151</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -3680,10 +3680,7 @@ QPushButton:checked {
           </item>
           <item>
            <widget class="QWidget" name="widgetVisualizeSphere" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout_17">
-             <property name="topMargin">
-              <number>0</number>
-             </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
              <item>
               <widget class="QLabel" name="label2bDescription">
                <property name="font">
@@ -3699,7 +3696,38 @@ QPushButton:checked {
                 <string notr="true">font-size: 9pt;</string>
                </property>
                <property name="text">
-                <string>Shows the uncertainty on a sphere by generating a texture.</string>
+                <string>Shows the uncertainty on a sphere.</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelSCAN_16">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>140</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>Resolution</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -3712,7 +3740,7 @@ QPushButton:checked {
                 <item>
                  <widget class="QLabel" name="label_13">
                   <property name="text">
-                   <string>Width</string>
+                   <string>horizontal</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -3722,7 +3750,7 @@ QPushButton:checked {
                 <item>
                  <widget class="QLabel" name="label_14">
                   <property name="text">
-                   <string>Height</string>
+                   <string>vertical</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -3755,7 +3783,7 @@ QPushButton:checked {
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QSpinBox" name="spinBoxTextureWidth">
+                 <widget class="QSpinBox" name="spinBoxSphereThetaResolution">
                   <property name="minimum">
                    <number>2</number>
                   </property>
@@ -3771,7 +3799,7 @@ QPushButton:checked {
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="spinBoxTextureHeight">
+                 <widget class="QSpinBox" name="spinBoxSpherePhiResolution">
                   <property name="minimum">
                    <number>1</number>
                   </property>

@@ -13,13 +13,13 @@
 // Loading bar
 #include <mitkProgressBar.h>
 
-mitk::Surface::Pointer SurfaceGenerator::generateSphere(unsigned int resolution, unsigned int radius) {
+mitk::Surface::Pointer SurfaceGenerator::generateSphere(unsigned int thetaResolution, unsigned int phiResolution, unsigned int radius) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
   
   // Create a sphere.
   vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-  sphere->SetThetaResolution(resolution);
-  sphere->SetPhiResolution(resolution);
+  sphere->SetThetaResolution(thetaResolution);
+  sphere->SetPhiResolution(phiResolution);
   sphere->SetRadius(radius);
   sphere->SetCenter(0, 0, 0);
 

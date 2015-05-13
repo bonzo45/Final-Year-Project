@@ -124,8 +124,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonVolumeRenderThreshold, SIGNAL(toggled(bool)), SLOT(VolumeRenderThreshold(bool)));
 
   //  b. Texture Mapping
-  connect(UI.spinBoxTextureWidth, SIGNAL(valueChanged(int)), this, SLOT(TextureWidthChanged(int)));
-  connect(UI.spinBoxTextureHeight, SIGNAL(valueChanged(int)), this, SLOT(TextureHeightChanged(int)));
+  connect(UI.spinBoxSphereThetaResolution, SIGNAL(valueChanged(int)), this, SLOT(ThetaResolutionChanged(int)));
+  connect(UI.spinBoxSpherePhiResolution, SIGNAL(valueChanged(int)), this, SLOT(PhiResolutionChanged(int)));
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
 
   //  c. Surface Mapping
@@ -971,26 +971,26 @@ void Sams_View::VolumeRenderThreshold(bool checked) {
 
 double latLongRatio = 2.0;
 
-void Sams_View::TextureWidthChanged(int value) {
+void Sams_View::ThetaResolutionChanged(int value) {
   if (UI.buttonLocked->isChecked()) {
-    UI.spinBoxTextureHeight->setValue(value / latLongRatio);
+    UI.spinBoxSpherePhiResolution->setValue(value / latLongRatio);
   }
 
-  latLongRatio = UI.spinBoxTextureWidth->value() / UI.spinBoxTextureHeight->value();
+  latLongRatio = UI.spinBoxSphereThetaResolution->value() / UI.spinBoxSpherePhiResolution->value();
 }
 
-void Sams_View::TextureHeightChanged(int value) {
+void Sams_View::PhiResolutionChanged(int value) {
   if (UI.buttonLocked->isChecked()) {
-    UI.spinBoxTextureWidth->setValue(value * latLongRatio);
+    UI.spinBoxSphereThetaResolution->setValue(value * latLongRatio);
   }
 
-  latLongRatio = UI.spinBoxTextureWidth->value() / UI.spinBoxTextureHeight->value();
+  latLongRatio = UI.spinBoxSphereThetaResolution->value() / UI.spinBoxSpherePhiResolution->value();
 }
 
 void Sams_View::GenerateUncertaintySphere() {
   std::ostringstream name;
   name << "Sphere Surface";
-  mitk::Surface::Pointer generatedSurface = SurfaceGenerator::generateSphere();
+  mitk::Surface::Pointer generatedSurface = SurfaceGenerator::generateSphere(UI.spinBoxSphereThetaResolution->value(), UI.spinBoxSphereThetaResolution->value());
   mitk::DataNode::Pointer surfaceNode = SaveDataNode(name.str().c_str(), generatedSurface, true);
   
   // ---- Sampling Accumulator Options ---- //
@@ -1054,7 +1054,7 @@ void Sams_View::GenerateUncertaintySphere() {
 //   // Create Texture
 //   UncertaintyTexture * texturerer = new UncertaintyTexture();
 //   texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
-//   texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
+//   texturerer->setDimensions(UI.spinBoxSphereThetaResolution->value(), UI.spinBoxSpherePhiResolution->value());
 //   texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
 //   if (UI.radioButtonTextureSampleAverage->isChecked()) {
 //     texturerer->setSamplingAverage();
