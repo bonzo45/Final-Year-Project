@@ -991,8 +991,57 @@ void Sams_View::GenerateUncertaintySphere() {
   std::ostringstream name;
   name << "Sphere Surface";
   mitk::Surface::Pointer generatedSurface = SurfaceGenerator::generateSphere();
-  mitk::DataNode::Pointer surfaceNode = SaveDataNode(name.str().c_str(), generatedSurface);
-  SurfaceMapping(surfaceNode);
+  mitk::DataNode::Pointer surfaceNode = SaveDataNode(name.str().c_str(), generatedSurface, true);
+  
+  // ---- Sampling Accumulator Options ---- //
+  UncertaintySurfaceMapper::SAMPLING_ACCUMULATOR samplingAccumulator;
+  if (UI.radioButtonSphereSampleAccumulatorAverage->isChecked()) {
+    samplingAccumulator = UncertaintySurfaceMapper::AVERAGE;
+  }
+  else if (UI.radioButtonSphereSampleAccumulatorMin->isChecked()) {
+    samplingAccumulator = UncertaintySurfaceMapper::MINIMUM;
+  }
+  else if (UI.radioButtonSphereSampleAccumulatorMax->isChecked()) {
+    samplingAccumulator = UncertaintySurfaceMapper::MAXIMUM;
+  }
+
+    // ---- Sampling Distance Options ---- ///
+  UncertaintySurfaceMapper::SAMPLING_DISTANCE samplingDistance;
+  if (UI.radioButtonSphereSamplingDistanceFull->isChecked()) {
+    samplingDistance = UncertaintySurfaceMapper::FULL;
+  }
+  else if (UI.radioButtonSphereSamplingDistanceHalf->isChecked()) {
+    samplingDistance = UncertaintySurfaceMapper::HALF;
+  }
+
+  // ---- Scaling Options ---- //
+  UncertaintySurfaceMapper::SCALING scaling;
+  if (UI.radioButtonSphereScalingNone->isChecked()) {
+   scaling = UncertaintySurfaceMapper::NONE;
+  }
+  else if (UI.radioButtonSphereScalingLinear->isChecked()) {
+    scaling = UncertaintySurfaceMapper::LINEAR;
+  }
+  else if (UI.radioButtonSphereScalingHistogram->isChecked()) {
+    scaling = UncertaintySurfaceMapper::HISTOGRAM;
+  }
+
+  // ---- Colour Options ---- //
+  UncertaintySurfaceMapper::COLOUR colour;
+  if (UI.radioButtonSphereColourBlackAndWhite->isChecked()) {
+   colour = UncertaintySurfaceMapper::BLACK_AND_WHITE;
+  }
+  else if (UI.radioButtonSphereColourColour->isChecked()) {
+    colour = UncertaintySurfaceMapper::BLACK_AND_RED;
+  }
+
+  bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
+
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, invertNormals);
+
+  HideAllDataNodes();
+  ShowDataNode(surfaceNode);
+  this->RequestRenderWindowUpdate();
 }
 
 // /**
@@ -1054,13 +1103,65 @@ void Sams_View::GenerateUncertaintySphere() {
 
 void Sams_View::SurfaceMapping() {
   mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
-  SurfaceMapping(surfaceNode);
+  
+  // ---- Sampling Accumulator Options ---- //
+  UncertaintySurfaceMapper::SAMPLING_ACCUMULATOR samplingAccumulator;
+  if (UI.radioButtonSurfaceSampleAverage->isChecked()) {
+    samplingAccumulator = UncertaintySurfaceMapper::AVERAGE;
+  }
+  else if (UI.radioButtonSurfaceSampleMinimum->isChecked()) {
+    samplingAccumulator = UncertaintySurfaceMapper::MINIMUM;
+  }
+  else if (UI.radioButtonSurfaceSampleMaximum->isChecked()) {
+    samplingAccumulator = UncertaintySurfaceMapper::MAXIMUM;
+  }
+
+    // ---- Sampling Distance Options ---- ///
+  UncertaintySurfaceMapper::SAMPLING_DISTANCE samplingDistance;
+  if (UI.radioButtonSamplingFull->isChecked()) {
+    samplingDistance = UncertaintySurfaceMapper::FULL;
+  }
+  else if (UI.radioButtonSamplingHalf->isChecked()) {
+    samplingDistance = UncertaintySurfaceMapper::HALF;
+  }
+
+  // ---- Scaling Options ---- //
+  UncertaintySurfaceMapper::SCALING scaling;
+  if (UI.radioButtonScalingNone->isChecked()) {
+   scaling = UncertaintySurfaceMapper::NONE;
+  }
+  else if (UI.radioButtonScalingLinear->isChecked()) {
+    scaling = UncertaintySurfaceMapper::LINEAR;
+  }
+  else if (UI.radioButtonScalingHistogram->isChecked()) {
+    scaling = UncertaintySurfaceMapper::HISTOGRAM;
+  }
+
+  // ---- Colour Options ---- //
+  UncertaintySurfaceMapper::COLOUR colour;
+  if (UI.radioButtonColourBlackAndWhite->isChecked()) {
+   colour = UncertaintySurfaceMapper::BLACK_AND_WHITE;
+  }
+  else if (UI.radioButtonColourColour->isChecked()) {
+    colour = UncertaintySurfaceMapper::BLACK_AND_RED;
+  }
+
+  bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
+
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, invertNormals);
 }
 
 /**
   * Takes a surface and maps the uncertainty onto it based on the normal vector.
   */
-void Sams_View::SurfaceMapping(mitk::DataNode::Pointer surfaceNode) {
+void Sams_View::SurfaceMapping(
+  mitk::DataNode::Pointer surfaceNode,
+  UncertaintySurfaceMapper::SAMPLING_ACCUMULATOR samplingAccumulator,
+  UncertaintySurfaceMapper::SAMPLING_DISTANCE samplingDistance,
+  UncertaintySurfaceMapper::SCALING scaling,
+  UncertaintySurfaceMapper::COLOUR colour,
+  bool invertNormals
+) {
   if (surfaceNode.IsNull()) {
     std::cout << "Surface is null. Stopping." << std::endl;
     return;
@@ -1097,40 +1198,11 @@ void Sams_View::SurfaceMapping(mitk::DataNode::Pointer surfaceNode) {
   UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
   mapper->setUncertainty(GetMitkPreprocessedUncertainty());
   mapper->setSurface(mitkSurface);
-  if (UI.radioButtonSurfaceSampleAverage->isChecked()) {
-    mapper->setSamplingAverage();
-  }
-  else if (UI.radioButtonSurfaceSampleMinimum->isChecked()) {
-   mapper->setSamplingMinimum(); 
-  }
-  else if (UI.radioButtonSurfaceSampleMaximum->isChecked()) {
-    mapper->setSamplingMaximum();
-  }
-  // ---- Sampling Options ---- ///
-  if (UI.radioButtonSamplingFull->isChecked()) {
-    mapper->setSamplingDistance(UncertaintySurfaceMapper::FULL);
-  }
-  else if (UI.radioButtonSamplingHalf->isChecked()) {
-    mapper->setSamplingDistance(UncertaintySurfaceMapper::HALF);
-  }
-  // ---- Scaling Options ---- //
-  if (UI.radioButtonScalingNone->isChecked()) {
-    mapper->setScalingNone();
-  }
-  else if (UI.radioButtonScalingLinear->isChecked()) {
-    mapper->setScalingLinear();
-  }
-  else if (UI.radioButtonScalingHistogram->isChecked()) {
-    mapper->setScalingHistogram();
-  }
-  // ---- Colour Options ---- //
-  if (UI.radioButtonColourBlackAndWhite->isChecked()) {
-    mapper->setBlackAndWhite();
-  }
-  else if (UI.radioButtonColourColour->isChecked()) {
-    mapper->setColour();
-  }
-  mapper->setInvertNormals(UI.checkBoxSurfaceInvertNormals->isChecked());
+  mapper->setSamplingAccumulator(samplingAccumulator);
+  mapper->setSamplingDistance(samplingDistance);
+  mapper->setScaling(scaling);
+  mapper->setColour(colour);
+  mapper->setInvertNormals(invertNormals);
   mapper->map();
 
   // Adjust legend.

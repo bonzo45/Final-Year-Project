@@ -21,9 +21,9 @@
 
 UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
   setSamplingDistance(HALF);  
-  setBlackAndWhite();
-  setScalingNone();
-  setSamplingAverage();
+  setColour(BLACK_AND_WHITE);
+  setScaling(NONE);
+  setSamplingAccumulator(AVERAGE);
 }
 
 void UncertaintySurfaceMapper::setUncertainty(mitk::Image::Pointer uncertainty) {
@@ -37,60 +37,20 @@ void UncertaintySurfaceMapper::setSurface(mitk::Surface::Pointer surface) {
   this->surface = surface;
 }
 
-void UncertaintySurfaceMapper::setSamplingDistance(SAMPLING_DISTANCE distance) {
-  this->samplingDistance = distance;
+void UncertaintySurfaceMapper::setSamplingDistance(SAMPLING_DISTANCE samplingDistance) {
+  this->samplingDistance = samplingDistance;
 }
 
-void UncertaintySurfaceMapper::setScalingNone() {
-  clearScaling();
-  this->scalingNone = true;
+void UncertaintySurfaceMapper::setScaling(SCALING scaling) {
+  this->scaling = scaling;
 }
 
-void UncertaintySurfaceMapper::setScalingLinear() {
-  clearScaling();
-  this->scalingLinear = true;
+void UncertaintySurfaceMapper::setColour(COLOUR colour) {
+  this->colour = colour;
 }
 
-void UncertaintySurfaceMapper::setScalingHistogram() {
-  clearScaling();
-  this->scalingHistogram = true;
-}
-
-void UncertaintySurfaceMapper::clearScaling() {
-  this->scalingNone = false;
-  this->scalingLinear = false;
-  this->scalingHistogram = false;
-}
-
-void UncertaintySurfaceMapper::setBlackAndWhite() {
-  this->blackAndWhite = true;
-  this->colour = false;
-}
-
-void UncertaintySurfaceMapper::setColour() {
-  this->blackAndWhite = false;
-  this->colour = true;
-}
-
-void UncertaintySurfaceMapper::setSamplingAverage() {
-  clearSampling();
-  this->samplingAverage = true;
-}
-
-void UncertaintySurfaceMapper::setSamplingMinimum() {
-  clearSampling();
-  this->samplingMinimum = true;
-}
-
-void UncertaintySurfaceMapper::setSamplingMaximum() {
-  clearSampling();
-  this->samplingMaximum = true;
-}
-
-void UncertaintySurfaceMapper::clearSampling() {
-  this->samplingAverage = false;
-  this->samplingMinimum = false;
-  this->samplingMaximum = false;
+void UncertaintySurfaceMapper::setSamplingAccumulator(SAMPLING_ACCUMULATOR samplingAccumulator) {
+  this->samplingAccumulator = samplingAccumulator;
 }
 
 void UncertaintySurfaceMapper::setInvertNormals(bool invertNormals) {
@@ -146,15 +106,12 @@ void UncertaintySurfaceMapper::map() {
   // Create an uncertainty sampler.
   UncertaintySampler * sampler = new UncertaintySampler();
   sampler->setUncertainty(this->uncertainty);
-  if (samplingAverage) {
-    sampler->setAverage();
+  
+  switch (samplingAccumulator) {
+    case AVERAGE: sampler->setAverage(); break;
+    case MINIMUM: sampler->setMin(); break;
+    case MAXIMUM: sampler->setMax(); break;
   }
-  else if (samplingMinimum) {
-    sampler->setMin();
-  }
-  else if (samplingMaximum) {
-    sampler->setMax();
-  }   
 
   mitk::ProgressBar::GetInstance()->Progress();
 
@@ -234,38 +191,46 @@ void UncertaintySurfaceMapper::map() {
   // ---- Scale the Uncertanties ---- //
   // -------------------------------- //
   UncertaintyListType::Pointer scaled;
-  // No scaling.
-  if (scalingNone) {
-    scaled = importFilter->GetOutput();
-    legendMinValue = 0.0;
-    legendMaxValue = 1.0;
-  }
+  switch (scaling) {
+    // No scaling.
+    case NONE:
+    {
+      scaled = importFilter->GetOutput();
+      legendMinValue = 0.0;
+      legendMaxValue = 1.0;
+    }
+    break;
+    
+    // Linear scaling. Map {min-max} to {0-1.}.
+    case LINEAR: 
+    {
+      typedef itk::RescaleIntensityImageFilter<UncertaintyListType, UncertaintyListType> RescaleFilterType;
+      typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
+      rescaleFilter->SetInput(importFilter->GetOutput());
+      rescaleFilter->SetOutputMinimum(0.0);
+      rescaleFilter->SetOutputMaximum(1.0);
+      rescaleFilter->Update();
+      scaled = rescaleFilter->GetOutput();
+      legendMinValue = rescaleFilter->GetInputMinimum();
+      legendMaxValue = rescaleFilter->GetInputMaximum();
+    }
+    break;
 
-  // Linear scaling. Map {min-max} to {0-1.}.
-  else if (scalingLinear) {
-    typedef itk::RescaleIntensityImageFilter<UncertaintyListType, UncertaintyListType> RescaleFilterType;
-    typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-    rescaleFilter->SetInput(importFilter->GetOutput());
-    rescaleFilter->SetOutputMinimum(0.0);
-    rescaleFilter->SetOutputMaximum(1.0);
-    rescaleFilter->Update();
-    scaled = rescaleFilter->GetOutput();
-    legendMinValue = rescaleFilter->GetInputMinimum();
-    legendMaxValue = rescaleFilter->GetInputMaximum();
-  }
-
-  // Histogram equalization.
-  else if (scalingHistogram) {
-    typedef itk::AdaptiveHistogramEqualizationImageFilter<UncertaintyListType> AdaptiveHistogramEqualizationImageFilterType;
-    AdaptiveHistogramEqualizationImageFilterType::Pointer histogramEqualizationFilter = AdaptiveHistogramEqualizationImageFilterType::New();
-    histogramEqualizationFilter->SetInput(importFilter->GetOutput());
-    histogramEqualizationFilter->SetAlpha(0);
-    histogramEqualizationFilter->SetBeta(0);
-    histogramEqualizationFilter->SetRadius(1);
-    histogramEqualizationFilter->Update();
-    scaled = histogramEqualizationFilter->GetOutput();
-    legendMinValue = -1.0;
-    legendMaxValue = -1.0;
+    // Histogram equalization.
+    case HISTOGRAM:
+    {
+      typedef itk::AdaptiveHistogramEqualizationImageFilter<UncertaintyListType> AdaptiveHistogramEqualizationImageFilterType;
+      AdaptiveHistogramEqualizationImageFilterType::Pointer histogramEqualizationFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+      histogramEqualizationFilter->SetInput(importFilter->GetOutput());
+      histogramEqualizationFilter->SetAlpha(0);
+      histogramEqualizationFilter->SetBeta(0);
+      histogramEqualizationFilter->SetRadius(1);
+      histogramEqualizationFilter->Update();
+      scaled = histogramEqualizationFilter->GetOutput();
+      legendMinValue = -1.0;
+      legendMaxValue = -1.0;
+    }
+    break;
   }
 
   mitk::ProgressBar::GetInstance()->Progress();
@@ -285,17 +250,20 @@ void UncertaintySurfaceMapper::map() {
     unsigned char intensity = static_cast<unsigned char>(round(scaledValues[i] * 255));
     //cout << scaledValues[i] << " -> " << scaledValues[i] * 255  << " -> " << round(scaledValues[i] * 255) << " -> " << intensity << " -> " << (int) intensity << endl;
     unsigned char normalColour[3];
-    // Black and White
-    if (blackAndWhite) {
-      normalColour[0] = intensity;
-      normalColour[1] = intensity;
-      normalColour[2] = intensity;
-    }
-    // Colour
-    else if (colour) {
-      normalColour[0] = Util::IntensityToRed(intensity);
-      normalColour[1] = Util::IntensityToGreen(intensity);
-      normalColour[2] = Util::IntensityToBlue(intensity);
+    switch (colour) {
+      // Black and White
+      case BLACK_AND_WHITE:
+        normalColour[0] = intensity;
+        normalColour[1] = intensity;
+        normalColour[2] = intensity;
+        break;
+
+      // Colour
+      case BLACK_AND_RED:
+        normalColour[0] = Util::IntensityToRed(intensity);
+        normalColour[1] = Util::IntensityToGreen(intensity);
+        normalColour[2] = Util::IntensityToBlue(intensity);
+        break;
     }
     colors->InsertNextTupleValue(normalColour);
   }

@@ -7,23 +7,17 @@
 class UncertaintySurfaceMapper {
   public:
     enum SAMPLING_DISTANCE {HALF, FULL};
-    enum Scaling {NONE, LINEAR, HISTOGRAM};
-    enum Colour {BLACK_AND_WHITE, COLOUR};
-    enum SamplingAccumulator {AVERAGE, MINIMUM, MAXIMUM};
+    enum SCALING {NONE, LINEAR, HISTOGRAM};
+    enum COLOUR {BLACK_AND_WHITE, BLACK_AND_RED};
+    enum SAMPLING_ACCUMULATOR {AVERAGE, MINIMUM, MAXIMUM};
 
     UncertaintySurfaceMapper();
     void setUncertainty(mitk::Image::Pointer uncertainty);
     void setSurface(mitk::Surface::Pointer surface);
-    void setSamplingDistance(SAMPLING_DISTANCE distance);
-    void setSamplingHalf();
-    void setScalingNone();
-    void setScalingLinear();
-    void setScalingHistogram();
-    void setBlackAndWhite();
-    void setColour();
-    void setSamplingAverage();
-    void setSamplingMinimum();
-    void setSamplingMaximum();
+    void setSamplingDistance(SAMPLING_DISTANCE samplingDistance);
+    void setScaling(SCALING scaling);
+    void setColour(COLOUR colour);
+    void setSamplingAccumulator(SAMPLING_ACCUMULATOR samplingAccumulator);
     void setInvertNormals(bool invertNormals);
     void map();
 
@@ -39,19 +33,9 @@ class UncertaintySurfaceMapper {
     unsigned int uncertaintyHeight, uncertaintyWidth, uncertaintyDepth;
 
     SAMPLING_DISTANCE samplingDistance;
-
-    bool scalingNone;
-    bool scalingLinear;
-    bool scalingHistogram;
-    void clearScaling();
-
-    bool blackAndWhite;
-    bool colour;
-
-    bool samplingAverage;
-    bool samplingMinimum;
-    bool samplingMaximum;
-    void clearSampling();
+    SCALING scaling;
+    COLOUR colour;
+    SAMPLING_ACCUMULATOR samplingAccumulator;
 
     bool invertNormals;
 

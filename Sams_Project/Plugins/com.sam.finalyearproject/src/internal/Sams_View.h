@@ -28,6 +28,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <mitkImage.h>
 #include <vtkVector.h>
 #include <mitkOverlayManager.h>
+#include "UncertaintySurfaceMapper.h"
 
 /*!
   \brief Sams_View
@@ -83,7 +84,14 @@ class Sams_View : public QmitkAbstractView {
 
     //  c
     void SurfaceMapping();
-    void SurfaceMapping(mitk::DataNode::Pointer surfaceNode);
+    void SurfaceMapping(
+      mitk::DataNode::Pointer surfaceNode,
+      UncertaintySurfaceMapper::SAMPLING_ACCUMULATOR samplingAccumulator,
+      UncertaintySurfaceMapper::SAMPLING_DISTANCE samplingDistance,
+      UncertaintySurfaceMapper::SCALING scaling,
+      UncertaintySurfaceMapper::COLOUR colour,
+      bool invertNormals
+    );
     void GenerateSphereSurface();
     void GenerateCubeSurface();
     void GenerateCylinderSurface();

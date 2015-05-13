@@ -22,7 +22,7 @@ class RANSACScanPlaneGenerator {
     vtkSmartPointer<vtkPlane> generatePotentialPlane();
     double evaluateScanPlaneGoodness(vtkSmartPointer<vtkPlane> plane);
 
-    const bool DEBUGGING = true;
+    static const bool DEBUGGING = true;
 
     double totalUncertainty;
 

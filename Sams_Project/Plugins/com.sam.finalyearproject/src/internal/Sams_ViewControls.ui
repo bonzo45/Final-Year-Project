@@ -1984,9 +1984,9 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-598</y>
+        <y>-977</y>
         <width>481</width>
-        <height>2049</height>
+        <height>2118</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -3814,75 +3814,147 @@ QPushButton:checked {
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="widget_13" native="true">
-               <layout class="QGridLayout" name="gridLayout_5">
-                <item row="0" column="0">
-                 <widget class="QGroupBox" name="groupBox_7">
-                  <property name="title">
-                   <string>Scaling</string>
+              <layout class="QGridLayout" name="gridVisualizeSphere">
+               <item row="1" column="1">
+                <widget class="QGroupBox" name="groupBoxSphereSampleAccumulator">
+                 <property name="title">
+                  <string>Sample</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_42">
+                  <property name="bottomMargin">
+                   <number>0</number>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_32">
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonTextureScalingNone">
-                     <property name="text">
-                      <string>none</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonTextureScalingLinear">
-                     <property name="text">
-                      <string>linear</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QGroupBox" name="groupBox_8">
-                  <property name="title">
-                   <string>Sample</string>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorAverage">
+                    <property name="text">
+                     <string>average</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorMin">
+                    <property name="text">
+                     <string>min</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorMax">
+                    <property name="text">
+                     <string>max</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QGroupBox" name="groupBoxSphereColour">
+                 <property name="title">
+                  <string>Colour</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_40">
+                  <property name="bottomMargin">
+                   <number>0</number>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_33">
-                   <property name="bottomMargin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonTextureSampleAverage">
-                     <property name="text">
-                      <string>average</string>
-                     </property>
-                     <property name="checked">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonTextureSampleMinimum">
-                     <property name="text">
-                      <string>min</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QRadioButton" name="radioButtonTextureSampleMaximum">
-                     <property name="text">
-                      <string>max</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereColourBlackAndWhite">
+                    <property name="font">
+                     <font>
+                      <family>Quicksand</family>
+                      <pointsize>11</pointsize>
+                      <weight>50</weight>
+                      <italic>true</italic>
+                      <bold>false</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>black &amp;&amp; white</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereColourColour">
+                    <property name="text">
+                     <string>colour</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QGroupBox" name="groupBoxSphereSamplingDistance">
+                 <property name="title">
+                  <string>Sampling</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_39">
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceFull">
+                    <property name="text">
+                     <string>full</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceHalf">
+                    <property name="text">
+                     <string>half</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QGroupBox" name="groupBoxSphereScaling">
+                 <property name="title">
+                  <string>Scaling</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_41">
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereScalingNone">
+                    <property name="text">
+                     <string>none</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereScalingLinear">
+                    <property name="text">
+                     <string>linear</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSphereScalingHistogram">
+                    <property name="text">
+                     <string>histogram eqn</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
               <widget class="QWidget" name="widget_14" native="true">
@@ -3918,7 +3990,7 @@ QPushButton:checked {
 </string>
                   </property>
                   <property name="text">
-                   <string>Visualise</string>
+                   <string>Visualize</string>
                   </property>
                  </widget>
                 </item>
