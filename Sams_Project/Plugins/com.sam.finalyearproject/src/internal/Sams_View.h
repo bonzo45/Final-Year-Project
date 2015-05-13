@@ -56,7 +56,9 @@ class Sams_View : public QmitkAbstractView {
 
     // 3
     //  a
-    void ToggleUncertaintyThresholding(bool checked);    
+    void ToggleUncertaintyThresholding(bool checked);  
+    void ToggleUncertaintyThresholdingAutoUpdate(bool checked);
+    void ThresholdUncertaintyIfAutoUpdateEnabled();
     void ThresholdUncertainty();
     void LowerThresholdChanged();
     void LowerThresholdSliderMoved(int lower);
@@ -70,7 +72,7 @@ class Sams_View : public QmitkAbstractView {
     void TopXPercent();
     void TopXPercent(double percentage);
     void TopXPercentSliderMoved(double percentage);
-    void OverlayThreshold();
+    void DisplayThreshold();
     void ResetThresholds();
     void VolumeRenderThreshold(bool checked);
 

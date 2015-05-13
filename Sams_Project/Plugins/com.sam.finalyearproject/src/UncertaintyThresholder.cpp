@@ -139,6 +139,7 @@ void UncertaintyThresholder::ItkComputePercentages(itk::Image<TPixel, VImageDime
   imageToHistogramFilter->SetHistogramBinMinimum(lowerBound);
   imageToHistogramFilter->SetHistogramBinMaximum(upperBound);
   imageToHistogramFilter->SetHistogramSize(size);
+  imageToHistogramFilter->AddObserver(itk::ProgressEvent(), MitkLoadingBarCommand::New());
   imageToHistogramFilter->Update();
 
   // Get the resultant histogram. It has binsPerDimension buckets.

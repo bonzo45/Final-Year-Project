@@ -5,6 +5,7 @@
 #include <itkRescaleIntensityImageFilter.h>
 
 // Loading bar
+#include "MitkLoadingBarCommand.h"
 #include <mitkProgressBar.h>
 
 void UncertaintyTexture::setUncertainty(mitk::Image::Pointer uncertainty) {
@@ -49,7 +50,10 @@ void UncertaintyTexture::setSamplingMaximum() {
   * It works by projecting a point in the center of the volume outwards, onto a sphere.
   */
 mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
-  mitk::ProgressBar::GetInstance()->AddStepsToDo(2);
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(textureWidth * textureHeight);
+  if (scalingLinear) {
+    mitk::ProgressBar::GetInstance()->AddStepsToDo(100);
+  }
 
   // Create a blank ITK image.
   TextureImageType::RegionType region;
@@ -110,11 +114,10 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
       pixelIndex[1] = r;
 
       uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
+      mitk::ProgressBar::GetInstance()->Progress();
     }
   }
   delete sampler;
-
-  mitk::ProgressBar::GetInstance()->Progress();
 
   // Scale the texture values to increase contrast.
   if (scalingLinear) {
@@ -123,6 +126,9 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
     rescaleFilter->SetInput(uncertaintyTexture);
     rescaleFilter->SetOutputMinimum(0);
     rescaleFilter->SetOutputMaximum(255);
+    MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
+    command->Initialize(100, false);
+    rescaleFilter->AddObserver(itk::ProgressEvent(), command);
     rescaleFilter->Update();
     uncertaintyTexture = rescaleFilter->GetOutput();
     legendMinValue = rescaleFilter->GetInputMinimum() / 255.0;
@@ -136,7 +142,6 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   // Convert from ITK to MITK.
   mitk::Image::Pointer result;
   mitk::CastToMitkImage(uncertaintyTexture, result);
-  mitk::ProgressBar::GetInstance()->Progress();
   return result;
 }
 

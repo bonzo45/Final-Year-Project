@@ -76,6 +76,7 @@ ColourLegendOverlay * legendOverlay = NULL;
 UncertaintyThresholder * thresholder;
 mitk::DataNode::Pointer thresholdedUncertainty = 0;
 bool thresholdingEnabled = false;
+bool thresholdingAutoUpdate = true;
 double lowerThreshold = 0;
 double upperThreshold = 0;
 
@@ -106,6 +107,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // 3.
   //  a. Thresholding
   connect(UI.pushButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
+  connect(UI.pushButtonEnableThresholdAutoUpdate, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholdingAutoUpdate(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved(int)), this, SLOT(LowerThresholdSliderMoved(int)));
   connect(UI.sliderMinThreshold, SIGNAL(valueChanged(int)), this, SLOT(LowerThresholdChanged(int)));
   connect(UI.sliderMaxThreshold, SIGNAL(sliderMoved(int)), this, SLOT(UpperThresholdSliderMoved(int)));
@@ -116,8 +118,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonTop1Percent, SIGNAL(clicked()), this, SLOT(TopOnePercent()));
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
-  connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertainty()));
-  connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
+  connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertaintyIfAutoUpdateEnabled()));
+  // connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
   connect(UI.buttonThresholdingReset, SIGNAL(clicked()), this, SLOT(ResetThresholds()));
   connect(UI.buttonVolumeRenderThreshold, SIGNAL(toggled(bool)), SLOT(VolumeRenderThreshold(bool)));
 
@@ -604,7 +606,7 @@ void Sams_View::ToggleScanVisible(bool checked) {
     this->scan->SetProperty("visible", mitk::BoolProperty::New(false));
   }
   
-  this->RequestRenderWindowUpdate();  
+  this->RequestRenderWindowUpdate();
 }
 
 void Sams_View::ToggleUncertaintyVisible(bool checked) {
@@ -631,17 +633,34 @@ void Sams_View::ToggleUncertaintyVisible(bool checked) {
   */
 void Sams_View::ToggleUncertaintyThresholding(bool checked) {
   if (checked) {
+    UI.thresholdingEnabledIndicator1->setChecked(true);
+    UI.thresholdingEnabledIndicator2->setChecked(true);
     thresholdingEnabled = true;
     thresholder = new UncertaintyThresholder();
     ThresholdUncertainty();
   }
   else {
+    UI.thresholdingEnabledIndicator1->setChecked(false);
+    UI.thresholdingEnabledIndicator2->setChecked(false);
     thresholdingEnabled = false;
     if (thresholder) {
       delete thresholder;
       thresholder = NULL;
     }
     RemoveThresholdedUncertainty();
+  }
+}
+
+void Sams_View::ToggleUncertaintyThresholdingAutoUpdate(bool checked) {
+  thresholdingAutoUpdate = checked;
+  if (thresholdingEnabled) {
+    ThresholdUncertainty();
+  }
+}
+
+void Sams_View::ThresholdUncertaintyIfAutoUpdateEnabled() {
+  if (thresholdingAutoUpdate) {
+    ThresholdUncertainty();
   }
 }
 
@@ -663,7 +682,7 @@ void Sams_View::ThresholdUncertainty() {
   thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(10));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 
-  this->RequestRenderWindowUpdate();
+  DisplayThreshold();
 }
 
 void Sams_View::RemoveThresholdedUncertainty() {
@@ -696,7 +715,7 @@ void Sams_View::LowerThresholdChanged(int lower) {
   UI.labelSliderLeft->setText(QString::fromStdString(Util::StringFromDouble(lowerThreshold)));
 
   if (thresholdingEnabled) {
-    ThresholdUncertainty();
+    ThresholdUncertaintyIfAutoUpdateEnabled();
   }
 }
 
@@ -726,7 +745,7 @@ void Sams_View::UpperThresholdChanged(int upper) {
   UI.labelSliderRight->setText(QString::fromStdString(Util::StringFromDouble(upperThreshold)));
 
   if (thresholdingEnabled) {
-    ThresholdUncertainty();
+    ThresholdUncertaintyIfAutoUpdateEnabled();
   }
 }
 
@@ -816,7 +835,7 @@ void Sams_View::TopXPercentSliderMoved(double percentage) {
 /**
   * Sets the layers and visibility required for the thresholded uncertainty to be displayed on top of the scan.
   */
-void Sams_View::OverlayThreshold() {
+void Sams_View::DisplayThreshold() {
   // Hide Everything
   HideAllDataNodes();
 
@@ -903,7 +922,7 @@ void Sams_View::VolumeRenderThreshold(bool checked) {
 double latLongRatio = 2.0;
 
 void Sams_View::TextureWidthChanged(int value) {
-  if (UI.checkBoxLocked->isChecked()) {
+  if (UI.buttonLocked->isChecked()) {
     UI.spinBoxTextureHeight->setValue(value / latLongRatio);
   }
 
@@ -911,7 +930,7 @@ void Sams_View::TextureWidthChanged(int value) {
 }
 
 void Sams_View::TextureHeightChanged(int value) {
-  if (UI.checkBoxLocked->isChecked()) {
+  if (UI.buttonLocked->isChecked()) {
     UI.spinBoxTextureWidth->setValue(value * latLongRatio);
   }
 
@@ -965,6 +984,10 @@ void Sams_View::GenerateUncertaintySphere() {
   surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
   surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+
+  HideAllDataNodes();
+  ShowDataNode(surfaceNode);
+  this->RequestRenderWindowUpdate();
 }
 
 // ------------ //
