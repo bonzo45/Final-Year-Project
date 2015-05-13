@@ -83,6 +83,7 @@ class Sams_View : public QmitkAbstractView {
 
     //  c
     void SurfaceMapping();
+    void SurfaceMapping(mitk::DataNode::Pointer surfaceNode);
     void GenerateSphereSurface();
     void GenerateCubeSurface();
     void GenerateCylinderSurface();

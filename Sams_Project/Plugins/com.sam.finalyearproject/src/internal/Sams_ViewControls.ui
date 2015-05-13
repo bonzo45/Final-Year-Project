@@ -1984,7 +1984,7 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-598</y>
         <width>481</width>
         <height>2049</height>
        </rect>
@@ -3025,54 +3025,6 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="widget_12" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_16">
-                <item>
-                 <widget class="QCheckBox" name="checkBoxIgnoreZeros">
-                  <property name="text">
-                   <string>Ignore Zeros</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>271</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="pushButtonEnableThresholdAutoUpdate">
-                  <property name="maximumSize">
-                   <size>
-                    <width>110</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>auto-update</string>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
               <widget class="QWidget" name="widgetThresholdingControls_3" native="true">
                <layout class="QHBoxLayout" name="horizontalLayout_41">
                 <property name="margin">
@@ -3511,6 +3463,54 @@ QPushButton:pressed {
                   </property>
                   <property name="singleStep">
                    <double>0.500000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_12" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_16">
+                <item>
+                 <widget class="QCheckBox" name="checkBoxIgnoreZeros">
+                  <property name="text">
+                   <string>Ignore Zeros</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>271</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonEnableThresholdAutoUpdate">
+                  <property name="maximumSize">
+                   <size>
+                    <width>110</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>auto-update</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>

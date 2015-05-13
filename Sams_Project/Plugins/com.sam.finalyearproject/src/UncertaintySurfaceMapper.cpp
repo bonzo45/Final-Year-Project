@@ -20,7 +20,7 @@
 #include <mitkProgressBar.h>
 
 UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
-  setSamplingFull();
+  setSamplingDistance(HALF);  
   setBlackAndWhite();
   setScalingNone();
   setSamplingAverage();
@@ -37,14 +37,8 @@ void UncertaintySurfaceMapper::setSurface(mitk::Surface::Pointer surface) {
   this->surface = surface;
 }
 
-void UncertaintySurfaceMapper::setSamplingFull() {
-  this->samplingFull = true;
-  this->samplingHalf = false;
-}
-
-void UncertaintySurfaceMapper::setSamplingHalf() {
-  this->samplingFull = false;
-  this->samplingHalf = true;
+void UncertaintySurfaceMapper::setSamplingDistance(SAMPLING_DISTANCE distance) {
+  this->samplingDistance = distance;
 }
 
 void UncertaintySurfaceMapper::setScalingNone() {
@@ -193,11 +187,9 @@ void UncertaintySurfaceMapper::map() {
     }
 
     // Use the position and normal to sample the uncertainty data.
-    if (samplingFull) {
-      intensityArray[i] = sampler->sampleUncertainty(position, normal);
-    }
-    else if (samplingHalf) {
-      intensityArray[i] = sampler->sampleUncertainty(position, normal, 50);
+    switch(samplingDistance) {
+     case FULL: intensityArray[i] = sampler->sampleUncertainty(position, normal); break;
+     case HALF: intensityArray[i] = sampler->sampleUncertainty(position, normal, 50); break;
     }
 
     mitk::ProgressBar::GetInstance()->Progress();
@@ -245,6 +237,8 @@ void UncertaintySurfaceMapper::map() {
   // No scaling.
   if (scalingNone) {
     scaled = importFilter->GetOutput();
+    legendMinValue = 0.0;
+    legendMaxValue = 1.0;
   }
 
   // Linear scaling. Map {min-max} to {0-1.}.
@@ -256,6 +250,8 @@ void UncertaintySurfaceMapper::map() {
     rescaleFilter->SetOutputMaximum(1.0);
     rescaleFilter->Update();
     scaled = rescaleFilter->GetOutput();
+    legendMinValue = rescaleFilter->GetInputMinimum();
+    legendMaxValue = rescaleFilter->GetInputMaximum();
   }
 
   // Histogram equalization.
@@ -268,6 +264,8 @@ void UncertaintySurfaceMapper::map() {
     histogramEqualizationFilter->SetRadius(1);
     histogramEqualizationFilter->Update();
     scaled = histogramEqualizationFilter->GetOutput();
+    legendMinValue = -1.0;
+    legendMaxValue = -1.0;
   }
 
   mitk::ProgressBar::GetInstance()->Progress();
@@ -306,4 +304,38 @@ void UncertaintySurfaceMapper::map() {
   surfacePolyData->GetPointData()->SetScalars(colors);
 
   mitk::ProgressBar::GetInstance()->Progress();
+}
+
+double UncertaintySurfaceMapper::getLegendMinValue() {
+  return legendMinValue;
+}
+
+double UncertaintySurfaceMapper::getLegendMaxValue() {
+  return legendMaxValue;
+}
+
+void UncertaintySurfaceMapper::getLegendMinColour(char * colour) {
+  if (this->colour) {
+    colour[0] = 0;
+    colour[1] = 0;
+    colour[2] = 0;
+  }
+  else {
+    colour[0] = 0;
+    colour[1] = 0;
+    colour[2] = 0;
+  }
+}
+
+void UncertaintySurfaceMapper::getLegendMaxColour(char * colour) {
+  if (this->colour) {
+    colour[0] = 255;
+    colour[1] = 0;
+    colour[2] = 0;
+  }
+  else {
+    colour[0] = 255;
+    colour[1] = 255;
+    colour[2] = 255;
+  }
 }

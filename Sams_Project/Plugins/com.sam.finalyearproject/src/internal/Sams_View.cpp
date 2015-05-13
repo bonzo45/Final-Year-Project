@@ -987,97 +987,83 @@ void Sams_View::TextureHeightChanged(int value) {
   latLongRatio = UI.spinBoxTextureWidth->value() / UI.spinBoxTextureHeight->value();
 }
 
-/**
-  * Creates a sphere and maps a texture created from uncertainty to it.
-  */
 void Sams_View::GenerateUncertaintySphere() {
-  // Create Sphere
-  mitk::Surface::Pointer sphereToPutTextureOn = SurfaceGenerator::generateSphere(100, 20);
-  
-  // Create Texture
-  UncertaintyTexture * texturerer = new UncertaintyTexture();
-  texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
-  texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
-  texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
-  if (UI.radioButtonTextureSampleAverage->isChecked()) {
-    texturerer->setSamplingAverage();
-  }
-  else if (UI.radioButtonTextureSampleMinimum->isChecked()) {
-   texturerer->setSamplingMinimum(); 
-  }
-  else if (UI.radioButtonTextureSampleMaximum->isChecked()) {
-    texturerer->setSamplingMaximum();
-  }
-  mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
-  
-  // Adjust legend.
-  char colourLow[3];
-  texturerer->getLegendMinColour(colourLow);
-  char colourHigh[3];
-  texturerer->getLegendMaxColour(colourHigh);
-  SetLegend(texturerer->getLegendMinValue(), colourLow, texturerer->getLegendMaxValue(), colourHigh);
-  ShowLegend();
-
-  delete texturerer;
-
-  // Save texture.
-  mitk::DataNode::Pointer textureNode = SaveDataNode("Uncertainty Texture", texture, true);
-  textureNode->SetProperty("layer", mitk::IntProperty::New(3));
-  textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 1.0, 0.0));
-  textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
-
-  // Save sphere.
-  mitk::DataNode::Pointer surfaceNode = SaveDataNode("Uncertainty Sphere", sphereToPutTextureOn, true);
-  mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(texture);
-  surfaceNode->SetProperty("Surface.Texture", textureProperty);
-  surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
-  surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
-  surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
-  surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
-
-  HideAllDataNodes();
-  ShowDataNode(surfaceNode);
-  this->RequestRenderWindowUpdate();
+  std::ostringstream name;
+  name << "Sphere Surface";
+  mitk::Surface::Pointer generatedSurface = SurfaceGenerator::generateSphere();
+  mitk::DataNode::Pointer surfaceNode = SaveDataNode(name.str().c_str(), generatedSurface);
+  SurfaceMapping(surfaceNode);
 }
+
+// /**
+//   * Creates a sphere and maps a texture created from uncertainty to it.
+//   */
+// void Sams_View::GenerateUncertaintySphere() {
+//   // Create Sphere
+//   mitk::Surface::Pointer sphereToPutTextureOn = SurfaceGenerator::generateSphere(100, 20);
+  
+//   // Create Texture
+//   UncertaintyTexture * texturerer = new UncertaintyTexture();
+//   texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
+//   texturerer->setDimensions(UI.spinBoxTextureWidth->value(), UI.spinBoxTextureHeight->value());
+//   texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
+//   if (UI.radioButtonTextureSampleAverage->isChecked()) {
+//     texturerer->setSamplingAverage();
+//   }
+//   else if (UI.radioButtonTextureSampleMinimum->isChecked()) {
+//    texturerer->setSamplingMinimum(); 
+//   }
+//   else if (UI.radioButtonTextureSampleMaximum->isChecked()) {
+//     texturerer->setSamplingMaximum();
+//   }
+//   mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
+  
+//   // Adjust legend.
+//   char colourLow[3];
+//   texturerer->getLegendMinColour(colourLow);
+//   char colourHigh[3];
+//   texturerer->getLegendMaxColour(colourHigh);
+//   SetLegend(texturerer->getLegendMinValue(), colourLow, texturerer->getLegendMaxValue(), colourHigh);
+//   ShowLegend();
+
+//   delete texturerer;
+
+//   // Save texture.
+//   mitk::DataNode::Pointer textureNode = SaveDataNode("Uncertainty Texture", texture, true);
+//   textureNode->SetProperty("layer", mitk::IntProperty::New(3));
+//   textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 1.0, 0.0));
+//   textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
+
+//   // Save sphere.
+//   mitk::DataNode::Pointer surfaceNode = SaveDataNode("Uncertainty Sphere", sphereToPutTextureOn, true);
+//   mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(texture);
+//   surfaceNode->SetProperty("Surface.Texture", textureProperty);
+//   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
+//   surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
+//   surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
+//   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
+
+//   HideAllDataNodes();
+//   ShowDataNode(surfaceNode);
+//   this->RequestRenderWindowUpdate();
+// }
 
 // ------------ //
 // ---- 3c ---- //
 // ------------ //
 
+void Sams_View::SurfaceMapping() {
+  mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
+  SurfaceMapping(surfaceNode);
+}
+
 /**
   * Takes a surface and maps the uncertainty onto it based on the normal vector.
   */
-void Sams_View::SurfaceMapping() {
-  mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
-
-  // If the surface can't be found, maybe it's a demo surface. (we need to generate it)
+void Sams_View::SurfaceMapping(mitk::DataNode::Pointer surfaceNode) {
   if (surfaceNode.IsNull()) {
-    // Get it's name.
-    QString surfaceName = UI.comboBoxSurface->currentText();
-    std::ostringstream name;
-    mitk::Surface::Pointer generatedSurface;
-
-    // If it's supposed to be a sphere.
-    if (QString::compare(surfaceName, SPHERE_SURFACE_NAME) == 0) {
-      name << "Sphere Surface";
-      generatedSurface = SurfaceGenerator::generateSphere();
-    }
-    // If it's supposed to be a cube.
-    else if (QString::compare(surfaceName, CUBE_SURFACE_NAME) == 0) {
-      name << "Cube Surface";
-      generatedSurface = SurfaceGenerator::generateCube();
-    }
-    // If it's supposed to be a cylinder.
-    else if (QString::compare(surfaceName, CUBE_NAME) == 0) {
-      name << "Cylinder Surface";
-      generatedSurface = SurfaceGenerator::generateCylinder();
-    }
-    // If it's not a demo uncertainty, stop.
-    else {
-      return;
-    }
-
-    surfaceNode = SaveDataNode(name.str().c_str(), generatedSurface);
+    std::cout << "Surface is null. Stopping." << std::endl;
+    return;
   }
 
   // Stop it being specular in the rendering.
@@ -1122,10 +1108,10 @@ void Sams_View::SurfaceMapping() {
   }
   // ---- Sampling Options ---- ///
   if (UI.radioButtonSamplingFull->isChecked()) {
-    mapper->setSamplingFull();
+    mapper->setSamplingDistance(UncertaintySurfaceMapper::FULL);
   }
   else if (UI.radioButtonSamplingHalf->isChecked()) {
-    mapper->setSamplingHalf();
+    mapper->setSamplingDistance(UncertaintySurfaceMapper::HALF);
   }
   // ---- Scaling Options ---- //
   if (UI.radioButtonScalingNone->isChecked()) {
@@ -1146,6 +1132,15 @@ void Sams_View::SurfaceMapping() {
   }
   mapper->setInvertNormals(UI.checkBoxSurfaceInvertNormals->isChecked());
   mapper->map();
+
+  // Adjust legend.
+  char colourLow[3];
+  mapper->getLegendMinColour(colourLow);
+  char colourHigh[3];
+  mapper->getLegendMaxColour(colourHigh);
+  SetLegend(mapper->getLegendMinValue(), colourLow, mapper->getLegendMaxValue(), colourHigh);
+  ShowLegend();
+
   delete mapper;
   
   this->RequestRenderWindowUpdate();
