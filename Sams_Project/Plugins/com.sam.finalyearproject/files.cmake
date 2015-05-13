@@ -48,7 +48,7 @@ set(CACHED_RESOURCE_FILES
 # list of Qt .qrc files which contain additional resources
 # specific to this plugin
 set(QRC_FILES
-
+  resources/Sams_View.qrc
 )
 
 set(CPP_FILES )

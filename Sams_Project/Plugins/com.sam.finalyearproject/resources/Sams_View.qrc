@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+ <qresource prefix="/Sams_View">
+    <file>cog.xpm</file>
+    <file>circle.xpm</file>
+    <file>slices.xpm</file>
+    <file>cursor.xpm</file>
+    <file>thresholding.xpm</file>
+    <file>surface.xpm</file>
+ </qresource>
+ </RCC> 

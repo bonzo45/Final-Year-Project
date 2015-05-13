@@ -142,6 +142,11 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // UI
   connect(UI.buttonMinimize4, SIGNAL(clicked()), this, SLOT(ToggleMinimize4()));
   connect(UI.buttonReset2, SIGNAL(clicked()), this, SLOT(ResetPreprocessingSettings()));
+  connect(UI.buttonVisualizeSelect, SIGNAL(clicked()), this, SLOT(ShowVisualizeSelect()));
+  connect(UI.buttonVisualizeThreshold, SIGNAL(clicked()), this, SLOT(ShowVisualizeThreshold()));
+  connect(UI.buttonVisualizeSphere, SIGNAL(clicked()), this, SLOT(ShowVisualizeSphere()));
+  connect(UI.buttonVisualizeSurface, SIGNAL(clicked()), this, SLOT(ShowVisualizeSurface()));
+  connect(UI.buttonVisualizeNextScanPlane, SIGNAL(clicked()), this, SLOT(ShowVisualizeNextScanPlane()));
 
   // Debugging
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
@@ -205,15 +210,60 @@ void Sams_View::InitializeUI() {
   UI.widgetVisualizeSelectErodeOptions->setVisible(false);
 
   // Disable visualisation
-  UI.pageVisualizeThreshold->setEnabled(false);
-  UI.pageVisualizeSphere->setEnabled(false);
-  UI.pageVisualizeSurface->setEnabled(false);
-  UI.pageVisualizeNextScan->setEnabled(false);
+  UI.widgetVisualizeThreshold->setEnabled(false);
+  UI.widgetVisualizeSphere->setEnabled(false);
+  UI.widgetVisualizeSurface->setEnabled(false);
+  UI.widgetVisualizeNextScanPlane->setEnabled(false);
 
   // ---- Reconstruction ---- //
   // Hide Reconstruction Error
   UI.labelReconstructExecutableError->setVisible(false);
   UI.labelReconstructExecutableSuccess->setVisible(false);
+
+  ShowVisualizeSelect();
+}
+
+void Sams_View::ShowVisualizeSelect() {
+  HideVisualizeAll();
+  UI.widgetVisualizeSelect->setVisible(true);
+  UI.buttonVisualizeSelect->setChecked(true);
+}
+
+void Sams_View::ShowVisualizeThreshold() {
+  HideVisualizeAll();
+  UI.widgetVisualizeThreshold->setVisible(true);
+  UI.buttonVisualizeThreshold->setChecked(true);
+}
+
+void Sams_View::ShowVisualizeSphere() {
+  HideVisualizeAll();
+  UI.widgetVisualizeSphere->setVisible(true); 
+  UI.buttonVisualizeSphere->setChecked(true);  
+}
+
+void Sams_View::ShowVisualizeSurface() {
+  HideVisualizeAll();
+  UI.widgetVisualizeSurface->setVisible(true); 
+  UI.buttonVisualizeSurface->setChecked(true);  
+}
+
+void Sams_View::ShowVisualizeNextScanPlane() {
+  HideVisualizeAll();
+  UI.widgetVisualizeNextScanPlane->setVisible(true); 
+  UI.buttonVisualizeNextScanPlane->setChecked(true);  
+}
+
+void Sams_View::HideVisualizeAll() {
+  UI.widgetVisualizeSelect->setVisible(false);
+  UI.widgetVisualizeThreshold->setVisible(false);
+  UI.widgetVisualizeSphere->setVisible(false);
+  UI.widgetVisualizeSurface->setVisible(false);
+  UI.widgetVisualizeNextScanPlane->setVisible(false);
+  UI.buttonVisualizeSelect->setChecked(false);
+  UI.buttonVisualizeThreshold->setChecked(false);
+  UI.buttonVisualizeSphere->setChecked(false);
+  UI.buttonVisualizeSurface->setChecked(false);
+  UI.buttonVisualizeNextScanPlane->setChecked(false);
 }
 
 void Sams_View::ToggleMinimize4() {
@@ -562,10 +612,10 @@ void Sams_View::ConfirmSelection() {
   SetUpperThreshold(NORMALIZED_MAX);
 
   // Enable visualisations.
-  UI.pageVisualizeThreshold->setEnabled(true);
-  UI.pageVisualizeSphere->setEnabled(true);
-  UI.pageVisualizeSurface->setEnabled(true);
-  UI.pageVisualizeNextScan->setEnabled(true);
+  UI.widgetVisualizeThreshold->setEnabled(true);
+  UI.widgetVisualizeSphere->setEnabled(true);
+  UI.widgetVisualizeSurface->setEnabled(true);
+  UI.widgetVisualizeNextScanPlane->setEnabled(true);
 }
 
 /**

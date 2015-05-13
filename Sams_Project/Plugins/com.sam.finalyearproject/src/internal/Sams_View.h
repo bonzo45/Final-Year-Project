@@ -99,6 +99,12 @@ class Sams_View : public QmitkAbstractView {
     void ToggleMinimize4();
     void ResetPreprocessingSettings();
     void ToggleErosionEnabled(bool checked);
+    void HideVisualizeAll();
+    void ShowVisualizeSelect();
+    void ShowVisualizeThreshold();
+    void ShowVisualizeSphere();
+    void ShowVisualizeSurface();
+    void ShowVisualizeNextScanPlane();
 
     // Debug
     void ToggleDebug();
