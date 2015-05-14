@@ -154,8 +154,8 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonDebugCube, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
   connect(UI.buttonDebugSphere, SIGNAL(clicked()), this, SLOT(GenerateSphereUncertainty()));
   connect(UI.buttonDebugQuadSphere, SIGNAL(clicked()), this, SLOT(GenerateQuadrantSphereUncertainty()));
-  connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(DebugOverlay()));
   connect(UI.buttonDebug1, SIGNAL(clicked()), SLOT(HideAllDataNodes()));
+  connect(UI.buttonDebug2, SIGNAL(clicked()), SLOT(BodgeSurface()));
 
   // RECONSTRUCTION
   connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
@@ -1030,9 +1030,11 @@ void Sams_View::GenerateUncertaintySphere() {
     colour = UncertaintySurfaceMapper::BLACK_AND_RED;
   }
 
+  UncertaintySurfaceMapper::REGISTRATION registration = UncertaintySurfaceMapper::SIMPLE;
+
   bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
 
-  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, invertNormals);
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals, false);
 
   HideAllDataNodes();
   ShowDataNode(surfaceNode);
@@ -1141,9 +1143,13 @@ void Sams_View::SurfaceMapping() {
     colour = UncertaintySurfaceMapper::BLACK_AND_RED;
   }
 
+  UncertaintySurfaceMapper::REGISTRATION registration = UncertaintySurfaceMapper::BODGE;
+
   bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
 
-  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, invertNormals);
+  bool alignToUncertainty = UI.checkBoxSurfaceAlign->isChecked();
+
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals, alignToUncertainty);
 
   HideAllDataNodes();
   ShowDataNode(surfaceNode);
@@ -1159,7 +1165,9 @@ void Sams_View::SurfaceMapping(
   UncertaintySurfaceMapper::SAMPLING_DISTANCE samplingDistance,
   UncertaintySurfaceMapper::SCALING scaling,
   UncertaintySurfaceMapper::COLOUR colour,
-  bool invertNormals
+  UncertaintySurfaceMapper::REGISTRATION registration,
+  bool invertNormals,
+  bool alignToUncertainty
 ) {
   if (surfaceNode.IsNull()) {
     std::cout << "Surface is null. Stopping." << std::endl;
@@ -1193,6 +1201,18 @@ void Sams_View::SurfaceMapping(
   // Cast it to an MITK surface.
   mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
 
+  // Align it (if enabled)
+  if (alignToUncertainty) {
+    // Align it with the uncertainty.
+    mitk::SlicedGeometry3D * uncertaintySlicedGeometry = GetMitkPreprocessedUncertainty()->GetSlicedGeometry();
+    mitk::Point3D uncertaintyOrigin = uncertaintySlicedGeometry->GetOrigin();
+    mitk::AffineTransform3D * uncertaintyTransform = uncertaintySlicedGeometry->GetIndexToWorldTransform();
+
+    mitk::BaseGeometry * surfaceBaseGeometry = mitkSurface->GetGeometry();
+    surfaceBaseGeometry->SetOrigin(uncertaintyOrigin);
+    surfaceBaseGeometry->SetIndexToWorldTransform(uncertaintyTransform);
+  }
+
   // Map the uncertainty to it.
   UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
   mapper->setUncertainty(GetMitkPreprocessedUncertainty());
@@ -1201,6 +1221,7 @@ void Sams_View::SurfaceMapping(
   mapper->setSamplingDistance(samplingDistance);
   mapper->setScaling(scaling);
   mapper->setColour(colour);
+  mapper->setRegistration(registration);
   mapper->setInvertNormals(invertNormals);
   mapper->map();
 
@@ -1432,6 +1453,38 @@ void Sams_View::DebugOverlay() {
   // //Add the overlay to the overlayManager. It is added to all registered renderers automatically
   // overlayManager->AddOverlay(textOverlay.GetPointer());
 
+  this->RequestRenderWindowUpdate();
+}
+
+void Sams_View::BodgeSurface() {
+  mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
+  mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
+  mitk::BaseGeometry * surfaceBaseGeometry = mitkSurface->GetGeometry();
+  //surfaceBaseGeometry->SetOrigin(uncertaintyOrigin);
+
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  // Col 1
+  matrix->SetElement(0, 0, -1);
+  matrix->SetElement(1, 0, 0);
+  matrix->SetElement(2, 0, 0);
+  matrix->SetElement(3, 0, 0);
+  // Col 2
+  matrix->SetElement(0, 1, 0);
+  matrix->SetElement(1, 1, -1);
+  matrix->SetElement(2, 1, 0);
+  matrix->SetElement(3, 1, 0);
+  // Col 3
+  matrix->SetElement(0, 2, 0);
+  matrix->SetElement(1, 2, 0);
+  matrix->SetElement(2, 2, 1);
+  matrix->SetElement(3, 2, 0);
+  // Col 4
+  matrix->SetElement(0, 3, 0);
+  matrix->SetElement(1, 3, 0);
+  matrix->SetElement(2, 3, 0);
+  matrix->SetElement(3, 3, 1);
+
+  surfaceBaseGeometry->SetIndexToWorldTransformByVtkMatrix(matrix);
   this->RequestRenderWindowUpdate();
 }
 

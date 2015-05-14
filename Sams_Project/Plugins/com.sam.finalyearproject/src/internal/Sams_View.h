@@ -90,7 +90,9 @@ class Sams_View : public QmitkAbstractView {
       UncertaintySurfaceMapper::SAMPLING_DISTANCE samplingDistance,
       UncertaintySurfaceMapper::SCALING scaling,
       UncertaintySurfaceMapper::COLOUR colour,
-      bool invertNormals
+      UncertaintySurfaceMapper::REGISTRATION registration,
+      bool invertNormals,
+      bool alignToUncertainty
     );
     void GenerateSphereSurface();
     void GenerateCubeSurface();
@@ -122,6 +124,7 @@ class Sams_View : public QmitkAbstractView {
     void GenerateSphereUncertainty();
     void GenerateQuadrantSphereUncertainty();
     void DebugOverlay();
+    void BodgeSurface();
 
     // RECONSTRUCTION
     void ReconstructGUI();

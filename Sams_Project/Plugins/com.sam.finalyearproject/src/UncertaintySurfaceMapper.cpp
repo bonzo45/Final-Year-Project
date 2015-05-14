@@ -26,6 +26,7 @@ UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
   setColour(BLACK_AND_WHITE);
   setScaling(NONE);
   setSamplingAccumulator(AVERAGE);
+  setRegistration(SIMPLE);
 }
 
 void UncertaintySurfaceMapper::setUncertainty(mitk::Image::Pointer uncertainty) {
@@ -53,6 +54,10 @@ void UncertaintySurfaceMapper::setColour(COLOUR colour) {
 
 void UncertaintySurfaceMapper::setSamplingAccumulator(SAMPLING_ACCUMULATOR samplingAccumulator) {
   this->samplingAccumulator = samplingAccumulator;
+}
+
+void UncertaintySurfaceMapper::setRegistration(REGISTRATION registration) {
+  this->registration = registration;
 }
 
 void UncertaintySurfaceMapper::setInvertNormals(bool invertNormals) {
@@ -125,12 +130,44 @@ void UncertaintySurfaceMapper::map() {
     surfacePolyData->GetPoint(i, positionOfPoint);
 
     // TODO: Better registration step. Unfortunately MITK appears not to be able to do pointwise registration between surface and image.
-    // Simple scaling. Normalise the point to 0-1 based on the bounding box of the surface. Scale by uncertainty volume size.
     vtkVector<float, 3> position = vtkVector<float, 3>();
-    position[0] = ((positionOfPoint[0] - xMin) / xRange) * (uncertaintyHeight - 1);
-    position[1] = ((positionOfPoint[1] - yMin) / yRange) * (uncertaintyWidth - 1);
-    position[2] = ((positionOfPoint[2] - zMin) / zRange) * (uncertaintyDepth - 1);
+    switch (registration) {
+      // No registration.
+      case IDENTITY:
+      {
+        position[0] = positionOfPoint[0];
+        position[1] = positionOfPoint[1];
+        position[2] = positionOfPoint[2];
+      }
+      break;
+    
+      // Simple scaling. Normalise the point to 0-1 based on the bounding box of the surface. Scale by uncertainty volume size.
+      case SIMPLE:
+      {
+        position[0] = ((positionOfPoint[0] - xMin) / xRange) * (uncertaintyHeight - 1);
+        position[1] = ((positionOfPoint[1] - yMin) / yRange) * (uncertaintyWidth - 1);
+        position[2] = ((positionOfPoint[2] - zMin) / zRange) * (uncertaintyDepth - 1);
+      }
+      break;
 
+      // Bodge scaling. Position of point holds world coordinate? Negate it. Then use inverse world transform on uncertainty.
+      case BODGE:
+      {
+        mitk::Point3D surfaceWorld;
+        surfaceWorld[0] = -positionOfPoint[0];
+        surfaceWorld[1] = -positionOfPoint[1];
+        surfaceWorld[2] = positionOfPoint[2];
+
+        mitk::Point3D uncertaintyIndex;
+        this->uncertainty->GetGeometry()->WorldToIndex(surfaceWorld, uncertaintyIndex);
+
+        position[0] = uncertaintyIndex[0];
+        position[1] = uncertaintyIndex[1];
+        position[2] = uncertaintyIndex[2];
+      }
+      break;
+    }
+    
     // Mark on the uncertainty the point we're registered to.
     if (DEBUGGING) {
         try  {

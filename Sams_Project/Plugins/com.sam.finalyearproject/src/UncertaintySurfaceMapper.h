@@ -10,6 +10,7 @@ class UncertaintySurfaceMapper {
     enum SCALING {NONE, LINEAR, HISTOGRAM};
     enum COLOUR {BLACK_AND_WHITE, BLACK_AND_RED};
     enum SAMPLING_ACCUMULATOR {AVERAGE, MINIMUM, MAXIMUM};
+    enum REGISTRATION {IDENTITY, BODGE, SIMPLE};
 
     UncertaintySurfaceMapper();
     void setUncertainty(mitk::Image::Pointer uncertainty);
@@ -18,6 +19,7 @@ class UncertaintySurfaceMapper {
     void setScaling(SCALING scaling);
     void setColour(COLOUR colour);
     void setSamplingAccumulator(SAMPLING_ACCUMULATOR samplingAccumulator);
+    void setRegistration(REGISTRATION registration);
     void setInvertNormals(bool invertNormals);
     void map();
 
@@ -36,6 +38,7 @@ class UncertaintySurfaceMapper {
     SCALING scaling;
     COLOUR colour;
     SAMPLING_ACCUMULATOR samplingAccumulator;
+    REGISTRATION registration;
 
     bool invertNormals;
 
