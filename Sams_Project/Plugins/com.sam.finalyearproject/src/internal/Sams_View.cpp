@@ -1030,7 +1030,7 @@ void Sams_View::GenerateUncertaintySphere() {
     colour = UncertaintySurfaceMapper::BLACK_AND_RED;
   }
 
-  UncertaintySurfaceMapper::REGISTRATION registration = UncertaintySurfaceMapper::SIMPLE;
+  UncertaintySurfaceMapper::REGISTRATION registration = UncertaintySurfaceMapper::SPHERE;
 
   bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
 

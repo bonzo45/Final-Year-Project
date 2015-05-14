@@ -10,7 +10,7 @@ class UncertaintySurfaceMapper {
     enum SCALING {NONE, LINEAR, HISTOGRAM};
     enum COLOUR {BLACK_AND_WHITE, BLACK_AND_RED};
     enum SAMPLING_ACCUMULATOR {AVERAGE, MINIMUM, MAXIMUM};
-    enum REGISTRATION {IDENTITY, BODGE, SIMPLE};
+    enum REGISTRATION {IDENTITY, BODGE, SIMPLE, SPHERE};
 
     UncertaintySurfaceMapper();
     void setUncertainty(mitk::Image::Pointer uncertainty);
