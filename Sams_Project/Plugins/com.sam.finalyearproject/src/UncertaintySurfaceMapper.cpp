@@ -27,6 +27,7 @@ UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
   setScaling(NONE);
   setSamplingAccumulator(AVERAGE);
   setRegistration(SIMPLE);
+  setDebugRegistration(false);
 }
 
 void UncertaintySurfaceMapper::setUncertainty(mitk::Image::Pointer uncertainty) {
@@ -62,6 +63,10 @@ void UncertaintySurfaceMapper::setRegistration(REGISTRATION registration) {
 
 void UncertaintySurfaceMapper::setInvertNormals(bool invertNormals) {
   this->invertNormals = invertNormals;
+}
+
+void UncertaintySurfaceMapper::setDebugRegistration(bool debugRegistration) {
+  this->debugRegistration = debugRegistration;
 }
 
 void UncertaintySurfaceMapper::map() {
@@ -169,7 +174,7 @@ void UncertaintySurfaceMapper::map() {
     }
     
     // Mark on the uncertainty the point we're registered to.
-    if (DEBUGGING) {
+    if (debugRegistration) {
         try  {
           // See if the uncertainty data is available to be written to.
           mitk::ImagePixelWriteAccessor<double, 3> writeAccess(this->uncertainty);

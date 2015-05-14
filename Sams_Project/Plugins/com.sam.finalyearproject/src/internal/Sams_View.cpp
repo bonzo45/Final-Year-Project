@@ -1034,7 +1034,7 @@ void Sams_View::GenerateUncertaintySphere() {
 
   bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
 
-  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals, false);
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals);
 
   HideAllDataNodes();
   ShowDataNode(surfaceNode);
@@ -1143,13 +1143,21 @@ void Sams_View::SurfaceMapping() {
     colour = UncertaintySurfaceMapper::BLACK_AND_RED;
   }
 
-  UncertaintySurfaceMapper::REGISTRATION registration = UncertaintySurfaceMapper::BODGE;
+  UncertaintySurfaceMapper::REGISTRATION registration;
+  if (UI.radioButtonSurfaceRegistrationNone->isChecked()) {
+    registration = UncertaintySurfaceMapper::IDENTITY;
+  }
+  else if (UI.radioButtonSurfaceRegistrationSimple->isChecked()) {
+    registration = UncertaintySurfaceMapper::SIMPLE;
+  }
+  else if (UI.radioButtonSurfaceRegistrationBodge->isChecked()) {
+    registration = UncertaintySurfaceMapper::BODGE;
+  }
 
   bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
+  bool debugRegistration = UI.checkBoxSurfaceDebugRegistration->isChecked();
 
-  bool alignToUncertainty = UI.checkBoxSurfaceAlign->isChecked();
-
-  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals, alignToUncertainty);
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals, debugRegistration);
 
   HideAllDataNodes();
   ShowDataNode(surfaceNode);
@@ -1167,7 +1175,7 @@ void Sams_View::SurfaceMapping(
   UncertaintySurfaceMapper::COLOUR colour,
   UncertaintySurfaceMapper::REGISTRATION registration,
   bool invertNormals,
-  bool alignToUncertainty
+  bool debugRegistration
 ) {
   if (surfaceNode.IsNull()) {
     std::cout << "Surface is null. Stopping." << std::endl;
@@ -1201,18 +1209,6 @@ void Sams_View::SurfaceMapping(
   // Cast it to an MITK surface.
   mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
 
-  // Align it (if enabled)
-  if (alignToUncertainty) {
-    // Align it with the uncertainty.
-    mitk::SlicedGeometry3D * uncertaintySlicedGeometry = GetMitkPreprocessedUncertainty()->GetSlicedGeometry();
-    mitk::Point3D uncertaintyOrigin = uncertaintySlicedGeometry->GetOrigin();
-    mitk::AffineTransform3D * uncertaintyTransform = uncertaintySlicedGeometry->GetIndexToWorldTransform();
-
-    mitk::BaseGeometry * surfaceBaseGeometry = mitkSurface->GetGeometry();
-    surfaceBaseGeometry->SetOrigin(uncertaintyOrigin);
-    surfaceBaseGeometry->SetIndexToWorldTransform(uncertaintyTransform);
-  }
-
   // Map the uncertainty to it.
   UncertaintySurfaceMapper * mapper = new UncertaintySurfaceMapper();
   mapper->setUncertainty(GetMitkPreprocessedUncertainty());
@@ -1223,6 +1219,7 @@ void Sams_View::SurfaceMapping(
   mapper->setColour(colour);
   mapper->setRegistration(registration);
   mapper->setInvertNormals(invertNormals);
+  mapper->setDebugRegistration(debugRegistration);
   mapper->map();
 
   // Adjust legend.

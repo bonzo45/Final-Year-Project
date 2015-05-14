@@ -92,7 +92,7 @@ class Sams_View : public QmitkAbstractView {
       UncertaintySurfaceMapper::COLOUR colour,
       UncertaintySurfaceMapper::REGISTRATION registration,
       bool invertNormals,
-      bool alignToUncertainty
+      bool debugRegistration = false
     );
     void GenerateSphereSurface();
     void GenerateCubeSurface();

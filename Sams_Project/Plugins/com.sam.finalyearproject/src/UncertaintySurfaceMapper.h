@@ -21,6 +21,7 @@ class UncertaintySurfaceMapper {
     void setSamplingAccumulator(SAMPLING_ACCUMULATOR samplingAccumulator);
     void setRegistration(REGISTRATION registration);
     void setInvertNormals(bool invertNormals);
+    void setDebugRegistration(bool debugRegistration);
     void map();
 
     double getLegendMinValue();
@@ -41,6 +42,7 @@ class UncertaintySurfaceMapper {
     REGISTRATION registration;
 
     bool invertNormals;
+    bool debugRegistration;
 
     double legendMinValue, legendMaxValue;
 

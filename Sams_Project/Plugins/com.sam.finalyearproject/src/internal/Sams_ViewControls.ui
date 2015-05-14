@@ -1984,9 +1984,9 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1292</y>
+        <y>-1390</y>
         <width>481</width>
-        <height>2151</height>
+        <height>2256</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -4142,7 +4142,7 @@ QPushButton:checked {
                      <string>full</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4150,6 +4150,9 @@ QPushButton:checked {
                    <widget class="QRadioButton" name="radioButtonSamplingHalf">
                     <property name="text">
                      <string>half</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -4267,19 +4270,74 @@ QPushButton:checked {
                 </widget>
                </item>
                <item row="2" column="0">
+                <widget class="QGroupBox" name="groupBox_13">
+                 <property name="styleSheet">
+                  <string notr="true">QCheckBox::indicator { width:8px; height: 8px; }</string>
+                 </property>
+                 <property name="title">
+                  <string>Registration</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_43">
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSurfaceRegistrationNone">
+                    <property name="text">
+                     <string>none</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSurfaceRegistrationSimple">
+                    <property name="text">
+                     <string>simple</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSurfaceRegistrationBodge">
+                    <property name="text">
+                     <string>*bodge*</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkBoxSurfaceDebugRegistration">
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 8pt;
+font-style: italic;</string>
+                    </property>
+                    <property name="text">
+                     <string>Debug</string>
+                    </property>
+                    <property name="iconSize">
+                     <size>
+                      <width>24</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="2" column="1">
                 <widget class="QCheckBox" name="checkBoxSurfaceInvertNormals">
                  <property name="text">
                   <string>Invert Normals</string>
                  </property>
                  <property name="checked">
                   <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QCheckBox" name="checkBoxSurfaceAlign">
-                 <property name="text">
-                  <string>Align to Uncertainty</string>
                  </property>
                 </widget>
                </item>
