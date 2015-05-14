@@ -144,6 +144,7 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
 }
 
 double UncertaintySampler::interpolateUncertaintyAtPosition(vtkVector<float, 3> position) {
+  // TODO: Apparently ITK can do this for you! Replace this code with theirs. (might allow for some parallelisation)
   // Use an image accessor to read values from the uncertainty.
   try  {
     // See if the uncertainty data is available to be read.

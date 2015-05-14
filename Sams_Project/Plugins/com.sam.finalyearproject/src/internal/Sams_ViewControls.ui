@@ -60,8 +60,8 @@ font-weight: bold;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>494</width>
-        <height>580</height>
+        <width>101</width>
+        <height>727</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -251,9 +251,9 @@ font-weight: normal;</string>
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>-138</y>
-               <width>463</width>
-               <height>603</height>
+               <y>0</y>
+               <width>340</width>
+               <height>618</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1559,8 +1559,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>494</width>
-        <height>580</height>
+        <width>107</width>
+        <height>506</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1621,8 +1621,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>476</width>
-               <height>448</height>
+               <width>202</width>
+               <height>157</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1803,8 +1803,8 @@ color: rgb(0, 150, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>476</width>
-               <height>448</height>
+               <width>171</width>
+               <height>72</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1874,8 +1874,8 @@ color: rgb(0, 150, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>476</width>
-               <height>448</height>
+               <width>280</width>
+               <height>184</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1984,7 +1984,7 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-900</y>
+        <y>-1451</y>
         <width>481</width>
         <height>2151</height>
        </rect>
@@ -4290,11 +4290,11 @@ QPushButton:checked {
                    <string notr="true">QPushButton {
 	background-color: rgb(0, 128, 0);
 	color: rgb(225, 225, 225);
-	font-size: 26pt;
+	font-size: 20pt;
 	border: 2px solid rgb(128, 128, 128);
-	max-width: 240px;
+	max-width: 150px;
 	max-height: 50px;
-	min-width: 240px;
+	min-width: 150px;
 	min-height: 50px;
 	border-radius: 25px;
     border-style: outset;
@@ -4310,7 +4310,7 @@ QPushButton:pressed {
 </string>
                   </property>
                   <property name="text">
-                   <string>Visualise</string>
+                   <string>Visualize</string>
                   </property>
                  </widget>
                 </item>

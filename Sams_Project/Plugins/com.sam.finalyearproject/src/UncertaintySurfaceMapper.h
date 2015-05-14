@@ -41,7 +41,7 @@ class UncertaintySurfaceMapper {
 
     double legendMinValue, legendMaxValue;
 
-    static const bool DEBUGGING = false;
+    static const bool DEBUGGING = true;
 };
 
 #endif

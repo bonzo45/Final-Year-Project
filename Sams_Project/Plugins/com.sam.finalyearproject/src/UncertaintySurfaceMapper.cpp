@@ -16,6 +16,8 @@
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 
+#include <mitkImagePixelWriteAccessor.h>
+
 // Loading bar
 #include <mitkProgressBar.h>
 
@@ -128,6 +130,23 @@ void UncertaintySurfaceMapper::map() {
     position[0] = ((positionOfPoint[0] - xMin) / xRange) * (uncertaintyHeight - 1);
     position[1] = ((positionOfPoint[1] - yMin) / yRange) * (uncertaintyWidth - 1);
     position[2] = ((positionOfPoint[2] - zMin) / zRange) * (uncertaintyDepth - 1);
+
+    // Mark on the uncertainty the point we're registered to.
+    if (DEBUGGING) {
+        try  {
+          // See if the uncertainty data is available to be written to.
+          mitk::ImagePixelWriteAccessor<double, 3> writeAccess(this->uncertainty);
+          itk::Index<3> index;
+          index[0] = round(position[0]);
+          index[1] = round(position[1]);
+          index[2] = round(position[2]);
+          writeAccess.SetPixelByIndex(index, 1.0);
+        }
+        catch (mitk::Exception & e) {
+          std::cerr << "Hmmm... it appears we can't get read access to the uncertainty image. Maybe it's gone? Maybe it's type isn't double? (I've assumed it is)" << e << std::endl;
+          std::cerr << "Continuing without marking registered point in uncertainty." << std::endl;
+        }
+    }
 
     // Get the normal of point i
     double normalAtPoint[3];

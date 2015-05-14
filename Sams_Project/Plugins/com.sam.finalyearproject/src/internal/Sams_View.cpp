@@ -483,11 +483,6 @@ void Sams_View::UpdateSelectionDropDowns() {
     ++surface;
   }
 
-  // Add the demo uncertainties to the uncertainty dropdown.
-  UI.comboBoxSurface->addItem(SPHERE_SURFACE_NAME);
-  UI.comboBoxSurface->addItem(CUBE_SURFACE_NAME);
-  UI.comboBoxSurface->addItem(CYLINDER_SURFACE_NAME);
-
   // If our previous selections are still valid, select those again.
   int scanStillThere = UI.comboBoxScan->findText(scanName);
   if (scanStillThere != -1) {
@@ -1149,6 +1144,10 @@ void Sams_View::SurfaceMapping() {
   bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
 
   SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, invertNormals);
+
+  HideAllDataNodes();
+  ShowDataNode(surfaceNode);
+  this->RequestRenderWindowUpdate();
 }
 
 /**
