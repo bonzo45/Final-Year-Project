@@ -1041,59 +1041,6 @@ void Sams_View::GenerateUncertaintySphere() {
   this->RequestRenderWindowUpdate();
 }
 
-// /**
-//   * Creates a sphere and maps a texture created from uncertainty to it.
-//   */
-// void Sams_View::GenerateUncertaintySphere() {
-//   // Create Sphere
-//   mitk::Surface::Pointer sphereToPutTextureOn = SurfaceGenerator::generateSphere(100, 20);
-  
-//   // Create Texture
-//   UncertaintyTexture * texturerer = new UncertaintyTexture();
-//   texturerer->setUncertainty(GetMitkPreprocessedUncertainty());
-//   texturerer->setDimensions(UI.spinBoxSphereThetaResolution->value(), UI.spinBoxSpherePhiResolution->value());
-//   texturerer->setScalingLinear(UI.radioButtonTextureScalingLinear->isChecked());
-//   if (UI.radioButtonTextureSampleAverage->isChecked()) {
-//     texturerer->setSamplingAverage();
-//   }
-//   else if (UI.radioButtonTextureSampleMinimum->isChecked()) {
-//    texturerer->setSamplingMinimum(); 
-//   }
-//   else if (UI.radioButtonTextureSampleMaximum->isChecked()) {
-//     texturerer->setSamplingMaximum();
-//   }
-//   mitk::Image::Pointer texture = texturerer->generateUncertaintyTexture();
-  
-//   // Adjust legend.
-//   char colourLow[3];
-//   texturerer->getLegendMinColour(colourLow);
-//   char colourHigh[3];
-//   texturerer->getLegendMaxColour(colourHigh);
-//   SetLegend(texturerer->getLegendMinValue(), colourLow, texturerer->getLegendMaxValue(), colourHigh);
-//   ShowLegend();
-
-//   delete texturerer;
-
-//   // Save texture.
-//   mitk::DataNode::Pointer textureNode = SaveDataNode("Uncertainty Texture", texture, true);
-//   textureNode->SetProperty("layer", mitk::IntProperty::New(3));
-//   textureNode->SetProperty("color", mitk::ColorProperty::New(0.0, 1.0, 0.0));
-//   textureNode->SetProperty("opacity", mitk::FloatProperty::New(1.0));
-
-//   // Save sphere.
-//   mitk::DataNode::Pointer surfaceNode = SaveDataNode("Uncertainty Sphere", sphereToPutTextureOn, true);
-//   mitk::SmartPointerProperty::Pointer textureProperty = mitk::SmartPointerProperty::New(texture);
-//   surfaceNode->SetProperty("Surface.Texture", textureProperty);
-//   surfaceNode->SetProperty("layer", mitk::IntProperty::New(3));
-//   surfaceNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
-//   surfaceNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
-//   surfaceNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
-
-//   HideAllDataNodes();
-//   ShowDataNode(surfaceNode);
-//   this->RequestRenderWindowUpdate();
-// }
-
 // ------------ //
 // ---- 3c ---- //
 // ------------ //
