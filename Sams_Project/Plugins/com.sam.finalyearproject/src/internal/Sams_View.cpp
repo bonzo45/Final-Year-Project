@@ -1032,9 +1032,9 @@ void Sams_View::GenerateUncertaintySphere() {
 
   UncertaintySurfaceMapper::REGISTRATION registration = UncertaintySurfaceMapper::SPHERE;
 
-  bool invertNormals = UI.checkBoxSurfaceInvertNormals->isChecked();
+  bool invertNormals = true;
 
-  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals);
+  SurfaceMapping(surfaceNode, samplingAccumulator, samplingDistance, scaling, colour, registration, invertNormals, false);
 
   HideAllDataNodes();
   ShowDataNode(surfaceNode);

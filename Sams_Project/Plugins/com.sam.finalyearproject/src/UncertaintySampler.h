@@ -19,7 +19,7 @@ class UncertaintySampler {
     double initialAccumulator;
     double (*accumulate)(double, double);
     double (*collapse)(double, double);
-    static const bool DEBUGGING = false;
+    static const bool DEBUGGING = true;
 
     double interpolateUncertaintyAtPosition(vtkVector<float, 3> position);
     bool isWithinUncertainty(vtkVector<float, 3> position);

@@ -131,6 +131,52 @@ void UncertaintySurfaceMapper::map() {
 
   mitk::ProgressBar::GetInstance()->AddStepsToDo(numberOfPoints);
 
+  mitk::Point3D volumeCenter;
+  volumeCenter[0] = ((uncertaintyHeight - 1) / 2.0);
+  volumeCenter[1] = ((uncertaintyWidth - 1) / 2.0);
+  volumeCenter[2] = ((uncertaintyDepth - 1) / 2.0);
+
+  std::cout << "Volume Center: (" << volumeCenter[0] << ", " << volumeCenter[1] << ", " << volumeCenter[2] << ")" << std::endl;
+
+  // Create planes to represent each face of the cuboid representing the uncertainty.
+  mitk::PlaneGeometry::Pointer plane[3];
+  // The 'right' side of the volume.
+  mitk::Point3D xOrigin;
+  xOrigin[0] = uncertaintyHeight - 0.5;
+  xOrigin[1] = 0;
+  xOrigin[2] = 0;
+  mitk::Vector3D xNormal;
+  xNormal[0] = -1;
+  xNormal[1] = 0;
+  xNormal[2] = 0;
+
+  // The 'top' side of the volume.
+  mitk::Point3D yOrigin;
+  yOrigin[0] = 0;
+  yOrigin[1] = uncertaintyWidth - 0.5;
+  yOrigin[2] = 0;
+  mitk::Vector3D yNormal;
+  yNormal[0] = 0;
+  yNormal[1] = -1;
+  yNormal[2] = 0;
+
+  // The 'back' side of the volume.
+  mitk::Point3D zOrigin;
+  zOrigin[0] = 0;
+  zOrigin[1] = 0;
+  zOrigin[2] = uncertaintyDepth - 0.5;
+  mitk::Vector3D zNormal;
+  zNormal[0] = 0;
+  zNormal[1] = 0;
+  zNormal[2] = -1;
+
+  plane[0] = mitk::PlaneGeometry::New();
+  plane[0]->InitializePlane(xOrigin, xNormal);
+  plane[1] = mitk::PlaneGeometry::New();
+  plane[1]->InitializePlane(yOrigin, yNormal);
+  plane[2] = mitk::PlaneGeometry::New();
+  plane[2]->InitializePlane(zOrigin, zNormal);
+
   for (unsigned int i = 0; i < numberOfPoints; i++) {
     // Get the position of point i
     double positionOfPoint[3];
@@ -179,11 +225,6 @@ void UncertaintySurfaceMapper::map() {
       case SPHERE:
       {
         // Create a line from the center, going in direction positionOfPoint
-        mitk::Point3D volumeCenter;
-        volumeCenter[0] = (uncertaintyHeight - 1) / 2;
-        volumeCenter[1] = (uncertaintyWidth - 1) / 2;
-        volumeCenter[2] = (uncertaintyDepth - 1) / 2;
-
         mitk::Vector3D direction;
         direction[0] = positionOfPoint[0];
         direction[1] = positionOfPoint[1];
@@ -193,51 +234,15 @@ void UncertaintySurfaceMapper::map() {
         line.SetPoint(volumeCenter);
         line.SetDirection(direction);
 
-        // Create planes to represent each face of the cuboid representing the uncertainty.
-        mitk::PlaneGeometry::Pointer plane[3];
-        // The 'right' side of the volume.
-        mitk::Point3D xOrigin;
-        xOrigin[0] = uncertaintyHeight - 0.5;
-        xOrigin[1] = -0.5;
-        xOrigin[2] = -0.5;
-        mitk::Vector3D xNormal;
-        xNormal[0] = -1;
-        xNormal[1] = 0;
-        xNormal[2] = 0;
-
-        // The 'top' side of the volume.
-        mitk::Point3D yOrigin;
-        yOrigin[0] = -0.5;
-        yOrigin[1] = uncertaintyWidth - 0.5;
-        yOrigin[2] = -0.5;
-        mitk::Vector3D yNormal;
-        yNormal[0] = 0;
-        yNormal[1] = -1;
-        yNormal[2] = 0;
-
-        // The 'back' side of the volume.
-        mitk::Point3D zOrigin;
-        zOrigin[0] = -0.5;
-        zOrigin[1] = -0.5;
-        zOrigin[2] = uncertaintyDepth - 0.5;
-        mitk::Vector3D zNormal;
-        zNormal[0] = 0;
-        zNormal[1] = 0;
-        zNormal[2] = -1;
-
-        plane[0] = mitk::PlaneGeometry::New();
-        plane[0]->InitializePlane(xOrigin, xNormal);
-        plane[1] = mitk::PlaneGeometry::New();
-        plane[1]->InitializePlane(yOrigin, yNormal);
-        plane[2] = mitk::PlaneGeometry::New();
-        plane[2]->InitializePlane(zOrigin, zNormal);
-
         // For each plane, see if the line intersects it within the boundaries of the uncertainty.
         position[0] = -1;
         position[1] = -1;
         position[2] = -1;
         for (int i = 0; i < 3; i++) {
           mitk::Point3D intersectionPoint;
+          intersectionPoint[0] = -1;
+          intersectionPoint[1] = -1;
+          intersectionPoint[2] = -1;
           plane[i]->IntersectionPoint(line, intersectionPoint);
           if (
               (intersectionPoint[0] >= -0.5) && (intersectionPoint[0] <= uncertaintyHeight - 0.5) &&
@@ -256,9 +261,9 @@ void UncertaintySurfaceMapper::map() {
             }
             // Or it's opposite.
             else {
-              position[0] = (uncertaintyHeight) - intersectionPoint[0];
-              position[1] = (uncertaintyWidth) - intersectionPoint[1];
-              position[2] = (uncertaintyDepth) - intersectionPoint[2];
+              position[0] = (uncertaintyHeight - 1) - intersectionPoint[0];
+              position[1] = (uncertaintyWidth - 1) - intersectionPoint[1];
+              position[2] = (uncertaintyDepth - 1) - intersectionPoint[2];
             }
             break;
           }
@@ -270,6 +275,10 @@ void UncertaintySurfaceMapper::map() {
           std::cout << "Yep... no planes..." << std::endl;
           std::cout << " - Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << std::endl;
         }
+        if (direction[0] == 0.0) {
+          std::cout << "Right. X is zero." << std::endl;
+          std::cout << " - Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << std::endl; 
+        }
       }
       break;
     }
@@ -280,9 +289,9 @@ void UncertaintySurfaceMapper::map() {
           // See if the uncertainty data is available to be written to.
           mitk::ImagePixelWriteAccessor<double, 3> writeAccess(this->uncertainty);
           itk::Index<3> index;
-          index[0] = round(position[0]);
-          index[1] = round(position[1]);
-          index[2] = round(position[2]);
+          index[0] = std::min(uncertaintyHeight - 1.0, std::max(0.0, round(position[0])));
+          index[1] = std::min(uncertaintyWidth - 1.0, std::max(0.0, round(position[1])));
+          index[2] = std::min(uncertaintyDepth - 1.0, std::max(0.0, round(position[2])));
           writeAccess.SetPixelByIndexSafe(index, 1.0);
         }
         catch (mitk::Exception & e) {
