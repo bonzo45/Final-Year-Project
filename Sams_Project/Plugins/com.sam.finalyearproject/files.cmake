@@ -12,13 +12,13 @@ set(SRC_CPP_FILES
   ColourLegendOverlay.cpp
   ScanSimulator.cpp
   MitkLoadingBarCommand.cpp
-)
-
-set(INTERNAL_CPP_FILES
   QmitkCmdLineModuleFactoryGui.cpp
   QmitkCmdLineModuleGui.cpp
   QmitkDataStorageComboBoxWithSelectNone.cpp
   QmitkUiLoader.cpp
+)
+
+set(INTERNAL_CPP_FILES
   com_sam_finalyearproject_Activator.cpp
   Sams_View.cpp
 )
@@ -28,10 +28,10 @@ set(UI_FILES
 )
 
 set(MOC_H_FILES  
-  src/internal/QmitkCmdLineModuleFactoryGui.h
-  src/internal/QmitkCmdLineModuleGui.h
-  src/internal/QmitkDataStorageComboBoxWithSelectNone.h
-  src/internal/QmitkUiLoader.h
+  src/QmitkCmdLineModuleFactoryGui.h
+  src/QmitkCmdLineModuleGui.h
+  src/QmitkDataStorageComboBoxWithSelectNone.h
+  src/QmitkUiLoader.h
   src/internal/com_sam_finalyearproject_Activator.h
   src/internal/Sams_View.h
 )
