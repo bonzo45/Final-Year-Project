@@ -104,9 +104,7 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
   // stops when the hare reaches the edge of the uncertainty.
   double accumulator = initialAccumulator;
   unsigned int sampleCount = 0;
-  while (0 <= tortoise[0] && tortoise[0] <= uncertaintyHeight - 1 &&
-         0 <= tortoise[1] && tortoise[1] <= uncertaintyWidth - 1 &&
-         0 <= tortoise[2] && tortoise[2] <= uncertaintyDepth - 1) {
+  while (isWithinUncertainty(tortoise)) {
     double sample = interpolateUncertaintyAtPosition(tortoise);
 
     // Include sample if it's not background.
