@@ -5,6 +5,7 @@
 #include <cfloat> // DBL_MAX
 
 #include <mitkImagePixelReadAccessor.h>
+#include <mitkImageAccessByItk.h>
 
 // Loading bar
 #include <mitkProgressBar.h>
@@ -144,6 +145,10 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
 }
 
 double UncertaintySampler::interpolateUncertaintyAtPosition(vtkVector<float, 3> position) {
+  // double result;
+  // AccessByItk_2(this->uncertainty, Util::ItkInterpolateValue, position, result);
+  // return result;
+
   // TODO: Apparently ITK can do this for you! Replace this code with theirs. (might allow for some parallelisation)
   // Use an image accessor to read values from the uncertainty.
   try  {
@@ -216,8 +221,14 @@ double UncertaintySampler::interpolateUncertaintyAtPosition(vtkVector<float, 3> 
   }
 }
 
+/**
+  * Returns true if a continuous position is within the range of the uncertainty.
+  *  i.e. with a 3 pixel image the valid range is -0.5 to 2.5
+  */
 bool UncertaintySampler::isWithinUncertainty(vtkVector<float, 3> position) {
-  return (0 <= position[0] && position[0] <= uncertaintyHeight - 1 &&
-         0 <= position[1] && position[1] <= uncertaintyWidth - 1 &&
-         0 <= position[2] && position[2] <= uncertaintyDepth - 1);
+  return (
+        -0.5 <= position[0] && position[0] <= (uncertaintyHeight - 0.5) &&
+        -0.5 <= position[1] && position[1] <= (uncertaintyWidth - 0.5) &&
+        -0.5 <= position[2] && position[2] <= (uncertaintyDepth - 0.5)
+  );
 }

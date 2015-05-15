@@ -7,6 +7,10 @@
 #include <vtkPlane.h>
 #include <vtkVector.h>
 
+#include <itkLinearInterpolateImageFunction.h>
+#include <mitkImageAccessByItk.h>
+#include <mitkImageCast.h>
+
 #include <mitkImage.h>
 #include <mitkDataNode.h>
 #include <mitkBaseProperty.h>
@@ -33,7 +37,25 @@ class Util {
     // ---- Planes ---- //
     static double distanceFromPointToPlane(unsigned int x, unsigned int y, unsigned int z, vtkSmartPointer<vtkPlane> plane);
     static vtkSmartPointer<vtkPlane> planeFromPoints(vtkVector<float, 3> point1, vtkVector<float, 3> point2, vtkVector<float, 3> point3);
-};
 
+    /**
+      * Interpolates an image at a continuous position. Address is based on the pixel centers.
+      *  e.g. if the image has three pixels the valid range is (-0.5 to 2.5)
+      */
+    template <typename TPixel, unsigned int VImageDimension>
+    static void ItkInterpolateValue(itk::Image<TPixel, VImageDimension>* itkImage, vtkVector<float, 3> position, double & value) {
+      typedef itk::Image<TPixel, VImageDimension> ImageType;
+      
+      itk::ContinuousIndex<double, VImageDimension> pixel;
+      for (unsigned int i = 0; i < 3; i++) {
+        pixel[i] = position[i];
+      }
+     
+      typename itk::LinearInterpolateImageFunction<ImageType, double>::Pointer interpolator = itk::LinearInterpolateImageFunction<ImageType, double>::New();
+      interpolator->SetInputImage(itkImage);
+     
+      value = interpolator->EvaluateAtContinuousIndex(pixel);
+    }
+};
 
 #endif

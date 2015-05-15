@@ -3,7 +3,6 @@
 
 #include <mitkImageAccessByItk.h>
 #include <mitkImageCast.h>
-#include <itkLinearInterpolateImageFunction.h>
 
 // Loading bar
 #include <mitkProgressBar.h>
@@ -134,7 +133,7 @@ mitk::Image::Pointer ScanSimulator::scan() {
         double volumeValue = -1.0;
         if (volumePosition[0] >= 0 && volumePosition[1] >= 0 && volumePosition[2] >= 0 &&
             volumePosition[0] < volumeHeight && volumePosition[1] < volumeWidth && volumePosition[2] < volumeDepth) {
-          AccessByItk_2(this->volume, ItkInterpolateValue, volumePosition, volumeValue);
+          AccessByItk_2(this->volume, Util::ItkInterpolateValue, volumePosition, volumeValue);
         }
 
         ScanImageType::IndexType pixelIndex;
@@ -174,19 +173,4 @@ std::list<vtkSmartPointer<vtkTransform> > * ScanSimulator::generateRandomMotionS
   }
 
   return list;
-}
-
-template <typename TPixel, unsigned int VImageDimension>
-void ScanSimulator::ItkInterpolateValue(itk::Image<TPixel, VImageDimension>* itkImage, vtkVector<float, 3> position, double & value) {
-  typedef itk::Image<TPixel, VImageDimension> ImageType;
-  
-  itk::ContinuousIndex<double, VImageDimension> pixel;
-  for (unsigned int i = 0; i < 3; i++) {
-    pixel[i] = position[i];
-  }
- 
-  typename itk::LinearInterpolateImageFunction<ImageType, double>::Pointer interpolator = itk::LinearInterpolateImageFunction<ImageType, double>::New();
-  interpolator->SetInputImage(itkImage);
- 
-  value = interpolator->EvaluateAtContinuousIndex(pixel);
 }

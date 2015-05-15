@@ -197,9 +197,9 @@ void UncertaintySurfaceMapper::map() {
         mitk::PlaneGeometry::Pointer plane[3];
         // The 'right' side of the volume.
         mitk::Point3D xOrigin;
-        xOrigin[0] = uncertaintyHeight - 1;
-        xOrigin[1] = 0;
-        xOrigin[2] = 0;
+        xOrigin[0] = uncertaintyHeight - 0.5;
+        xOrigin[1] = -0.5;
+        xOrigin[2] = -0.5;
         mitk::Vector3D xNormal;
         xNormal[0] = -1;
         xNormal[1] = 0;
@@ -207,9 +207,9 @@ void UncertaintySurfaceMapper::map() {
 
         // The 'top' side of the volume.
         mitk::Point3D yOrigin;
-        yOrigin[0] = 0;
-        yOrigin[1] = uncertaintyWidth - 1;
-        yOrigin[2] = 0;
+        yOrigin[0] = -0.5;
+        yOrigin[1] = uncertaintyWidth - 0.5;
+        yOrigin[2] = -0.5;
         mitk::Vector3D yNormal;
         yNormal[0] = 0;
         yNormal[1] = -1;
@@ -217,9 +217,9 @@ void UncertaintySurfaceMapper::map() {
 
         // The 'back' side of the volume.
         mitk::Point3D zOrigin;
-        zOrigin[0] = 0;
-        zOrigin[1] = 0;
-        zOrigin[2] = uncertaintyDepth - 1;
+        zOrigin[0] = -0.5;
+        zOrigin[1] = -0.5;
+        zOrigin[2] = uncertaintyDepth - 0.5;
         mitk::Vector3D zNormal;
         zNormal[0] = 0;
         zNormal[1] = 0;
@@ -240,15 +240,15 @@ void UncertaintySurfaceMapper::map() {
           mitk::Point3D intersectionPoint;
           plane[i]->IntersectionPoint(line, intersectionPoint);
           if (
-              (intersectionPoint[0] >= -0.5) && (intersectionPoint[0] <= (uncertaintyHeight - 0.5)) &&
-              (intersectionPoint[1] >= -0.5) && (intersectionPoint[1] <= (uncertaintyWidth - 0.5)) &&
-              (intersectionPoint[2] >= -0.5) && (intersectionPoint[2] <= (uncertaintyDepth - 0.5))
+              (intersectionPoint[0] >= -0.5) && (intersectionPoint[0] <= uncertaintyHeight - 0.5) &&
+              (intersectionPoint[1] >= -0.5) && (intersectionPoint[1] <= uncertaintyWidth - 0.5) &&
+              (intersectionPoint[2] >= -0.5) && (intersectionPoint[2] <= uncertaintyDepth - 0.5)
           ) {
             // If we're within the bounds then it's either the plane we intersected with.
             if (
-               ((intersectionPoint[0] > 0) && (direction[0] > 0)) ||
-               ((intersectionPoint[1] > 0) && (direction[1] > 0)) ||
-               ((intersectionPoint[2] > 0) && (direction[2] > 0))
+               ((intersectionPoint[0] > volumeCenter[0]) && (direction[0] > 0)) ||
+               ((intersectionPoint[1] > volumeCenter[1]) && (direction[1] > 0)) ||
+               ((intersectionPoint[2] > volumeCenter[2]) && (direction[2] > 0))
             ) {
               position[0] = intersectionPoint[0];
               position[1] = intersectionPoint[1];
@@ -256,15 +256,19 @@ void UncertaintySurfaceMapper::map() {
             }
             // Or it's opposite.
             else {
-              position[0] = (uncertaintyHeight - 0.5) - intersectionPoint[0];
-              position[1] = (uncertaintyWidth - 0.5) -intersectionPoint[1];
-              position[2] = (uncertaintyDepth - 0.5) -intersectionPoint[2];
+              position[0] = (uncertaintyHeight) - intersectionPoint[0];
+              position[1] = (uncertaintyWidth) - intersectionPoint[1];
+              position[2] = (uncertaintyDepth) - intersectionPoint[2];
             }
             break;
+          }
+          else {
+            std::cout << " - Intersection Point " << i << ":(" << intersectionPoint[0] << ", " << intersectionPoint[1] << ", " << intersectionPoint[2] << ")" << std::endl;
           }
         }
         if (position[0] == -1 && position[1] == -1 && position[2] == -1) {
           std::cout << "Yep... no planes..." << std::endl;
+          std::cout << " - Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << std::endl;
         }
       }
       break;
