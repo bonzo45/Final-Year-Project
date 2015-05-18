@@ -34,6 +34,14 @@ void SVDScanPlaneGenerator::setThreshold(double threshold) {
 }
 
 /**
+  * Sets whether we should ignore zeros when calculating the next scan plane.
+  * If true then voxels that are zero are not included in the SVD computation.
+  */
+void SVDScanPlaneGenerator::setIgnoreZeros(bool ignoreZeros) {
+  this->ignoreZeros = ignoreZeros;
+}
+
+/**
   * Uses SVD to calculate the next best scan plane.
   */
 vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
@@ -97,7 +105,12 @@ mitk::PointSet::Pointer SVDScanPlaneGenerator::pointsBelowThreshold(double thres
           index[2] = z;
           double indexUncertainty = readAccess.GetPixelByIndex(index);
 
+          // If the value is below the threshold add it to the set.
           if (indexUncertainty < threshold) {
+            // If we're ignoring zeros and it is zero then skip it.
+            if (ignoreZeros && indexUncertainty == 0.0) {
+              continue;
+            }
             mitk::Point3D point;
             point[0] = x;
             point[1] = y;

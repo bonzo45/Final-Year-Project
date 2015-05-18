@@ -60,8 +60,8 @@ font-weight: bold;</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>101</width>
-        <height>727</height>
+        <width>494</width>
+        <height>580</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -252,8 +252,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>340</width>
-               <height>618</height>
+               <width>463</width>
+               <height>603</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1559,8 +1559,8 @@ QPushButton:pressed {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>107</width>
-        <height>506</height>
+        <width>494</width>
+        <height>580</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1874,8 +1874,8 @@ color: rgb(0, 150, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>280</width>
-               <height>184</height>
+               <width>476</width>
+               <height>448</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1984,9 +1984,9 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-1717</y>
         <width>481</width>
-        <height>2228</height>
+        <height>2297</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -3648,6 +3648,9 @@ QPushButton:checked {
           <item>
            <widget class="QWidget" name="widgetVisualizeSphere" native="true">
             <layout class="QVBoxLayout" name="verticalLayout">
+             <property name="topMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QLabel" name="label2bDescription">
                <property name="font">
@@ -4379,6 +4382,89 @@ QPushButton:pressed {
                <property name="text">
                 <string>Uses SVD to find the scan plane to minimize uncertainty.</string>
                </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="styleSheet">
+                <string notr="true">font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>Target Uncertainty Below</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_2" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_42">
+                <item>
+                 <widget class="QDoubleSpinBox" name="spinBoxNextScanPlaneSVDThreshold">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="buttonSymbols">
+                   <enum>QAbstractSpinBox::UpDownArrows</enum>
+                  </property>
+                  <property name="decimals">
+                   <number>2</number>
+                  </property>
+                  <property name="maximum">
+                   <double>1.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.050000000000000</double>
+                  </property>
+                  <property name="value">
+                   <double>0.700000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="checkBoxNextScanPlaneIgnoreZeros">
+                  <property name="text">
+                   <string>Ignore Zeros</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="buttonNextScanPlaneShowThresholded">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+	background-color: rgb(128, 0, 128);
+	color: rgb(225, 225, 225);
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 160px;
+	max-height: 26px;
+	min-width: 160px;
+	min-height: 26px;
+	border-radius: 13px;
+    border-style: outset;
+}
+
+QPushButton:pressed {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(100, 0, 100);
+}
+
+
+</string>
+                  </property>
+                  <property name="text">
+                   <string>(Show Thresholded)</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
              <item>

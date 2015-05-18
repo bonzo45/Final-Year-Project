@@ -104,18 +104,17 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   UI.setupUi(parent);
 
   // Add event handlers.
-  // 1. Select Scan & Uncertainty
+  // Select Scan & Uncertainty
   connect(UI.comboBoxScan, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(ScanDropdownChanged(const QString &)));
   connect(UI.comboBoxUncertainty, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(UncertaintyDropdownChanged(const QString &)));  
   connect(UI.buttonConfirmSelection, SIGNAL(clicked()), this, SLOT(ConfirmSelection()));
   connect(UI.checkBoxScanVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleScanVisible(bool)));
   connect(UI.checkBoxUncertaintyVisible, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyVisible(bool)));
 
-  // 2. Preprocessing
+  // Preprocessing
   connect(UI.checkBoxErosionEnabled, SIGNAL(toggled(bool)), this, SLOT(ToggleErosionEnabled(bool)));
 
-  // 3.
-  //  a. Thresholding
+  // Thresholding
   connect(UI.pushButtonEnableThreshold, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholding(bool)));
   connect(UI.pushButtonEnableThresholdAutoUpdate, SIGNAL(toggled(bool)), this, SLOT(ToggleUncertaintyThresholdingAutoUpdate(bool)));
   connect(UI.sliderMinThreshold, SIGNAL(sliderMoved(int)), this, SLOT(LowerThresholdSliderMoved(int)));
@@ -131,18 +130,19 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertaintyIfAutoUpdateEnabled()));
   connect(UI.buttonThresholdingReset, SIGNAL(clicked()), this, SLOT(ResetThresholds()));
 
-  //  b. Texture Mapping
+  // Texture Mapping
   connect(UI.spinBoxSphereThetaResolution, SIGNAL(valueChanged(int)), this, SLOT(ThetaResolutionChanged(int)));
   connect(UI.spinBoxSpherePhiResolution, SIGNAL(valueChanged(int)), this, SLOT(PhiResolutionChanged(int)));
   connect(UI.buttonSphere, SIGNAL(clicked()), this, SLOT(GenerateUncertaintySphere()));
 
-  //  c. Surface Mapping
+  // Surface Mapping
   connect(UI.buttonSurfaceMapping, SIGNAL(clicked()), this, SLOT(SurfaceMapping()));
 
-  //  d. Next Scan Plane
+  // Next Scan Plane
+  connect(UI.buttonNextScanPlaneShowThresholded, SIGNAL(clicked()), this, SLOT(NextScanPlaneShowThresholded()));
   connect(UI.buttonNextScanPlane, SIGNAL(clicked()), this, SLOT(ComputeNextScanPlane()));
 
-  // 4. Options
+  // Options
   connect(UI.checkBoxCrosshairs, SIGNAL(stateChanged(int)), this, SLOT(ToggleCrosshairs(int)));
   connect(UI.checkBoxLegend, SIGNAL(stateChanged(int)), this, SLOT(ToggleLegend(int)));
   connect(UI.buttonResetViews, SIGNAL(clicked()), this, SLOT(ResetViews()));
@@ -156,7 +156,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonVisualizeSurface, SIGNAL(clicked()), this, SLOT(ShowVisualizeSurface()));
   connect(UI.buttonVisualizeNextScanPlane, SIGNAL(clicked()), this, SLOT(ShowVisualizeNextScanPlane()));
 
-  // Debugging
+  // Debug
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
   connect(UI.buttonDebugRandom, SIGNAL(clicked()), this, SLOT(GenerateRandomUncertainty()));
   connect(UI.buttonDebugCube, SIGNAL(clicked()), this, SLOT(GenerateCubeUncertainty()));
@@ -1401,10 +1401,22 @@ void Sams_View::SurfaceMapping(
 // ---- Next Scan Plane ---- //
 // ------------------------- //
 
+void Sams_View::NextScanPlaneShowThresholded() {
+  thresholdingEnabled = false;
+  SetLowerThreshold(0.0);
+  thresholdingEnabled = true;
+  SetUpperThreshold(UI.spinBoxNextScanPlaneSVDThreshold->value());
+
+  ShowDataNode(this->scanPlane);
+  ShowDataNode(this->scanBox);
+}
+
 void Sams_View::ComputeNextScanPlane() {
   // Compute the next scan plane.
   SVDScanPlaneGenerator * calculator = new SVDScanPlaneGenerator();
   calculator->setUncertainty(GetMitkPreprocessedUncertainty());
+  calculator->setThreshold(UI.spinBoxNextScanPlaneSVDThreshold->value());
+  calculator->setIgnoreZeros(UI.checkBoxNextScanPlaneIgnoreZeros->isChecked());
   vtkSmartPointer<vtkPlane> plane = calculator->calculateBestScanPlane();
 
   double * center = plane->GetOrigin();
@@ -1434,7 +1446,7 @@ void Sams_View::ComputeNextScanPlane() {
   basePlaneGeometry->SetIndexToWorldTransform(scanTransform);
 
   // Save it.
-  SaveDataNode("Scan Plane", mitkPlane, true);
+  this->scanPlane = SaveDataNode("Scan Plane", mitkPlane, true);
 
   // Create a box to represent all the slices in the scan.
   vtkVector<float, 3> vectorOldNormal = vtkVector<float, 3>();
@@ -1457,8 +1469,8 @@ void Sams_View::ComputeNextScanPlane() {
   baseBoxGeometry->SetOrigin(scanOrigin);
   baseBoxGeometry->SetIndexToWorldTransform(scanTransform);
 
-  mitk::DataNode::Pointer box = SaveDataNode("Scan Box", mitkScanBox, true);
-  box->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+  this->scanBox = SaveDataNode("Scan Box", mitkScanBox, true);
+  scanBox->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 
   UI.spinBoxNextBestPointX->setValue(center[0]);
   UI.spinBoxNextBestPointY->setValue(center[1]);

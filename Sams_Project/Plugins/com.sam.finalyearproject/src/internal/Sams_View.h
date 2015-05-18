@@ -144,6 +144,7 @@ class Sams_View : public QmitkAbstractView {
     );
 
     // ---- Next Scan Plane ---- //
+    void NextScanPlaneShowThresholded();
     void ComputeNextScanPlane();
 
     // ----------------- //
@@ -240,6 +241,10 @@ class Sams_View : public QmitkAbstractView {
 
     // Uncertainty Sphere
     double latLongRatio = 2.0;
+
+    // Next Scan Plane
+    mitk::DataNode::Pointer scanPlane;
+    mitk::DataNode::Pointer scanBox;
 
     // Overlay
     ColourLegendOverlay * legendOverlay = NULL;

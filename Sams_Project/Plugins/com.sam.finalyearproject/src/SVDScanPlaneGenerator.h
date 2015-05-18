@@ -11,6 +11,7 @@ class SVDScanPlaneGenerator {
     SVDScanPlaneGenerator();
     void setUncertainty(mitk::Image::Pointer uncertainty);
     void setThreshold(double threshold);
+    void setIgnoreZeros(bool ignoreZeros);
     vtkSmartPointer<vtkPlane> calculateBestScanPlane();
 
   private:
@@ -18,6 +19,7 @@ class SVDScanPlaneGenerator {
     unsigned int uncertaintyHeight, uncertaintyWidth, uncertaintyDepth;
 
     double threshold;
+    bool ignoreZeros;
 
     mitk::PointSet::Pointer pointsBelowThreshold(double threshold);
     void calculateCentroid(mitk::PointSet::Pointer pointSet, mitk::Point3D & centroid);
