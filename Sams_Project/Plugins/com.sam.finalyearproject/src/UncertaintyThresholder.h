@@ -33,7 +33,7 @@ class UncertaintyThresholder {
     template <typename TPixel, unsigned int VImageDimension>
     void ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result);
     template <typename TPixel, unsigned int VImageDimension>
-    void ItkComputePercentages(itk::Image<TPixel, VImageDimension>* itkImage, unsigned int * histogram, unsigned int & totalPixels);
+    void ItkComputeHistogram(itk::Image<TPixel, VImageDimension>* itkImage, unsigned int * histogram, unsigned int & totalPixels);
 };
 
 #endif

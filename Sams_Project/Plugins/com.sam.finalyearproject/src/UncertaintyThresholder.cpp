@@ -24,6 +24,9 @@ UncertaintyThresholder::~UncertaintyThresholder() {
   }
 }
 
+/**
+  * Sets the uncertainty to be thresholded.
+  */
 void UncertaintyThresholder::setUncertainty(mitk::Image::Pointer uncertainty) {
   if (this->uncertainty == uncertainty) {
     return;
@@ -36,21 +39,32 @@ void UncertaintyThresholder::setUncertainty(mitk::Image::Pointer uncertainty) {
   }
 }
 
+/**
+  * Sets whether we should ignore zeros when thresholding.
+  * If true then voxels that are zero are not included in the thresholded volume.
+  *   (even if they would otherwise be within the range)
+  */
 void UncertaintyThresholder::setIgnoreZeros(bool ignoreZeros) {
 	this->ignoreZeros = ignoreZeros;
 }
 
+/**
+  * Thresholds the uncertainty.
+  */
 mitk::Image::Pointer UncertaintyThresholder::thresholdUncertainty(double min, double max) {
 	mitk::Image::Pointer thresholdedImage;
 	AccessByItk_3(this->uncertainty, ItkThresholdUncertainty, min, max, thresholdedImage);
 	return thresholdedImage;
 }
 
+/**
+  * Finds the threshold corresponding to the top X percent of uncertainty.
+  */
 void UncertaintyThresholder::getTopXPercentThreshold(double percentage, double & min, double & max) {
   // If we've not previously generated the histogram, generate it.
   if (!histogram) {
     histogram = new unsigned int[binsPerDimension];
-    AccessByItk_2(this->uncertainty, ItkComputePercentages, histogram, totalPixels);
+    AccessByItk_2(this->uncertainty, ItkComputeHistogram, histogram, totalPixels);
   }
 
   // Work out the number of pixels we need to get to reach percentage.
@@ -84,7 +98,7 @@ void UncertaintyThresholder::getTopXPercentThreshold(double percentage, double &
 }
 
 /**
-  * Uses ITK to do the thresholding.
+  * Use ITK to actually do the thresholding.
   */
 template <typename TPixel, unsigned int VImageDimension>
 void UncertaintyThresholder::ItkThresholdUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, double min, double max, mitk::Image::Pointer & result) {
@@ -116,8 +130,11 @@ void UncertaintyThresholder::ItkThresholdUncertainty(itk::Image<TPixel, VImageDi
   mitk::ProgressBar::GetInstance()->Progress();
 }
 
+/**
+  * Use ITK to build a histogram of all the values in the image.
+  */
 template <typename TPixel, unsigned int VImageDimension>
-void UncertaintyThresholder::ItkComputePercentages(itk::Image<TPixel, VImageDimension>* itkImage, unsigned int * histogram, unsigned int & totalPixels) {
+void UncertaintyThresholder::ItkComputeHistogram(itk::Image<TPixel, VImageDimension>* itkImage, unsigned int * histogram, unsigned int & totalPixels) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   typedef itk::Image<TPixel, VImageDimension> ImageType;
