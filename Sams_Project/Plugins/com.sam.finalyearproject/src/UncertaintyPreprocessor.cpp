@@ -1,15 +1,15 @@
 #include "UncertaintyPreprocessor.h"
 
-// ----------------- //
-// ---- Filters ---- //
-// ----------------- //
 #include <mitkImageAccessByItk.h>
 #include <mitkImageCast.h>
+
 // Normalize
 #include <itkRescaleIntensityImageFilter.h>
 #include <itkIntensityWindowingImageFilter.h>
+
 // Invert
 #include <itkInvertIntensityImageFilter.h>
+
 // Erode
 #include <itkBinaryBallStructuringElement.h>
 #include <itkGrayscaleErodeImageFilter.h>
@@ -18,30 +18,46 @@
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkMaskImageFilter.h>
 
-// -------------- //
-// ---- MITK ---- //
-// -------------- //
 // Loading bar
 #include "MitkLoadingBarCommand.h"
 #include <mitkProgressBar.h>
 
-// ------------------------ //
-// ---- Implementation ---- //
-// ------------------------ //
-
+/**
+  * Set the scan corresponding to the uncertainty.
+  * This is used to align the uncertainty to it (if enabled).
+  */
 void UncertaintyPreprocessor::setScan(mitk::Image::Pointer scan) {
   this->scan = scan;
 }
 
+/**
+  * Set the uncertainty to preprocess.
+  */
 void UncertaintyPreprocessor::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
 }
 
+/**
+  * Set the range to normalize the uncertainty to.
+  */
 void UncertaintyPreprocessor::setNormalizationParams(double min, double max) {
   this->normalizationMin = min;
   this->normalizationMax = max;
 }
 
+/**
+  * Configure the erosion. It works in three steps.
+  *   Firstly we do an initial erosion - as well as removing the edge this also removes detail
+        from inside the volume. 
+        (Parameter - erodeThickness)
+  *   Secondly it looks at what changed when it was eroded. The edges change a lot but
+        the inner parts change less. We threshold these changes to create a mask of where the
+        edges (which change more) actually are.
+        (Parameter - erodeThreshold)
+  *   Thirdly we dilate this mask slightly so we don't get an annoying ring of edge left.
+        (Parameter - dilateThickness)
+  *   Finally the edge is deleted.
+  */
 void UncertaintyPreprocessor::setErodeParams(int erodeThickness, double erodeThreshold, int dilateThickness) {
   this->erodeErodeThickness = erodeThickness;
   this->erodeThreshold = erodeThreshold;
@@ -49,10 +65,8 @@ void UncertaintyPreprocessor::setErodeParams(int erodeThickness, double erodeThr
 }
 
 mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert, bool erode, bool align) {
-  unsigned int stepsToDo = 0;
-  // if (normalize) {
-    stepsToDo += 100;
-  // }
+  // We always normalize, everything else is optional.
+  unsigned int stepsToDo = 100;
   if (invert) {
     stepsToDo += 100;
   }
@@ -70,7 +84,6 @@ mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert,
   mitk::Image::Pointer normalizedMitkImage;
   AccessByItk_1(this->uncertainty, ItkNormalizeUncertainty, normalizedMitkImage);
 
-  
   // ------------------- //
   // ------ Invert ----- //
   // ------------------- //
@@ -92,6 +105,7 @@ mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert,
   // ------------------- //
   // ------ Align ------ //
   // ------------------- //
+  // (if enabled)
   mitk::Image::Pointer fullyProcessedMitkImage = erodedMitkImage;
   if (align) {
     // Align the scan and uncertainty.
@@ -161,6 +175,9 @@ void UncertaintyPreprocessor::ItkNormalizeUncertainty(itk::Image<TPixel, VImageD
   }
 }
 
+/**
+  * Inverts an ITK Image.
+  */
 template <typename TPixel, unsigned int VImageDimension>
 void UncertaintyPreprocessor::ItkInvertUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
@@ -180,6 +197,10 @@ void UncertaintyPreprocessor::ItkInvertUncertainty(itk::Image<TPixel, VImageDime
   mitk::CastToMitkImage(invertedImage, result);
 }
 
+/**
+  * Erodes an ITK Image.
+  * See setErodeParams for explanation of parameters.
+  */
 template <typename TPixel, unsigned int VImageDimension>
 void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;

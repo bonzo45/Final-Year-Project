@@ -18,6 +18,7 @@ class UncertaintyPreprocessor {
     // Preprocessing parameters
     double normalizationMin;
     double normalizationMax;
+    
     int erodeErodeThickness;
     double erodeThreshold;
     int erodeDilateThickness;
