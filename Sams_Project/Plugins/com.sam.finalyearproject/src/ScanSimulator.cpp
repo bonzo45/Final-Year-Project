@@ -7,6 +7,9 @@
 // Loading bar
 #include <mitkProgressBar.h>
 
+/**
+  * Sets the volume to scan.
+  */
 void ScanSimulator::setVolume(mitk::Image::Pointer volume) {
   this->volume = volume;
   this->volumeHeight = volume->GetDimension(0);
@@ -14,10 +17,22 @@ void ScanSimulator::setVolume(mitk::Image::Pointer volume) {
   this->volumeDepth = volume->GetDimension(2);
 }
 
+/**
+  * Sets the origin of the scan.
+  *   i.e. where pixel (0, 0, 0) in the scan is.
+  */
 void ScanSimulator::setScanOrigin(vtkVector<float, 3> origin) {
   this->scanOrigin = origin;
 }
 
+/**
+  * Instead of specifying the origin you can specify the center instead.
+  * NOTE: You must call:
+  *   setScanAxes(...)
+  *   setScanResolution(...)
+  *   setScanSize(...)
+  * BEFORE calling this method as it relies on those values being set.
+  */
 void ScanSimulator::setScanCenter(vtkVector<float, 3> center) {
   this->scanOrigin = center;
   this->scanOrigin = Util::vectorSubtract(scanOrigin, Util::vectorScale(xDirection, (scanWidth * xResolution) / 2.0));
@@ -25,6 +40,12 @@ void ScanSimulator::setScanCenter(vtkVector<float, 3> center) {
   this->scanOrigin = Util::vectorSubtract(scanOrigin, Util::vectorScale(zDirection, (numSlices * zResolution) / 2.0));
 }
 
+/**
+  * Sets the orientation of the scan.
+  *   xDirection is the 'horizontal' direction.
+  *   yDirection is the 'vertical' direction.
+  *   zDirection is the 'slice' direction.
+  */
 void ScanSimulator::setScanAxes(vtkVector<float, 3> xDirection, vtkVector<float, 3> yDirection, vtkVector<float, 3> zDirection) {
   this->xDirection = xDirection;
   this->yDirection = yDirection;
@@ -35,26 +56,51 @@ void ScanSimulator::setScanAxes(vtkVector<float, 3> xDirection, vtkVector<float,
   this->zDirection.Normalize();
 };
 
+/**
+  * Sets the resolution of the scan.
+  *   xResolution is resolution of the 'horizontal' pixels.
+  *   yResolution is resolution of the 'vertical' pixels.
+  *   zResolution is resolution of the slices.
+  * e.g. (1, 1, 2) would sample at the same resolution as the original volume within a slice
+  *   but give slices that are twice as thick as this.
+  */
 void ScanSimulator::setScanResolution(double xResolution, double yResolution, double zResolution) {
   this->xResolution = xResolution;
   this->yResolution = yResolution;
   this->zResolution = zResolution;
 }
 
+/**
+  * Sets the size of the scan.
+  *   width is the number of 'horizontal' pixels.
+  *   heiht is the number of 'vertical' pixels.
+  *   slices is the number of slices.
+  */
 void ScanSimulator::setScanSize(unsigned int width, unsigned int height, unsigned int slices) {
   this->scanWidth = width;
   this->scanHeight = height;
   this->numSlices = slices;
 }
 
+/**
+  * Sets whether motion corruption is enabled.
+  * This will randomly rotate each slice up to a maximum of the angle 
+  * set in setMotionCorruptionMaxAngle().
+  */
 void ScanSimulator::setMotionCorruption(bool corruption) {
   this->motionCorruptionOn = corruption;
 }
 
+/**
+  * Sets the maximum rotation angle to corrupt each slice by.
+  */
 void ScanSimulator::setMotionCorruptionMaxAngle(double angle) {
   this->motionCorruptionMaxAngle = angle;
 }
 
+/**
+  * Converts from a pixel address in the scan to the position in the target volume.
+  */
 vtkVector<float, 3> ScanSimulator::scanToVolumePosition(unsigned int w, unsigned int h, unsigned int s) {
   vtkVector<float, 3> position = scanOrigin;
 
@@ -70,6 +116,9 @@ vtkVector<float, 3> ScanSimulator::scanToVolumePosition(unsigned int w, unsigned
   return position;
 }
 
+/**
+  * Scans the volume.
+  */
 mitk::Image::Pointer ScanSimulator::scan() {
   // Create a blank ITK image.
   ScanImageType::RegionType region;
@@ -153,6 +202,9 @@ mitk::Image::Pointer ScanSimulator::scan() {
   return result;
 }
 
+/**
+  * Generates a vtkTransform representing random motion.
+  */
 vtkSmartPointer<vtkTransform> ScanSimulator::generateRandomMotion() {
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->RotateWXYZ(
@@ -165,6 +217,11 @@ vtkSmartPointer<vtkTransform> ScanSimulator::generateRandomMotion() {
   return transform;
 }
 
+/**
+  * Generates a series of vtkTransforms representing motion.
+  * Currently each transform is completely independent of every other but this could be tweaked
+  * make it more realistic.
+  */
 std::list<vtkSmartPointer<vtkTransform> > * ScanSimulator::generateRandomMotionSequence(unsigned int steps) {
   std::list<vtkSmartPointer<vtkTransform> > * list = new std::list<vtkSmartPointer<vtkTransform> >();
   for (unsigned int i = 0; i < steps; i++) {

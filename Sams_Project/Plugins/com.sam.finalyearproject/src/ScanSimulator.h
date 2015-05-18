@@ -24,10 +24,12 @@ class ScanSimulator {
   private:
     mitk::Image::Pointer volume;
     unsigned int volumeWidth, volumeHeight, volumeDepth;
+
     vtkVector<float, 3> scanOrigin;
     vtkVector<float, 3> xDirection, yDirection, zDirection;
     double xResolution, yResolution, zResolution;
     unsigned int scanWidth, scanHeight, numSlices;
+    
     bool motionCorruptionOn;
     double motionCorruptionMaxAngle;
 
