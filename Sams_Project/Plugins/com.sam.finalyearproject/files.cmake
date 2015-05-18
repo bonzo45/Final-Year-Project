@@ -3,7 +3,7 @@ set(SRC_CPP_FILES
   UncertaintyPreprocessor.cpp
   UncertaintyThresholder.cpp
   UncertaintySampler.cpp
-  UncertaintyTexture.cpp
+  UncertaintyTextureGenerator.cpp
   SurfaceGenerator.cpp
   UncertaintySurfaceMapper.cpp
   UncertaintyGenerator.cpp

@@ -11,7 +11,6 @@
 #include "Util.h"
 #include "UncertaintyPreprocessor.h"
 #include "UncertaintySampler.h"
-#include "UncertaintyTexture.h"
 #include "SurfaceGenerator.h"
 #include "UncertaintySurfaceMapper.h"
 #include "UncertaintyGenerator.h"

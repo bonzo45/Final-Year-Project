@@ -1,13 +1,12 @@
-#ifndef Uncertainty_Texture_h
-#define Uncertainty_Texture_h
+#ifndef Uncertainty_Texture_Generator_h
+#define Uncertainty_Texture_Generator_h
 
 #include <mitkImage.h>
 #include <itkImage.h>
 
 typedef itk::Image<unsigned char, 2>  TextureImageType;
 
-
-class UncertaintyTexture {
+class UncertaintyTextureGenerator {
 	public:
     void setUncertainty(mitk::Image::Pointer image);
     void setDimensions(unsigned int width, unsigned int height);
@@ -15,7 +14,7 @@ class UncertaintyTexture {
     void setSamplingAverage();
     void setSamplingMinimum();
     void setSamplingMaximum();
-    mitk::Image::Pointer generateUncertaintyTexture();
+    mitk::Image::Pointer generateUncertaintyTextureGenerator();
 
     double getLegendMinValue();
     double getLegendMaxValue();

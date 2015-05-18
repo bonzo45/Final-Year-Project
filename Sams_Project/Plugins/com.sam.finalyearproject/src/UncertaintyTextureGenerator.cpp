@@ -1,4 +1,4 @@
-#include "UncertaintyTexture.h"
+#include "UncertaintyTextureGenerator.h"
 
 #include "UncertaintySampler.h"
 #include <mitkImageCast.h>
@@ -8,39 +8,60 @@
 #include "MitkLoadingBarCommand.h"
 #include <mitkProgressBar.h>
 
-void UncertaintyTexture::setUncertainty(mitk::Image::Pointer uncertainty) {
+/**
+  * Sets the uncertainty to make a texture from.
+  */
+void UncertaintyTextureGenerator::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
   this->uncertaintyWidth = uncertainty->GetDimension(1);
   this->uncertaintyDepth = uncertainty->GetDimension(2);
 }
 
-void UncertaintyTexture::setDimensions(unsigned int width, unsigned int height) {
+/**
+  * Sets the dimensions of the texture.
+  */
+void UncertaintyTextureGenerator::setDimensions(unsigned int width, unsigned int height) {
   this->textureWidth = width;
   this->textureHeight = height;
 }
 
-void UncertaintyTexture::setScalingLinear(bool scalingLinear) {
+/**
+  * Sets whether to do linear scaling. No scaling if false.
+  */
+void UncertaintyTextureGenerator::setScalingLinear(bool scalingLinear) {
   this->scalingLinear = scalingLinear;
 }
 
-void UncertaintyTexture::clearSampling() {
+/**
+  * Resets the sampling variables.
+  */
+void UncertaintyTextureGenerator::clearSampling() {
   this->samplingAverage = false;
   this->samplingMinimum = false;
   this->samplingMaximum = false;
 }
 
-void UncertaintyTexture::setSamplingAverage() {
+/**
+  * Sets sampling to average.
+  */
+void UncertaintyTextureGenerator::setSamplingAverage() {
   clearSampling();
   this->samplingAverage = true;
 }
 
-void UncertaintyTexture::setSamplingMinimum() {
+/**
+  * Sets sampling to minimum.
+  */
+void UncertaintyTextureGenerator::setSamplingMinimum() {
   clearSampling();
   this->samplingMinimum = true;
 }
 
-void UncertaintyTexture::setSamplingMaximum() {
+/**
+  * Sets sampling to maximum.
+  */
+void UncertaintyTextureGenerator::setSamplingMaximum() {
   clearSampling();
   this->samplingMaximum = true;
 }
@@ -49,7 +70,7 @@ void UncertaintyTexture::setSamplingMaximum() {
   * Generates a texture that represents the uncertainty of the uncertainty volume.
   * It works by projecting a point in the center of the volume outwards, onto a sphere.
   */
-mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
+mitk::Image::Pointer UncertaintyTextureGenerator::generateUncertaintyTextureGenerator() {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(textureWidth * textureHeight);
   if (scalingLinear) {
     mitk::ProgressBar::GetInstance()->AddStepsToDo(100);
@@ -68,9 +89,9 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   region.SetSize(size);
   region.SetIndex(start);
 
-  TextureImageType::Pointer uncertaintyTexture = TextureImageType::New();
-  uncertaintyTexture->SetRegions(region);
-  uncertaintyTexture->Allocate();
+  TextureImageType::Pointer UncertaintyTextureGenerator = TextureImageType::New();
+  UncertaintyTextureGenerator->SetRegions(region);
+  UncertaintyTextureGenerator->Allocate();
 
   // Create an uncertainty sampler.
   UncertaintySampler * sampler = new UncertaintySampler();
@@ -113,7 +134,7 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
       pixelIndex[0] = c;
       pixelIndex[1] = r;
 
-      uncertaintyTexture->SetPixel(pixelIndex, pixelValue);
+      UncertaintyTextureGenerator->SetPixel(pixelIndex, pixelValue);
       mitk::ProgressBar::GetInstance()->Progress();
     }
   }
@@ -123,14 +144,14 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
   if (scalingLinear) {
     typedef itk::RescaleIntensityImageFilter<TextureImageType, TextureImageType> RescaleFilterType;
     typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-    rescaleFilter->SetInput(uncertaintyTexture);
+    rescaleFilter->SetInput(UncertaintyTextureGenerator);
     rescaleFilter->SetOutputMinimum(0);
     rescaleFilter->SetOutputMaximum(255);
     MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
     command->Initialize(100, false);
     rescaleFilter->AddObserver(itk::ProgressEvent(), command);
     rescaleFilter->Update();
-    uncertaintyTexture = rescaleFilter->GetOutput();
+    UncertaintyTextureGenerator = rescaleFilter->GetOutput();
     legendMinValue = rescaleFilter->GetInputMinimum() / 255.0;
     legendMaxValue = rescaleFilter->GetInputMaximum() / 255.0;
   }
@@ -141,25 +162,37 @@ mitk::Image::Pointer UncertaintyTexture::generateUncertaintyTexture() {
 
   // Convert from ITK to MITK.
   mitk::Image::Pointer result;
-  mitk::CastToMitkImage(uncertaintyTexture, result);
+  mitk::CastToMitkImage(UncertaintyTextureGenerator, result);
   return result;
 }
 
-double UncertaintyTexture::getLegendMinValue() {
+/**
+  * For legend support. Returns the minimum value.
+  */
+double UncertaintyTextureGenerator::getLegendMinValue() {
   return legendMinValue;
 }
 
-double UncertaintyTexture::getLegendMaxValue() {
+/**
+  * For legend support. Returns the maximum value.
+  */
+double UncertaintyTextureGenerator::getLegendMaxValue() {
   return legendMaxValue;
 }
 
-void UncertaintyTexture::getLegendMinColour(char * colour) {
+/**
+  * For legend support. Returns the minimum colour.
+  */
+void UncertaintyTextureGenerator::getLegendMinColour(char * colour) {
   colour[0] = 0;
   colour[1] = 0;
   colour[2] = 0;
 }
 
-void UncertaintyTexture::getLegendMaxColour(char * colour) {
+/**
+  * For legend support. Returns the maximum colour.
+  */
+void UncertaintyTextureGenerator::getLegendMaxColour(char * colour) {
   colour[0] = 255;
   colour[1] = 255;
   colour[2] = 255;
