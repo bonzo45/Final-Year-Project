@@ -10,8 +10,8 @@ class SurfaceGenerator {
     static mitk::Surface::Pointer generateCube(unsigned int length = 20);
     static mitk::Surface::Pointer generateCylinder(unsigned int radius = 20, unsigned int height = 20, unsigned int resolution = 10);
     static mitk::Surface::Pointer generatePlane(
-      unsigned int scanWidth, 
-      unsigned int scanHeight,
+      unsigned int width,
+      unsigned int height,
       vtkVector<float, 3> center,
       vtkVector<float, 3> normal
     );
@@ -24,6 +24,17 @@ class SurfaceGenerator {
       vtkVector<float, 3> newYAxis = vtkVector<float, 3>(0.0f),
       vtkVector<float, 3> newZAxis = vtkVector<float, 3>(0.0f)
     );
+    static mitk::Surface::Pointer generateCircle(
+      unsigned int radius,
+      vtkVector<float, 3> center = vtkVector<float, 3>(0.0f),
+      vtkVector<float, 3> normal = vtkVector<float, 3>(0.0f)
+    );
+    static mitk::Surface::Pointer generateCylinder2(
+      unsigned int radius,
+      vtkVector<float, 3> startPoint,
+      vtkVector<float, 3> endPoint
+    );
+
 
   private:
     static const bool DEBUGGING = false;

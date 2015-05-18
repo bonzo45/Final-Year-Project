@@ -17,6 +17,7 @@
 #include "RANSACScanPlaneGenerator.h"
 #include "SVDScanPlaneGenerator.h"
 #include "ScanSimulator.h"
+#include "NoPointsException.h"
 
 // MITK Interaction
 #include <mitkIRenderWindowPart.h>
@@ -225,6 +226,9 @@ void Sams_View::Initialize() {
   UI.labelReconstructExecutableError->setVisible(false);
   UI.labelReconstructExecutableSuccess->setVisible(false);
 
+  // Hide SVD error
+  UI.labelNextScanSVDError->setVisible(false);
+  
   ShowVisualizeSelect();
 
   UI.buttonScanPreview->setChecked(false);
@@ -1417,15 +1421,25 @@ void Sams_View::ComputeNextScanPlane() {
   calculator->setUncertainty(GetMitkPreprocessedUncertainty());
   calculator->setThreshold(UI.spinBoxNextScanPlaneSVDThreshold->value());
   calculator->setIgnoreZeros(UI.checkBoxNextScanPlaneIgnoreZeros->isChecked());
-  vtkSmartPointer<vtkPlane> plane = calculator->calculateBestScanPlane();
+  
+  vtkSmartPointer<vtkPlane> plane;
+  try {
+    plane = calculator->calculateBestScanPlane();
+    UI.labelNextScanSVDError->setVisible(false);
+  }
+  // There were no points that matched the threshold to do SVD with.
+ catch (NoPointsException & e) {
+    UI.labelNextScanSVDError->setVisible(true);
+    return;
+  }
 
   double * center = plane->GetOrigin();
   double * normal = plane->GetNormal();
 
-  vtkVector<float, 3> vectorOrigin = vtkVector<float, 3>();
-  vectorOrigin[0] = center[0];
-  vectorOrigin[1] = center[1];
-  vectorOrigin[2] = center[2];
+  vtkVector<float, 3> vectorCenter = vtkVector<float, 3>();
+  vectorCenter[0] = center[0];
+  vectorCenter[1] = center[1];
+  vectorCenter[2] = center[2];
 
   vtkVector<float, 3> vectorNormal = vtkVector<float, 3>();
   vectorNormal[0] = normal[0];
@@ -1434,35 +1448,26 @@ void Sams_View::ComputeNextScanPlane() {
   vectorNormal.Normalize();
 
   // Create a surface to represent it.
-  mitk::Surface::Pointer mitkPlane = SurfaceGenerator::generatePlane(100, 100, vectorOrigin, vectorNormal);
+  mitk::Surface::Pointer mitkScanPlane = SurfaceGenerator::generateCircle(100, vectorCenter, vectorNormal);
 
   // Align it with the scan.
   mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScan()->GetSlicedGeometry();
   mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
   mitk::AffineTransform3D * scanTransform = scanSlicedGeometry->GetIndexToWorldTransform();
 
-  mitk::BaseGeometry * basePlaneGeometry = mitkPlane->GetGeometry();
+  mitk::BaseGeometry * basePlaneGeometry = mitkScanPlane->GetGeometry();
   basePlaneGeometry->SetOrigin(scanOrigin);
   basePlaneGeometry->SetIndexToWorldTransform(scanTransform);
 
   // Save it.
-  this->scanPlane = SaveDataNode("Scan Plane", mitkPlane, true);
+  this->scanPlane = SaveDataNode("Scan Plane", mitkScanPlane, true);
+  scanPlane->SetProperty("opacity", mitk::FloatProperty::New(0.75));
 
-  // Create a box to represent all the slices in the scan.
-  vtkVector<float, 3> vectorOldNormal = vtkVector<float, 3>();
-  vectorOldNormal[0] = 0;
-  vectorOldNormal[1] = 0;
-  vectorOldNormal[2] = 1;
-
-  vtkVector<float, 3> newYAxis = Util::vectorCross(vectorOldNormal, vectorNormal);
-  vtkVector<float, 3> newXAxis = Util::vectorCross(vectorNormal, newYAxis);
-  vtkVector<float, 3> newZAxis = vectorNormal;
-
-  newXAxis.Normalize();
-  newYAxis.Normalize();
-  newZAxis.Normalize();
-
-  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCuboid(120, 120, 300, vectorOrigin, newXAxis, newYAxis, newZAxis);
+  // // Create a cylinder to represent the direction of the scan
+  vtkVector<float, 3> scaledNormal = Util::vectorScale(vectorNormal, 150.0f);
+  vtkVector<float, 3> startPoint = Util::vectorSubtract(vectorCenter, scaledNormal);
+  vtkVector<float, 3> endPoint = Util::vectorAdd(vectorCenter, scaledNormal);
+  mitk::Surface::Pointer mitkScanBox = SurfaceGenerator::generateCylinder2(30, startPoint, endPoint);
 
   // Align it with the scan
   mitk::BaseGeometry * baseBoxGeometry = mitkScanBox->GetGeometry();
@@ -1472,21 +1477,13 @@ void Sams_View::ComputeNextScanPlane() {
   this->scanBox = SaveDataNode("Scan Box", mitkScanBox, true);
   scanBox->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 
-  UI.spinBoxNextBestPointX->setValue(center[0]);
-  UI.spinBoxNextBestPointY->setValue(center[1]);
-  UI.spinBoxNextBestPointZ->setValue(center[2]);
+  UI.spinBoxNextBestPointX->setValue(vectorCenter[0]);
+  UI.spinBoxNextBestPointY->setValue(vectorCenter[1]);
+  UI.spinBoxNextBestPointZ->setValue(vectorCenter[2]);
 
-  UI.spinBoxNextBestXDirectionX->setValue(newXAxis[0]);
-  UI.spinBoxNextBestXDirectionY->setValue(newXAxis[1]);
-  UI.spinBoxNextBestXDirectionZ->setValue(newXAxis[2]);
-
-  UI.spinBoxNextBestYDirectionX->setValue(newYAxis[0]);
-  UI.spinBoxNextBestYDirectionY->setValue(newYAxis[1]);
-  UI.spinBoxNextBestYDirectionZ->setValue(newYAxis[2]);
-
-  UI.spinBoxNextBestZDirectionX->setValue(newZAxis[0]);
-  UI.spinBoxNextBestZDirectionY->setValue(newZAxis[1]);
-  UI.spinBoxNextBestZDirectionZ->setValue(newZAxis[2]);
+  UI.spinBoxNextBestNormalX->setValue(vectorNormal[0]);
+  UI.spinBoxNextBestNormalY->setValue(vectorNormal[1]);
+  UI.spinBoxNextBestNormalZ->setValue(vectorNormal[2]);
 }
 
 // ----------------- //

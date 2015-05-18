@@ -9,6 +9,10 @@
 #include <vtkMatrix4x4.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkRegularPolygonSource.h>
+#include <vtkLineSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkTubeFilter.h>
 
 // Loading bar
 #include <mitkProgressBar.h>
@@ -233,4 +237,58 @@ mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int width, unsi
   cubeSurface->SetVtkPolyData(static_cast<vtkPolyData*>(transformFilter->GetOutput()));
   mitk::ProgressBar::GetInstance()->Progress();
   return cubeSurface;
+}
+
+/**
+  * Generates a circle with give radius, center and normal.
+  */
+mitk::Surface::Pointer SurfaceGenerator::generateCircle(unsigned int radius, vtkVector<float, 3> center, vtkVector<float, 3> normal) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
+
+  // If normal isn't set then make it (0, 0, 1);
+  if (normal[0] == 0.0f && normal[1] == 0.0f && normal[2] == 0.0f) {
+    normal[0] = 0.0f;
+    normal[1] = 0.0f;
+    normal[2] = 1.0f;
+  }
+
+  vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+  polygonSource->SetNumberOfSides(50);
+  polygonSource->SetRadius(radius);
+  polygonSource->SetCenter(center[0], center[1], center[2]);
+  polygonSource->SetNormal(normal[0], normal[1], normal[2]);
+  polygonSource->Update();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer circleSurface = mitk::Surface::New();
+  circleSurface->SetVtkPolyData(static_cast<vtkPolyData*>(polygonSource->GetOutput()));
+  mitk::ProgressBar::GetInstance()->Progress();
+  return circleSurface;
+}
+
+mitk::Surface::Pointer SurfaceGenerator::generateCylinder2(unsigned int radius, vtkVector<float, 3> startPoint, vtkVector<float, 3> endPoint) {
+  mitk::ProgressBar::GetInstance()->AddStepsToDo(3);
+
+  // Create a line
+  vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
+  lineSource->SetPoint1(startPoint[0], startPoint[1], startPoint[2]);
+  lineSource->SetPoint2(endPoint[0], endPoint[1], endPoint[2]);
+  lineSource->Update();
+
+  mitk::ProgressBar::GetInstance()->Progress();
+  
+  // Create a tube (cylinder) around the line
+  vtkSmartPointer<vtkTubeFilter> tubeFilter = vtkSmartPointer<vtkTubeFilter>::New();
+  tubeFilter->SetInputConnection(lineSource->GetOutputPort());
+  tubeFilter->SetRadius(radius); 
+  tubeFilter->SetNumberOfSides(50);
+  tubeFilter->Update();
+
+  mitk::ProgressBar::GetInstance()->Progress();
+
+  // Wrap it in some MITK.
+  mitk::Surface::Pointer cylinderSurface = mitk::Surface::New();
+  cylinderSurface->SetVtkPolyData(static_cast<vtkPolyData*>(tubeFilter->GetOutput()));
+  mitk::ProgressBar::GetInstance()->Progress();
+  return cylinderSurface;
 }

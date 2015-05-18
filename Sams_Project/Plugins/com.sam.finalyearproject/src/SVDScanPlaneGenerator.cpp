@@ -1,6 +1,7 @@
 #include "SVDScanPlaneGenerator.h"
 
 #include "Util.h"
+#include "NoPointsException.h"
 
 #include <mitkVector.h>
 #include <mitkImagePixelReadAccessor.h>
@@ -49,6 +50,12 @@ vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
   
   // Get all points worse than specified threshold.
   mitk::PointSet::Pointer pointSet = pointsBelowThreshold(threshold);
+
+  // If there are no points then throw an Exception.
+  if (pointSet->GetSize() == 0) {
+    mitk::ProgressBar::GetInstance()->Progress(3);
+    throw NoPointsException();
+  }
 
   mitk::ProgressBar::GetInstance()->Progress();
 

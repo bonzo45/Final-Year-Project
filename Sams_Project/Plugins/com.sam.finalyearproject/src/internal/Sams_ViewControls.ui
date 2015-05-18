@@ -1614,15 +1614,15 @@ font-weight: normal;</string>
           <item>
            <widget class="QToolBox" name="toolBoxReconstruct">
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="pageReconstructExecutable">
              <property name="geometry">
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>202</width>
-               <height>157</height>
+               <width>476</width>
+               <height>448</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1984,9 +1984,9 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-1717</y>
+        <y>-1633</y>
         <width>481</width>
-        <height>2297</height>
+        <height>2213</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -4504,6 +4504,40 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
+              <widget class="QLabel" name="labelNextScanSVDError">
+               <property name="font">
+                <font>
+                 <family>Quicksand</family>
+                 <pointsize>9</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 9pt;
+color: rgb(200, 0, 0);</string>
+               </property>
+               <property name="text">
+                <string>---- Sorry, there are no points below this threshold to do SVD. ----</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QLabel" name="labelSCAN_10">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -4667,40 +4701,7 @@ margin-left: 5px;</string>
 margin-left: 5px;</string>
                </property>
                <property name="text">
-                <string>DIRECTION:</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="labelSCAN_13">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font-weight: normal;
-font-style: italic;
-margin-left: 5px;</string>
-               </property>
-               <property name="text">
-                <string>(x, y, z)</string>
+                <string>NORMAL:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -4742,7 +4743,7 @@ margin-left: 5px;</string>
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestXDirectionX">
+                 <widget class="QDoubleSpinBox" name="spinBoxNextBestNormalX">
                   <property name="maximumSize">
                    <size>
                     <width>50</width>
@@ -4767,7 +4768,7 @@ margin-left: 5px;</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestXDirectionY">
+                 <widget class="QDoubleSpinBox" name="spinBoxNextBestNormalY">
                   <property name="maximumSize">
                    <size>
                     <width>50</width>
@@ -4792,7 +4793,7 @@ margin-left: 5px;</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestXDirectionZ">
+                 <widget class="QDoubleSpinBox" name="spinBoxNextBestNormalZ">
                   <property name="maximumSize">
                    <size>
                     <width>50</width>
@@ -4818,256 +4819,6 @@ margin-left: 5px;</string>
                 </item>
                 <item>
                  <spacer name="horizontalSpacer_24">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget1Scan_11" native="true">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_36">
-                <property name="leftMargin">
-                 <number>9</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>9</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <spacer name="horizontalSpacer_21">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestYDirectionX">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-10000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestYDirectionY">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-10000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestYDirectionZ">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-10000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_22">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget1Scan_12" native="true">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_39">
-                <property name="leftMargin">
-                 <number>9</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>9</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>9</number>
-                </property>
-                <item>
-                 <spacer name="horizontalSpacer_19">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestZDirectionX">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-10000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestZDirectionY">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-10000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxNextBestZDirectionZ">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="decimals">
-                   <number>2</number>
-                  </property>
-                  <property name="minimum">
-                   <double>-10000.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_20">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
