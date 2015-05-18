@@ -130,9 +130,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonTop5Percent, SIGNAL(clicked()), this, SLOT(TopFivePercent()));
   connect(UI.buttonTop10Percent, SIGNAL(clicked()), this, SLOT(TopTenPercent()));
   connect(UI.checkBoxIgnoreZeros, SIGNAL(stateChanged(int)), this, SLOT(ThresholdUncertaintyIfAutoUpdateEnabled()));
-  // connect(UI.buttonOverlayThreshold, SIGNAL(clicked()), this, SLOT(OverlayThreshold()));
   connect(UI.buttonThresholdingReset, SIGNAL(clicked()), this, SLOT(ResetThresholds()));
-  connect(UI.buttonVolumeRenderThreshold, SIGNAL(toggled(bool)), SLOT(VolumeRenderThreshold(bool)));
 
   //  b. Texture Mapping
   connect(UI.spinBoxSphereThetaResolution, SIGNAL(valueChanged(int)), this, SLOT(ThetaResolutionChanged(int)));
