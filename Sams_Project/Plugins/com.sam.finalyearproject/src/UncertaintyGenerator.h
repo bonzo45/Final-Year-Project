@@ -1,5 +1,5 @@
-#ifndef Demo_Uncertainty_h
-#define Demo_Uncertainty_h
+#ifndef Uncertainty_Generator_h
+#define Uncertainty_Generator_h
 
 #include <itkImage.h>
 #include <mitkImage.h>
@@ -7,7 +7,7 @@
 
 typedef itk::Image<unsigned char, 3>  UncertaintyImageType;
 
-class DemoUncertainty {
+class UncertaintyGenerator {
   public:
     static mitk::Image::Pointer generateRandomUncertainty(vtkVector<float, 3> imageSize);
     static mitk::Image::Pointer generateCubeUncertainty(vtkVector<float, 3> imageSize, unsigned int cubeSize);

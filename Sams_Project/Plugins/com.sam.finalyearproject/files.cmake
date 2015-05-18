@@ -6,7 +6,7 @@ set(SRC_CPP_FILES
   UncertaintyTexture.cpp
   SurfaceGenerator.cpp
   UncertaintySurfaceMapper.cpp
-  DemoUncertainty.cpp
+  UncertaintyGenerator.cpp
   RANSACScanPlaneGenerator.cpp
   SVDScanPlaneGenerator.cpp
   ColourLegendOverlay.cpp

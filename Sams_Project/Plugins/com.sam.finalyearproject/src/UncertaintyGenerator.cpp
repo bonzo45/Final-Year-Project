@@ -1,4 +1,4 @@
-#include "DemoUncertainty.h"
+#include "UncertaintyGenerator.h"
 #include "Util.h"
 #include <mitkImageCast.h>
 
@@ -9,7 +9,7 @@
   * Generates uncertainty data (height * width * depth).
   * Each voxel is a random uncertainty value between 0 and 255.
   */
-mitk::Image::Pointer DemoUncertainty::generateRandomUncertainty(vtkVector<float, 3> imageSize) {
+mitk::Image::Pointer UncertaintyGenerator::generateRandomUncertainty(vtkVector<float, 3> imageSize) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
   
   // Create a blank ITK image.
@@ -56,7 +56,7 @@ mitk::Image::Pointer DemoUncertainty::generateRandomUncertainty(vtkVector<float,
   * Generates uncertainty data (height * width * depth).
   * The cube, placed at the center with side length cubeSize, is totally uncertain (1) and everywhere else is completely certain (255).
   */
-mitk::Image::Pointer DemoUncertainty::generateCubeUncertainty(vtkVector<float, 3> imageSize, unsigned int cubeSize) {
+mitk::Image::Pointer UncertaintyGenerator::generateCubeUncertainty(vtkVector<float, 3> imageSize, unsigned int cubeSize) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
   // Create a blank ITK image.
   UncertaintyImageType::RegionType region;
@@ -125,7 +125,7 @@ mitk::Image::Pointer DemoUncertainty::generateCubeUncertainty(vtkVector<float, 3
   * Generates uncertainty data (imageSize[0] * imageSize[1] * imageSize[2]).
   * It's zero everywhere, apart from a sphere of radius sphereRadius that has uncertainty 255 at the center and fades linearly to the edges.
   */
-mitk::Image::Pointer DemoUncertainty::generateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
+mitk::Image::Pointer UncertaintyGenerator::generateSphereUncertainty(vtkVector<float, 3> imageSize, unsigned int sphereRadius, vtkVector<float, 3> sphereCenter) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   // Create a blank ITK image.

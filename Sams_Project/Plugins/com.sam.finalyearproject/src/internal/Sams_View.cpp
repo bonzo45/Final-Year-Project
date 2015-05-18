@@ -14,7 +14,7 @@
 #include "UncertaintyTexture.h"
 #include "SurfaceGenerator.h"
 #include "UncertaintySurfaceMapper.h"
-#include "DemoUncertainty.h"
+#include "UncertaintyGenerator.h"
 #include "RANSACScanPlaneGenerator.h"
 #include "SVDScanPlaneGenerator.h"
 #include "ScanSimulator.h"
@@ -795,24 +795,24 @@ void Sams_View::ConfirmSelection() {
     // If it's supposed to be random.
     if (QString::compare(uncertaintyName, RANDOM_NAME) == 0) {
       name << RANDOM_NAME.toStdString(); // "Random Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
-      generatedUncertainty = DemoUncertainty::generateRandomUncertainty(scanSize);
+      generatedUncertainty = UncertaintyGenerator::generateRandomUncertainty(scanSize);
     }
     // If it's supposed to be a sphere.
     else if (QString::compare(uncertaintyName, SPHERE_NAME) == 0) {
       name << SPHERE_NAME.toStdString(); // "Sphere of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
       float half = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 2;
-      generatedUncertainty = DemoUncertainty::generateSphereUncertainty(scanSize, half);
+      generatedUncertainty = UncertaintyGenerator::generateSphereUncertainty(scanSize, half);
     }
     // If it's supposed to be a cube.
     else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
       name << CUBE_NAME.toStdString(); // "Cube of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
-      generatedUncertainty = DemoUncertainty::generateCubeUncertainty(scanSize, 10);
+      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, 10);
     }
     // If it's supposed to be a sphere in a quadrant.
     else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {
       name << QUAD_SPHERE_NAME.toStdString(); // "Quadsphere of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
       float quarter = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 4;
-      generatedUncertainty = DemoUncertainty::generateSphereUncertainty(scanSize, quarter, vtkVector<float, 3>(quarter));
+      generatedUncertainty = UncertaintyGenerator::generateSphereUncertainty(scanSize, quarter, vtkVector<float, 3>(quarter));
     }
     // If it's not a demo uncertainty, stop.
     else {
@@ -1722,7 +1722,7 @@ void Sams_View::HideVisualizeAll() {
   */
 void Sams_View::GenerateRandomUncertainty() {
   vtkVector<float, 3> uncertaintySize = vtkVector<float, 3>(50);
-  mitk::Image::Pointer random = DemoUncertainty::generateRandomUncertainty(uncertaintySize);
+  mitk::Image::Pointer random = UncertaintyGenerator::generateRandomUncertainty(uncertaintySize);
   SaveDataNode("Random Uncertainty", random);
 }
 
@@ -1731,7 +1731,7 @@ void Sams_View::GenerateRandomUncertainty() {
   */
 void Sams_View::GenerateCubeUncertainty() {
   vtkVector<float, 3> imageSize = vtkVector<float, 3>(50);
-  mitk::Image::Pointer cube = DemoUncertainty::generateCubeUncertainty(imageSize, 10);
+  mitk::Image::Pointer cube = UncertaintyGenerator::generateCubeUncertainty(imageSize, 10);
   SaveDataNode("Cube Uncertainty", cube);
 }
 
@@ -1740,7 +1740,7 @@ void Sams_View::GenerateCubeUncertainty() {
   */
 void Sams_View::GenerateSphereUncertainty() {
   vtkVector<float, 3> imageSize = vtkVector<float, 3>(50);
-  mitk::Image::Pointer sphere = DemoUncertainty::generateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 2);
+  mitk::Image::Pointer sphere = UncertaintyGenerator::generateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 2);
   SaveDataNode("Sphere Uncertainty", sphere);
 }
 
@@ -1750,7 +1750,7 @@ void Sams_View::GenerateSphereUncertainty() {
 void Sams_View::GenerateQuadrantSphereUncertainty() {
   vtkVector<float, 3> imageSize = vtkVector<float, 3>(50);
   float quarter = std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 4;
-  mitk::Image::Pointer quadsphere = DemoUncertainty::generateSphereUncertainty(imageSize, quarter, vtkVector<float, 3>(quarter));
+  mitk::Image::Pointer quadsphere = UncertaintyGenerator::generateSphereUncertainty(imageSize, quarter, vtkVector<float, 3>(quarter));
   SaveDataNode("Quadsphere Uncertainty", quadsphere);
 }
 
