@@ -128,7 +128,6 @@ class Sams_View : public QmitkAbstractView {
     // ---- Uncertainty Sphere ---- //
     void ThetaResolutionChanged(int);
     void PhiResolutionChanged(int);
-    void GenerateSphereSurface();
     void GenerateUncertaintySphere();
 
     // ---- Uncertainty Surface ---- //
@@ -154,9 +153,9 @@ class Sams_View : public QmitkAbstractView {
     void ToggleLegend(int state);
     void ResetViews();
 
-    // ----------------- //
-    // ---- Overlay ---- //
-    // ----------------- //
+    // ---------------- //
+    // ---- Legend ---- //
+    // ---------------- //
     mitk::OverlayManager::Pointer GetOverlayManager();
     void SetLegend(double value1, char * colour1, double value2, char * colour2);
     void ShowLegend();
@@ -238,6 +237,9 @@ class Sams_View : public QmitkAbstractView {
     bool thresholdingAutoUpdate = true;
     double lowerThreshold = 0;
     double upperThreshold = 0;
+
+    // Uncertainty Sphere
+    double latLongRatio = 2.0;
 
     // Overlay
     ColourLegendOverlay * legendOverlay = NULL;

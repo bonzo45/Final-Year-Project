@@ -617,7 +617,6 @@ mitk::DataNode::Pointer Sams_View::SaveDataNode(const char * name, mitk::BaseDat
   return newVersion;
 }
 
-
 /**
   * Convenience method to remove a data node from the data storage.
   */
@@ -1168,181 +1167,13 @@ void Sams_View::ThresholdUncertainty() {
   DisplayThreshold();
 }
 
-
-
-
-
-
-// Sam - start refactoring here tomorrow!
-
-
-
-
-
-
-
-
-// ------------ //
-// ---- UI ---- //
-// ------------ //
-
-void Sams_View::ShowVisualizeSelect() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSelect->setVisible(true);
-  UI.buttonVisualizeSelect->setChecked(true);
-}
-
-void Sams_View::ShowVisualizeThreshold() {
-  HideVisualizeAll();
-  UI.widgetVisualizeThreshold->setVisible(true);
-  UI.buttonVisualizeThreshold->setChecked(true);
-}
-
-void Sams_View::ShowVisualizeSphere() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSphere->setVisible(true); 
-  UI.buttonVisualizeSphere->setChecked(true);  
-}
-
-void Sams_View::ShowVisualizeSurface() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSurface->setVisible(true); 
-  UI.buttonVisualizeSurface->setChecked(true);  
-}
-
-void Sams_View::ShowVisualizeNextScanPlane() {
-  HideVisualizeAll();
-  UI.widgetVisualizeNextScanPlane->setVisible(true); 
-  UI.buttonVisualizeNextScanPlane->setChecked(true);  
-}
-
-void Sams_View::HideVisualizeAll() {
-  UI.widgetVisualizeSelect->setVisible(false);
-  UI.widgetVisualizeThreshold->setVisible(false);
-  UI.widgetVisualizeSphere->setVisible(false);
-  UI.widgetVisualizeSurface->setVisible(false);
-  UI.widgetVisualizeNextScanPlane->setVisible(false);
-  UI.buttonVisualizeSelect->setChecked(false);
-  UI.buttonVisualizeThreshold->setChecked(false);
-  UI.buttonVisualizeSphere->setChecked(false);
-  UI.buttonVisualizeSurface->setChecked(false);
-  UI.buttonVisualizeNextScanPlane->setChecked(false);
-}
-
-void Sams_View::ToggleOptions() {
-  UI.widget4Minimizable->setVisible(!UI.widget4Minimizable->isVisible());
-}
-
-
+// ---------------------------- //
+// ---- Uncertainty Sphere ---- //
+// ---------------------------- //
 
 /**
-  * What to do when the plugin window is selected.
+  * Called when the horizontal resolution of the sphere changes.
   */
-void Sams_View::SetFocus() {
-  // Focus on something useful?
-  //    e.g. UI.buttonOverlayText->setFocus();
-}
-
-// --------------- //
-// ---- Utils ---- //
-// --------------- //
-
-void Sams_View::HideAllDataNodes() {
-  // Get all the images.
-  mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetAll();
-
-  // Add property "visible = false"
-  mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
-  while(image != allImages->End()) {
-    HideDataNode(image->Value());
-    ++image;
-  }
-
-  this->RequestRenderWindowUpdate();
-}
-
-void Sams_View::SetDataNodeLayer(mitk::DataNode::Pointer node, int layer) {
-  mitk::IntProperty::Pointer layerProperty = mitk::IntProperty::New(layer);
-  if (node) {
-    node->SetProperty("layer", layerProperty);
-  }
-}
-
-void Sams_View::ShowDataNode(mitk::DataNode::Pointer node) {
-  if (node) {
-    node->SetProperty("visible", mitk::BoolProperty::New(true));
-  }
-}
-
-void Sams_View::HideDataNode(mitk::DataNode::Pointer node) {
-  if (node) {
-    node->SetProperty("visible", mitk::BoolProperty::New(false));
-  }
-}
-
-mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
-  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
-  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
-  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
-  return renderer->GetOverlayManager();
-}
-
-// ---------------- //
-// ---- Legend ---- //
-// ---------------- //
-
-void Sams_View::SetLegend(double value1, char * colour1, double value2, char * colour2) {
-  cout << "Updating Legend: " << endl;
-  cout << "(" << value1 << ", [" << (int) colour1[0] << ", " << (int) colour1[1] << ", " << (int) colour1[2] << "])" << endl;
-  cout << "(" << value2 << ", [" << (int) colour2[0] << ", " << (int) colour2[1] << ", " << (int) colour2[2] << "])" << endl;
-  
-  HideLegend();
-
-  if (legendOverlay != NULL) {
-    delete legendOverlay;
-  }
-
-  // Create an overlay for the legend.
-  legendOverlay = new ColourLegendOverlay();
-  legendOverlay->setValue1(value1);
-  legendOverlay->setColour1(colour1[0], colour1[1], colour1[2]);
-  legendOverlay->setValue2(value2);
-  legendOverlay->setColour2(colour2[0], colour2[1], colour2[2]);
-
-  ShowLegend();
-}
-
-void Sams_View::ShowLegend() {
-  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
-  overlayManager->AddOverlay(legendOverlay);
-  UI.checkBoxLegend->setChecked(true);
-  this->RequestRenderWindowUpdate();
-}
-
-void Sams_View::HideLegend() {
-  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
-  overlayManager->RemoveOverlay(legendOverlay);
-  UI.checkBoxLegend->setChecked(false);
-  this->RequestRenderWindowUpdate();
-}
-
-// ----------- //
-// ---- 1 ---- //
-// ----------- //
-
-/**
-  * What to do when a data node or selection changes.
-  */
-void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& /*nodes*/) { 
-  UpdateSelectionDropDowns();
-}
-
-// ------------ //
-// ---- 3b ---- //
-// ------------ //
-
-double latLongRatio = 2.0;
-
 void Sams_View::ThetaResolutionChanged(int value) {
   if (UI.buttonLocked->isChecked()) {
     UI.spinBoxSpherePhiResolution->setValue(value / latLongRatio);
@@ -1351,6 +1182,9 @@ void Sams_View::ThetaResolutionChanged(int value) {
   latLongRatio = UI.spinBoxSphereThetaResolution->value() / UI.spinBoxSpherePhiResolution->value();
 }
 
+/**
+  * Called when the vertical resolution of the sphere changes.
+  */
 void Sams_View::PhiResolutionChanged(int value) {
   if (UI.buttonLocked->isChecked()) {
     UI.spinBoxSphereThetaResolution->setValue(value * latLongRatio);
@@ -1359,6 +1193,9 @@ void Sams_View::PhiResolutionChanged(int value) {
   latLongRatio = UI.spinBoxSphereThetaResolution->value() / UI.spinBoxSpherePhiResolution->value();
 }
 
+/**
+  * Maps the uncertainty to the surface of a sphere.
+  */
 void Sams_View::GenerateUncertaintySphere() {
   std::ostringstream name;
   name << "Sphere Surface";
@@ -1418,10 +1255,13 @@ void Sams_View::GenerateUncertaintySphere() {
   this->RequestRenderWindowUpdate();
 }
 
-// ------------ //
-// ---- 3c ---- //
-// ------------ //
+// ----------------------------- //
+// ---- Uncertainty Surface ---- //
+// ----------------------------- //
 
+/**
+  * Maps the uncertainty to the surface selected by the user.
+  */
 void Sams_View::SurfaceMapping() {
   mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
   
@@ -1489,7 +1329,8 @@ void Sams_View::SurfaceMapping() {
 }
 
 /**
-  * Takes a surface and maps the uncertainty onto it based on the normal vector.
+  * Takes a surface and maps the uncertainty onto it based on the position and
+  * normal vector of each point.
   */
 void Sams_View::SurfaceMapping(
   mitk::DataNode::Pointer surfaceNode,
@@ -1559,20 +1400,9 @@ void Sams_View::SurfaceMapping(
   this->RequestRenderWindowUpdate();
 }
 
-void Sams_View::GenerateSphereSurface() {
-  mitk::Surface::Pointer sphereSurface = SurfaceGenerator::generateSphere(100, 20);
-
-  // Store it as a DataNode.
-  mitk::DataNode::Pointer sphereNode = SaveDataNode("Sphere Surface", sphereSurface, true);
-  sphereNode->SetProperty("layer", mitk::IntProperty::New(3));
-  sphereNode->SetProperty("material.ambientCoefficient", mitk::FloatProperty::New(1.0f));
-  sphereNode->SetProperty("material.diffuseCoefficient", mitk::FloatProperty::New(0.0f));
-  sphereNode->SetProperty("material.specularCoefficient", mitk::FloatProperty::New(0.0f));
-}
-
-// ------------ //
-// ---- 3d ---- //
-// ------------ //
+// ------------------------- //
+// ---- Next Scan Plane ---- //
+// ------------------------- //
 
 void Sams_View::ComputeNextScanPlane() {
   // Compute the next scan plane.
@@ -1650,11 +1480,12 @@ void Sams_View::ComputeNextScanPlane() {
   UI.spinBoxNextBestZDirectionZ->setValue(newZAxis[2]);
 }
 
-// ----------- //
-// ---- 4 ---- //
-// ----------- //
+// ----------------- //
+// ---- Options ---- //
+// ----------------- //
 
 /**
+  * Shows/Hides the crosshairs in the viewing area.
   * If state > 0 then crosshairs are enabled. Otherwise they are disabled.
   */
 void Sams_View::ToggleCrosshairs(int state) {
@@ -1664,6 +1495,10 @@ void Sams_View::ToggleCrosshairs(int state) {
   }
 }
 
+/**
+  * Shows/Hides the legend in the viewing area.
+  * If state > 0 then it is enabled. Otherwise it is disabled.
+  */
 void Sams_View::ToggleLegend(int state) {
   if (state > 0) {
     ShowLegend();
@@ -1674,7 +1509,9 @@ void Sams_View::ToggleLegend(int state) {
 }
 
 /**
-  * Resets all the cameras. Works, but doesn't call reinit on all the datanodes (which it appears 'Reset Views' does...)
+  * Resets all the cameras.
+  * TODO: Works for the most part but doesn't call reinit on all the datanodes which it appears
+  * the reset views button in the viewing area does.
   */
 void Sams_View::ResetViews() {
   // Get all DataNode's that are visible.
@@ -1692,32 +1529,224 @@ void Sams_View::ResetViews() {
   this->RequestRenderWindowUpdate();
 }
 
-// --------------- //
-// ---- Debug ---- //
-// --------------- //
+// ---------------- //
+// ---- Legend ---- //
+// ---------------- //
 
+/**
+  * Returns the application's instance of the overlay manager.
+  */
+mitk::OverlayManager::Pointer Sams_View::GetOverlayManager() {
+  mitk::ILinkedRenderWindowPart* renderWindowPart = dynamic_cast<mitk::ILinkedRenderWindowPart*>(this->GetRenderWindowPart());
+  QmitkRenderWindow * renderWindow = renderWindowPart->GetActiveQmitkRenderWindow();
+  mitk::BaseRenderer * renderer = mitk::BaseRenderer::GetInstance(renderWindow->GetVtkRenderWindow());
+  return renderer->GetOverlayManager();
+}
+
+/**
+  * Updates the contents of the legend.
+  */
+void Sams_View::SetLegend(double value1, char * colour1, double value2, char * colour2) {
+  cout << "Updating Legend: " << endl;
+  cout << "(" << value1 << ", [" << (int) colour1[0] << ", " << (int) colour1[1] << ", " << (int) colour1[2] << "])" << endl;
+  cout << "(" << value2 << ", [" << (int) colour2[0] << ", " << (int) colour2[1] << ", " << (int) colour2[2] << "])" << endl;
+  
+  HideLegend();
+
+  if (legendOverlay != NULL) {
+    delete legendOverlay;
+  }
+
+  // Create an overlay for the legend.
+  legendOverlay = new ColourLegendOverlay();
+  legendOverlay->setValue1(value1);
+  legendOverlay->setColour1(colour1[0], colour1[1], colour1[2]);
+  legendOverlay->setValue2(value2);
+  legendOverlay->setColour2(colour2[0], colour2[1], colour2[2]);
+
+  ShowLegend();
+}
+
+/**
+  * Makes the legend visible.
+  */
+void Sams_View::ShowLegend() {
+  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
+  overlayManager->AddOverlay(legendOverlay);
+  UI.checkBoxLegend->setChecked(true);
+  this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Hides the legend.
+  */
+void Sams_View::HideLegend() {
+  mitk::OverlayManager::Pointer overlayManager = GetOverlayManager();
+  overlayManager->RemoveOverlay(legendOverlay);
+  UI.checkBoxLegend->setChecked(false);
+  this->RequestRenderWindowUpdate();
+}
+
+// ------------ //
+// ---- UI ---- //
+// ------------ //
+
+/**
+  * Sets the layer for a DataNode.
+  * Used to show some nodes on top of others.
+  */
+void Sams_View::SetDataNodeLayer(mitk::DataNode::Pointer node, int layer) {
+  mitk::IntProperty::Pointer layerProperty = mitk::IntProperty::New(layer);
+  if (node) {
+    node->SetProperty("layer", layerProperty);
+  }
+}
+
+/**
+  * Makes a data node visible.
+  */
+void Sams_View::ShowDataNode(mitk::DataNode::Pointer node) {
+  if (node) {
+    node->SetProperty("visible", mitk::BoolProperty::New(true));
+  }
+}
+
+/**
+  * Makes a data node invisible.
+  */
+void Sams_View::HideDataNode(mitk::DataNode::Pointer node) {
+  if (node) {
+    node->SetProperty("visible", mitk::BoolProperty::New(false));
+  }
+}
+
+/**
+  * Hides all data nodes.
+  */
+void Sams_View::HideAllDataNodes() {
+  // Get all the images.
+  mitk::DataStorage::SetOfObjects::ConstPointer allImages = this->GetDataStorage()->GetAll();
+
+  // Add property "visible = false"
+  mitk::DataStorage::SetOfObjects::ConstIterator image = allImages->Begin();
+  while(image != allImages->End()) {
+    HideDataNode(image->Value());
+    ++image;
+  }
+
+  this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Shows/Hides the options menu.
+  */
+void Sams_View::ToggleOptions() {
+  UI.widget4Minimizable->setVisible(!UI.widget4Minimizable->isVisible());
+}
+
+/**
+  * Shows/Hides the debug menu.
+  */
 void Sams_View::ToggleDebug() {
   UI.widgetDebug->setVisible(!UI.widgetDebug->isVisible());
 }
 
+/**
+  * Shows the 'Visualize -> Select' UI.
+  */
+void Sams_View::ShowVisualizeSelect() {
+  HideVisualizeAll();
+  UI.widgetVisualizeSelect->setVisible(true);
+  UI.buttonVisualizeSelect->setChecked(true);
+}
+
+/**
+  * Shows the 'Visualize -> Threshold' UI.
+  */
+void Sams_View::ShowVisualizeThreshold() {
+  HideVisualizeAll();
+  UI.widgetVisualizeThreshold->setVisible(true);
+  UI.buttonVisualizeThreshold->setChecked(true);
+}
+
+/**
+  * Shows the 'Visualize -> Uncertainty Sphere' UI.
+  */
+void Sams_View::ShowVisualizeSphere() {
+  HideVisualizeAll();
+  UI.widgetVisualizeSphere->setVisible(true); 
+  UI.buttonVisualizeSphere->setChecked(true);  
+}
+
+/**
+  * Shows the 'Visualize -> Uncertainty Surface' UI.
+  */
+void Sams_View::ShowVisualizeSurface() {
+  HideVisualizeAll();
+  UI.widgetVisualizeSurface->setVisible(true); 
+  UI.buttonVisualizeSurface->setChecked(true);  
+}
+
+/**
+  * Shows the 'Visualize -> Next Scan Plane' UI.
+  */
+void Sams_View::ShowVisualizeNextScanPlane() {
+  HideVisualizeAll();
+  UI.widgetVisualizeNextScanPlane->setVisible(true); 
+  UI.buttonVisualizeNextScanPlane->setChecked(true);  
+}
+
+/**
+  * Hides all of the Visualize UIs.
+  */
+void Sams_View::HideVisualizeAll() {
+  UI.widgetVisualizeSelect->setVisible(false);
+  UI.widgetVisualizeThreshold->setVisible(false);
+  UI.widgetVisualizeSphere->setVisible(false);
+  UI.widgetVisualizeSurface->setVisible(false);
+  UI.widgetVisualizeNextScanPlane->setVisible(false);
+  UI.buttonVisualizeSelect->setChecked(false);
+  UI.buttonVisualizeThreshold->setChecked(false);
+  UI.buttonVisualizeSphere->setChecked(false);
+  UI.buttonVisualizeSurface->setChecked(false);
+  UI.buttonVisualizeNextScanPlane->setChecked(false);
+}
+
+// --------------- //
+// ---- Debug ---- //
+// --------------- //
+// These methods are just used for convenience when testing or debugging. //
+
+/**
+  * Creates random uncertainty with a fixed size.
+  */
 void Sams_View::GenerateRandomUncertainty() {
   vtkVector<float, 3> uncertaintySize = vtkVector<float, 3>(50);
   mitk::Image::Pointer random = DemoUncertainty::generateRandomUncertainty(uncertaintySize);
   SaveDataNode("Random Uncertainty", random);
 }
 
+/**
+  * Creates cube random uncertainty with a fixed size.
+  */
 void Sams_View::GenerateCubeUncertainty() {
   vtkVector<float, 3> imageSize = vtkVector<float, 3>(50);
   mitk::Image::Pointer cube = DemoUncertainty::generateCubeUncertainty(imageSize, 10);
   SaveDataNode("Cube Uncertainty", cube);
 }
 
+/**
+  * Creates sphere uncertainty with a fixed size.
+  */
 void Sams_View::GenerateSphereUncertainty() {
   vtkVector<float, 3> imageSize = vtkVector<float, 3>(50);
   mitk::Image::Pointer sphere = DemoUncertainty::generateSphereUncertainty(imageSize, std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 2);
   SaveDataNode("Sphere Uncertainty", sphere);
 }
 
+/**
+  * Creates quadrant sphere uncertainty with a fixed size.
+  */
 void Sams_View::GenerateQuadrantSphereUncertainty() {
   vtkVector<float, 3> imageSize = vtkVector<float, 3>(50);
   float quarter = std::min(std::min(imageSize[0], imageSize[1]), imageSize[2]) / 4;
@@ -1725,6 +1754,9 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   SaveDataNode("Quadsphere Uncertainty", quadsphere);
 }
 
+/**
+  * A convenient method (attached to button 1 in the debug menu) to test out functionality.
+  */
 void Sams_View::debug1() {
   mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
   mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
@@ -1757,14 +1789,40 @@ void Sams_View::debug1() {
   this->RequestRenderWindowUpdate();
 }
 
+/**
+  * A convenient method (attached to button 2 in the debug menu) to test out functionality.
+  */
 void Sams_View::debug2() {
+}
 
+
+// ------------------- //
+// ---- Inherited ---- //
+// ------------------- //
+
+/**
+  * What to do when the plugin window is selected.
+  */
+void Sams_View::SetFocus() {
+  // Focus on something useful?
+  //    e.g. UI.buttonOverlayText->setFocus();
+}
+
+/**
+  * What to do when a data node or selection changes.
+  */
+void Sams_View::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& /*nodes*/) { 
+  UpdateSelectionDropDowns();
 }
 
 // -------------------- //
 // ---- Deprecated ---- //
 // -------------------- //
 
+/**
+  * Instead of volume rendering the binary thresholded version of the uncertainty this applies the
+  * same volume rendering to the uncertainty itself. It wasn't as clear and so isn't used.
+  */
 void Sams_View::VolumeRenderThreshold(bool checked) {
   // If we don't have any preprocessed uncertainty, do nothing.
   if (!this->preprocessedUncertainty) {
