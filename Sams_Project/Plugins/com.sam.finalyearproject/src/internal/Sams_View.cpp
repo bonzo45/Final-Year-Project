@@ -179,7 +179,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.buttonSimulateScan, SIGNAL(clicked()), this, SLOT(ScanSimulationSimulateScan()));
   connect(UI.buttonScanPreview, SIGNAL(clicked()), this, SLOT(ScanSimulationPreview()));
 
-  connect(UI.buttonScanPreview, SIGNAL(toggled(bool)), this, SLOT(ToggleScanSimulationPreview(bool)));
+  connect(UI.buttonScanPreview, SIGNAL(toggled(bool)), this, SLOT(ScanSimulationTogglePreview(bool)));
   connect(UI.spinBoxScanDimensionX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.spinBoxScanDimensionY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.spinBoxScanDimensionZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
