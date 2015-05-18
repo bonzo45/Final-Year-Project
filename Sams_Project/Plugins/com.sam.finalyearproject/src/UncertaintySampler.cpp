@@ -14,6 +14,9 @@ UncertaintySampler::UncertaintySampler() {
   setAverage();
 }
 
+/**
+  * Set the uncertainty to sample.
+  */
 void UncertaintySampler::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
@@ -25,12 +28,12 @@ double add(double a, double b) {
   return a + b;
 }
 
-double max(double a, double b) {
-  return std::max(a, b);
-}
-
 double min(double a, double b) {
   return std::min(a, b);
+}
+
+double max(double a, double b) {
+  return std::max(a, b);
 }
 
 double divide(double a, double b) {
@@ -41,21 +44,30 @@ double passThrough(double a, double /*b*/) {
   return a;
 }
 
+/**
+  * The sampled value will be the average of all the sample points.
+  */
 void UncertaintySampler::setAverage() {
   this->initialAccumulator = 0.0;
   this->accumulate = &add;
   this->collapse = &divide;
 }
 
-void UncertaintySampler::setMax() {
-  this->initialAccumulator = 0;
-  this->accumulate = &max;
-  this->collapse = &passThrough;
-}
-
+/**
+  * The sampled value will be the smallest of all the sampled points.
+  */
 void UncertaintySampler::setMin() {
   this->initialAccumulator = DBL_MAX;
   this->accumulate = &min;
+  this->collapse = &passThrough;
+}
+
+/**
+  * The sampled value will be the largest of all the sampled points.
+  */
+void UncertaintySampler::setMax() {
+  this->initialAccumulator = 0;
+  this->accumulate = &max;
   this->collapse = &passThrough;
 }
 
@@ -142,13 +154,19 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
   return result;
 }
 
+/**
+  * Given a continuous position in the volume this interpolates the value.
+  * NOTE: ITK has functionality to do this (see ITK VERSION below) but it turned out to be
+  *   slower than the manual version I had written before I had realised this. I think it must
+  *   sample more neighbours than the MANUAL VERSION.
+  */
 double UncertaintySampler::interpolateUncertaintyAtPosition(vtkVector<float, 3> position) {
+  // // ITK VERSION
   // double result;
   // AccessByItk_2(this->uncertainty, Util::ItkInterpolateValue, position, result);
   // return result;
 
-  // TODO: Apparently ITK can do this for you! Replace this code with theirs. (might allow for some parallelisation)
-  // Use an image accessor to read values from the uncertainty.
+  // MANUAL VERSION
   try  {
     // See if the uncertainty data is available to be read.
     mitk::ImagePixelReadAccessor<double, 3> readAccess(this->uncertainty);
@@ -167,14 +185,12 @@ double UncertaintySampler::interpolateUncertaintyAtPosition(vtkVector<float, 3> 
         for (int k = std::min(zSampleRange, 0); k <= std::max(zSampleRange, 0); k++) {
           // Get the position of the neighbour.
           vtkVector<float, 3> neighbour = vtkVector<float, 3>();
-          neighbour[0] = round(position[0] + i);
-          neighbour[1] = round(position[1] + j);
-          neighbour[2] = round(position[2] + k);
+          neighbour[0] = continuousToDiscrete(position[0] + i, uncertaintyHeight);
+          neighbour[1] = continuousToDiscrete(position[1] + j, uncertaintyWidth);
+          neighbour[2] = continuousToDiscrete(position[2] + k, uncertaintyDepth);
 
           // If the neighbour doesn't exist (we're over the edge), skip it.
-          if (neighbour[0] < 0.0f || uncertaintyHeight <= neighbour[0] ||
-              neighbour[1] < 0.0f || uncertaintyWidth <= neighbour[1] ||
-              neighbour[2] < 0.0f || uncertaintyDepth <= neighbour[2]) {
+          if (!isWithinUncertainty(neighbour)) {
             continue;
           }
 
@@ -229,4 +245,24 @@ bool UncertaintySampler::isWithinUncertainty(vtkVector<float, 3> position) {
         -0.5 <= position[1] && position[1] <= (uncertaintyWidth - 0.5) &&
         -0.5 <= position[2] && position[2] <= (uncertaintyDepth - 0.5)
   );
+}
+
+/**
+  * Rounds x to the nearest pixel index. Edge cases (-0.5 and max - 0.5) are mapped to edge pixels.
+  *   e.g.  x = -0.5, max = 5, returns 0.
+  *         x = 2.7, max = 5, returns 3.
+  *         x = 4.5, max = 5, returns 4.
+  */
+unsigned int UncertaintySampler::continuousToDiscrete(double x, unsigned int max) {
+  if (x == -0.5) {
+    return 0;
+  }
+
+  else if (x == (max - 0.5)) {
+    return max - 1;
+  }
+
+  else {
+    return round(x);
+  }
 }

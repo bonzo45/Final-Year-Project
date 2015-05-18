@@ -23,6 +23,7 @@ class UncertaintySampler {
 
     double interpolateUncertaintyAtPosition(vtkVector<float, 3> position);
     bool isWithinUncertainty(vtkVector<float, 3> position);
+    unsigned int continuousToDiscrete(double continuous, unsigned int max);
 };
 
 #endif
