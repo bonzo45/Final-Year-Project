@@ -1,9 +1,12 @@
 #include <itkCommand.h>
 #include <itkSmartPointer.h>
 
+/**
+  * This class allows us to watch the progress of ITK filters.
+  * It updates the applications loading bar as progress is made.
+  */
 class MitkLoadingBarCommand : public itk::Command {
   public:
-
     typedef MitkLoadingBarCommand           Self;
     typedef itk::Command                    Superclass;
     typedef itk::SmartPointer<Self>         Pointer;
@@ -12,7 +15,7 @@ class MitkLoadingBarCommand : public itk::Command {
     itkTypeMacro(MitkLoadingBarCommand, itk::Command)
  
   public:
-    void Initialize(unsigned int stepsToDo, bool addSteps);
+    void Initialize(unsigned int stepsToDo = 100, bool addSteps = true);
     void Execute(itk::Object *caller, const itk::EventObject & event);
     void Execute(const itk::Object * object, const itk::EventObject & event);
 
