@@ -32,6 +32,9 @@ UncertaintySurfaceMapper::UncertaintySurfaceMapper() {
   setDebugRegistration(false);
 }
 
+/**
+  * Sets the uncertainty to map to the surface.
+  */
 void UncertaintySurfaceMapper::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
@@ -39,38 +42,78 @@ void UncertaintySurfaceMapper::setUncertainty(mitk::Image::Pointer uncertainty) 
   this->uncertaintyDepth = uncertainty->GetDimension(2);
 }
 
+/**
+  * Sets the surface to map the uncertainty to.
+  * NOTE: It must have a normals array.
+  */
 void UncertaintySurfaceMapper::setSurface(mitk::Surface::Pointer surface) {
   this->surface = surface;
 }
 
+/**
+  * Sets whether to sample all the way through a volume (FULL) or half way (HALF).
+  *   e.g. for a sphere you would set it to half way to avoid opposite points giving identical values.
+  */
 void UncertaintySurfaceMapper::setSamplingDistance(SAMPLING_DISTANCE samplingDistance) {
   this->samplingDistance = samplingDistance;
 }
 
+/**
+  * Sets the scaling of the mapping.
+  *   NONE leaves it untouched.
+  *   LINEAR maps (min/max) to (0/1). 
+  *   HISTOGRAM does histogram equalization.
+  */
 void UncertaintySurfaceMapper::setScaling(SCALING scaling) {
   this->scaling = scaling;
 }
 
+/**
+  * Sets the result to BLACK_AND_WHITE or BLACK_AND_RED
+  */
 void UncertaintySurfaceMapper::setColour(COLOUR colour) {
   this->colour = colour;
 }
 
+/**
+  * Sets the mapper to sample the AVERAGE, MIN or MAX value in the volume.
+  */
 void UncertaintySurfaceMapper::setSamplingAccumulator(SAMPLING_ACCUMULATOR samplingAccumulator) {
   this->samplingAccumulator = samplingAccumulator;
 }
 
+/**
+  * Sets the technique used to align the surface to the volume.
+  *   IDENTITY does nothing and assumes that they are registered. Will probably break if they are not.
+  *   SIMPLE maps the bounding box of the surface to the volume.
+  *   BODGE is a hack that works for a particular test volume.
+  *   SPHERE assumes that the volume supplied is a sphere.
+  */
 void UncertaintySurfaceMapper::setRegistration(REGISTRATION registration) {
   this->registration = registration;
 }
 
+/**
+  * Sets whether or not the normals at the surface point need inverting.
+  * To sample the volume they should point into the center of the volume.
+  */
 void UncertaintySurfaceMapper::setInvertNormals(bool invertNormals) {
   this->invertNormals = invertNormals;
 }
 
+/**
+  * Debug Registration marks on the uncertainty where each point in the surface registers to.
+  * It's useful for seeing how aligned the image and surface is but permanently marks
+  * the uncertainty (and therefore effects the sampling).
+  * Use when debugging only.
+  */
 void UncertaintySurfaceMapper::setDebugRegistration(bool debugRegistration) {
   this->debugRegistration = debugRegistration;
 }
 
+/**
+  * Maps the uncertainty to the surface.
+  */
 void UncertaintySurfaceMapper::map() {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(7);
 
@@ -445,14 +488,23 @@ void UncertaintySurfaceMapper::map() {
   mitk::ProgressBar::GetInstance()->Progress();
 }
 
+/**
+  * For legend support. Returns the minimum value.
+  */
 double UncertaintySurfaceMapper::getLegendMinValue() {
   return legendMinValue;
 }
 
+/**
+  * For legend support. Returns the maximum value.
+  */
 double UncertaintySurfaceMapper::getLegendMaxValue() {
   return legendMaxValue;
 }
 
+/**
+  * For legend support. Returns the minimum colour.
+  */
 void UncertaintySurfaceMapper::getLegendMinColour(char * colour) {
   if (this->colour) {
     colour[0] = 0;
@@ -466,6 +518,9 @@ void UncertaintySurfaceMapper::getLegendMinColour(char * colour) {
   }
 }
 
+/**
+  * For legend support. Returns the maximum colour.
+  */
 void UncertaintySurfaceMapper::getLegendMaxColour(char * colour) {
   if (this->colour) {
     colour[0] = 255;
