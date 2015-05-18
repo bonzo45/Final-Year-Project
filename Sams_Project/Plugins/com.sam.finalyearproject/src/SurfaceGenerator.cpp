@@ -13,6 +13,12 @@
 // Loading bar
 #include <mitkProgressBar.h>
 
+/**
+  * Generates a sphere surface.
+  *   thetaResolution - the number of points used horizontally to create the sphere.
+  *   phiResolution - the number of points used vertically to create the sphere.
+  *   radius - the width of the sphere.
+  */
 mitk::Surface::Pointer SurfaceGenerator::generateSphere(unsigned int thetaResolution, unsigned int phiResolution, unsigned int radius) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
   
@@ -36,6 +42,9 @@ mitk::Surface::Pointer SurfaceGenerator::generateSphere(unsigned int thetaResolu
   return surface;
 }
 
+/**
+  * Creates a cube, centered at (0, 0, 0) with specified side length.
+  */
 mitk::Surface::Pointer SurfaceGenerator::generateCube(unsigned int length) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
@@ -54,6 +63,10 @@ mitk::Surface::Pointer SurfaceGenerator::generateCube(unsigned int length) {
   return cubeSurface;
 }
 
+/**
+  * Creates a cylinder with specified radius, height and resolution.
+  * (resolution equivalent to thetaResolution for spheres)
+  */
 mitk::Surface::Pointer SurfaceGenerator::generateCylinder(unsigned int radius, unsigned int height, unsigned int resolution) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
   
@@ -72,7 +85,11 @@ mitk::Surface::Pointer SurfaceGenerator::generateCylinder(unsigned int radius, u
   return cylinderSurface;
 }
 
-mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int scanWidth, unsigned int scanHeight, vtkVector<float, 3> center, vtkVector<float, 3> normal) {
+/**
+  * Creates a plane with specified width and height at center - default (0, 0, 0) - facing normal - default (0, 0, 1).
+  * There x and y axes of the plane could be anything. The z-axis of the plane will be the normal.
+  */
+mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int width, unsigned int height, vtkVector<float, 3> center, vtkVector<float, 3> normal) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
   // Create a plane.
@@ -87,14 +104,19 @@ mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int scanWidth, u
 
   // Set the plane size.
   plane->SetOrigin(0, 0, 0);
-  plane->SetPoint1(scanWidth, 0, 0);
-  plane->SetPoint2(0, scanHeight, 0);
+  plane->SetPoint1(width, 0, 0);
+  plane->SetPoint2(0, height, 0);
 
   if (DEBUGGING) {
     cout << "Initial Plane:" << endl;
     cout << "Origin: (0, 0, 0)" << endl;
     cout << "Point 1: (" << plane->GetPoint1()[0] << ", " << plane->GetPoint1()[1] << ", " << plane->GetPoint1()[2] << ")" << endl;
     cout << "Point 2: (" << plane->GetPoint2()[0] << ", " << plane->GetPoint2()[1] << ", " << plane->GetPoint2()[2] << ")" << endl;
+  }
+
+  // If the normal isn't set then make it (0, 0, 1).
+  if (normal[0] == 0.0f && normal[1] == 0.0f && normal[2] == 0.0f) {
+    normal[2] = 1.0;
   }
 
   // Point it in the direction of the normal.
@@ -126,6 +148,11 @@ mitk::Surface::Pointer SurfaceGenerator::generatePlane(unsigned int scanWidth, u
   return planeSurface;
 }
 
+/**
+  * Generates a cuboid with specified width, height and depth.
+  * Cuboid will be centered at center - default (0, 0, 0).
+  * Cuboid will be rotated to specified axes - defaults to standard (1, 0, 0), (0, 1, 0), (0, 0, 1).
+  */
 mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int width, unsigned int height, unsigned int depth, vtkVector<float, 3> center, vtkVector<float, 3> newXAxis, vtkVector<float, 3> newYAxis, vtkVector<float, 3> newZAxis) {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(1);
 
@@ -137,7 +164,7 @@ mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int width, unsi
   cube->SetCenter(0, 0, 0);
   cube->Update();
 
-  // Convert default parameters (0, 0, 0) to standard (1, 0, 0), (0, 1, 0), (0, 0, 1).
+  // Convert default axes (0, 0, 0) to standard (1, 0, 0), (0, 1, 0), (0, 0, 1).
   if (newXAxis[0] == 0.0f && newXAxis[1] == 0.0f && newXAxis[2] == 0.0f) {
     newXAxis[0] = 1;
     newXAxis[1] = 0;
@@ -158,27 +185,6 @@ mitk::Surface::Pointer SurfaceGenerator::generateCuboid(unsigned int width, unsi
 
   // Transform it to be centered at center and be aligned by new axes given.
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  // // Row 1
-  // matrix->SetElement(0, 0, newXAxis[0]);
-  // matrix->SetElement(0, 1, newXAxis[1]);
-  // matrix->SetElement(0, 2, newXAxis[2]);
-  // matrix->SetElement(0, 3, center[0]);
-  // // Row 2
-  // matrix->SetElement(1, 0, newYAxis[0]);
-  // matrix->SetElement(1, 1, newYAxis[1]);
-  // matrix->SetElement(1, 2, newYAxis[2]);
-  // matrix->SetElement(1, 3, center[1]);
-  // // Row 3
-  // matrix->SetElement(2, 0, newZAxis[0]);
-  // matrix->SetElement(2, 1, newZAxis[1]);
-  // matrix->SetElement(2, 2, newZAxis[2]);
-  // matrix->SetElement(2, 3, center[2]);
-  // // Row 4
-  // matrix->SetElement(3, 0, 0);
-  // matrix->SetElement(3, 1, 0);
-  // matrix->SetElement(3, 2, 0);
-  // matrix->SetElement(3, 3, 1);
-
   // Col 1
   matrix->SetElement(0, 0, newXAxis[0]);
   matrix->SetElement(1, 0, newXAxis[1]);
