@@ -9,7 +9,6 @@ ColourLegendOverlay::LocalStorage::LocalStorage() {
 }
 
 ColourLegendOverlay::LocalStorage::~LocalStorage() {
-
 }
 
 void ColourLegendOverlay::setValue1(double value) {
@@ -32,6 +31,9 @@ void ColourLegendOverlay::setColour2(unsigned char red, unsigned char green, uns
   colour2[2] = blue / 255.0;
 }
 
+/**
+  * Creates the overlay (if we haven't already).
+  */
 void ColourLegendOverlay::UpdateVtkOverlay2D(mitk::BaseRenderer *renderer) {
   LocalStorage * ls = this->localStorageHandler.GetLocalStorage(renderer);
 
@@ -67,6 +69,9 @@ void ColourLegendOverlay::UpdateVtkOverlay2D(mitk::BaseRenderer *renderer) {
   }
 }
 
+/**
+  * Returns the actor that represents the overlay.
+  */
 vtkActor2D * ColourLegendOverlay::GetVtkActor2D(mitk::BaseRenderer * renderer) const {
   LocalStorage * localStorage = this->localStorageHandler.GetLocalStorage(renderer);
   return localStorage->legendActor;
