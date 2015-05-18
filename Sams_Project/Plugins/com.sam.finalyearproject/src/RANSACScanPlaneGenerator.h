@@ -6,6 +6,10 @@
 #include <vtkVector.h>
 #include <mitkImage.h>
 
+/**
+  * Uses RANSAC to pick the next best plane.
+  * NOTE: This class is NOT used in the plugin. SVDScanPlaneGenerator is used instead.
+  */
 class RANSACScanPlaneGenerator {
   public:
     RANSACScanPlaneGenerator();

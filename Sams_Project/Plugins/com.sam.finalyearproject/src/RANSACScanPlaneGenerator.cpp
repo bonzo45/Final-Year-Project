@@ -19,6 +19,9 @@ RANSACScanPlaneGenerator::RANSACScanPlaneGenerator() {
   setPlaneThickness(1.0);
 }
 
+/**
+  * Set the uncertainty representing the volume to be scanned.
+  */
 void RANSACScanPlaneGenerator::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
@@ -37,18 +40,30 @@ void RANSACScanPlaneGenerator::setUncertainty(mitk::Image::Pointer uncertainty) 
   }
 }
 
+/**
+  * Set a threshold of 'goodness' to stop at if we reach it.
+  */
 void RANSACScanPlaneGenerator::setGoodnessThreshold(double goodness) {
   this->goodnessThreshold = goodness;
 }
 
+/**
+  * Cap the maximum number of iterations.
+  */
 void RANSACScanPlaneGenerator::setMaximumIterations(unsigned int iterations) {
   this->maxIterations = iterations;
 }
 
+/**
+  * Set the thickness of the scan plane.
+  */
 void RANSACScanPlaneGenerator::setPlaneThickness(double thickness) {
   this->planeThickness = thickness;
 }
 
+/**
+  * Calculates the next best scan plane.
+  */
 vtkSmartPointer<vtkPlane> RANSACScanPlaneGenerator::calculateBestScanPlane() {
   unsigned int iterations = 0;
   double bestGoodnessSoFar = 0.0;
@@ -98,8 +113,11 @@ vtkSmartPointer<vtkPlane> RANSACScanPlaneGenerator::calculateBestScanPlane() {
   return bestPlaneSoFar;
 }
 
+/**
+  * Picks a random plane to test.
+  * TODO: Stop picking completely random planes. Guide the search in some way. 
+  */
 vtkSmartPointer<vtkPlane> RANSACScanPlaneGenerator::generatePotentialPlane() {
-  // TODO: Generate slightly better random points.
   vtkVector<float, 3> point1 = vtkVector<float, 3>();
   point1[0] = rand() % uncertaintyHeight;
   point1[1] = rand() % uncertaintyWidth;
@@ -119,6 +137,11 @@ vtkSmartPointer<vtkPlane> RANSACScanPlaneGenerator::generatePotentialPlane() {
   return Util::planeFromPoints(point1, point2, point3);
 }
 
+/**
+  * Returns how good a scan plane is. 
+  * Calculates the amount of uncertainty that the plane hits
+  * over the total uncertainty in the volume.
+  */
 double RANSACScanPlaneGenerator::evaluateScanPlaneGoodness(vtkSmartPointer<vtkPlane> plane) {
   // Create a volume (uncertainty mask) the same size as the uncertainty with each value set to zero.
   double * uncertaintyMask = new double[uncertaintyHeight * uncertaintyWidth * uncertaintyDepth];

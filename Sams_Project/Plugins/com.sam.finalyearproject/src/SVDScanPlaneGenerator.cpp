@@ -14,6 +14,9 @@ SVDScanPlaneGenerator::SVDScanPlaneGenerator() {
   this->threshold = 0.5;
 }
 
+/**
+  * Set the uncertainty representing the volume to be scanned.
+  */
 void SVDScanPlaneGenerator::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertainty = uncertainty;
   this->uncertaintyHeight = uncertainty->GetDimension(0);
@@ -21,10 +24,18 @@ void SVDScanPlaneGenerator::setUncertainty(mitk::Image::Pointer uncertainty) {
   this->uncertaintyDepth = uncertainty->GetDimension(2);
 }
 
+/**
+  * SVD uses all of the points that are worse than a given threshold to calculate the scan plane.
+  * This allows it to focus on points that are particularly bad.
+  * This method sets that threshold.
+  */
 void SVDScanPlaneGenerator::setThreshold(double threshold) {
   this->threshold = threshold;
 }
 
+/**
+  * Uses SVD to calculate the next best scan plane.
+  */
 vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
   mitk::ProgressBar::GetInstance()->AddStepsToDo(3);
   
@@ -106,6 +117,10 @@ mitk::PointSet::Pointer SVDScanPlaneGenerator::pointsBelowThreshold(double thres
   return pointSet;
 }
 
+/**
+  * Calculates the center of a set of points.
+  * TODO: Perhaps weight points based on uncertainty to turn this into a 'center of mass'.
+  */
 void SVDScanPlaneGenerator::calculateCentroid(mitk::PointSet::Pointer pointSet, mitk::Point3D & centroid) {
   // If the point set is null, return (-1, -1, -1)
   if (pointSet.IsNull()) {
