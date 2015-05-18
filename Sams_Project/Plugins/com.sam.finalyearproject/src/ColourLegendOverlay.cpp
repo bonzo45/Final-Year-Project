@@ -14,35 +14,29 @@ ColourLegendOverlay::LocalStorage::~LocalStorage() {
 
 void ColourLegendOverlay::setValue1(double value) {
   this->value1 = value;
-  somethingChanged = true;
 }
 
 void ColourLegendOverlay::setValue2(double value) {
   this->value2 = value;
-  somethingChanged = true;
 }
 
 void ColourLegendOverlay::setColour1(unsigned char red, unsigned char green, unsigned char blue) {
   colour1[0] = red / 255.0;
   colour1[1] = green / 255.0;
   colour1[2] = blue / 255.0;
-  somethingChanged = true;
 }
 
 void ColourLegendOverlay::setColour2(unsigned char red, unsigned char green, unsigned char blue) {
   colour2[0] = red / 255.0;
   colour2[1] = green / 255.0;
   colour2[2] = blue / 255.0;
-  somethingChanged = true;
 }
 
 void ColourLegendOverlay::UpdateVtkOverlay2D(mitk::BaseRenderer *renderer) {
   LocalStorage * ls = this->localStorageHandler.GetLocalStorage(renderer);
 
   // Check if we need to create the legend prop.
-  if (ls->IsGenerateDataRequired(renderer, this) || somethingChanged) {
-    somethingChanged = false;
-    
+  if (ls->IsGenerateDataRequired(renderer, this)) {    
     // Create legend.
     vtkSmartPointer<vtkLegendBoxActor> legend = ls->legendActor;
     legend->SetNumberOfEntries(2);
@@ -60,13 +54,6 @@ void ColourLegendOverlay::UpdateVtkOverlay2D(mitk::BaseRenderer *renderer) {
     legendBox2->SetXLength(2.0);
     legendBox2->Update();
     legend->SetEntry(1, legendBox2->GetOutput(), Util::StringFromDouble(value2).c_str(), colour2);
-   
-    // // Position. (place legend in lower right)
-    // legend->GetPositionCoordinate()->SetCoordinateSystemToView();
-    // legend->GetPositionCoordinate()->SetValue(0.5, -1.0);
-   
-    // legend->GetPosition2Coordinate()->SetCoordinateSystemToView();
-    // legend->GetPosition2Coordinate()->SetValue(1.0, -0.5);
    
     // Background/Border/Padding.
     legend->UseBackgroundOn();
