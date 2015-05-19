@@ -548,9 +548,13 @@ void Sams_View::ReconstructInitializeLandmarkList() {
   landmarkNameList->push_back("Sausage");
   landmarkNameList->push_back("Croissant");
 
+  numberOfLandmarks = landmarkNameList->size();
+
   landmarkComboBoxVector = new std::vector<QComboBox *>();
 
   landmarkPointSetMap = new std::map<unsigned int, mitk::PointSet::Pointer>();
+
+  landmarkIndicatorMap = new std::map<unsigned int, std::vector<QPushButton *> * >();
 }
 
 /**
@@ -622,6 +626,9 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
   landmarkComboBoxVector->insert(it + index, comboBox);  
 
   // Go through each landmark and add their name and an indicator.
+  //new std::map<unsigned int, std::vector<QPushButton *> * >()
+  std::vector<QPushButton *> * buttonVector = new std::vector<QPushButton *>();
+  landmarkIndicatorMap->insert(std::pair<unsigned int, std::vector<QPushButton *> *>(index, buttonVector));
   for (std::list<std::string>::const_iterator iterator = landmarkNameList->begin(); iterator != landmarkNameList->end(); ++iterator) {
     QWidget * innerWidget = new QWidget();
     QHBoxLayout * innerLayout = new QHBoxLayout(innerWidget);
@@ -633,7 +640,7 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
 
     QPushButton * button = new QPushButton();
     button->setProperty("class", "");
-    button->setEnabled(false);
+    //button->setEnabled(false);
     button->setStyleSheet(
       "QPushButton {"
         "background-color: rgb(200, 200, 200);"
@@ -656,6 +663,8 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
         "background-color: rgb(255, 153, 0);"
       "}"
     );
+    buttonVector->push_back(button);
+    std::cout << "Added button " << button << " to index " << index << std::endl;
     innerLayout->addWidget(button);
     layout->addWidget(innerWidget);
   }
@@ -722,17 +731,48 @@ void Sams_View::LandmarkingStart() {
 
   // Set up interactor
   pointSetInteractor = mitk::PointSetDataInteractor::New();
+  pointSetInteractor->SetMaxPoints(numberOfLandmarks);
   pointSetInteractor->LoadStateMachine("PointSet.xml");
   pointSetInteractor->SetEventConfig("PointSetConfig.xml");
   pointSetNode = SaveDataNode("Point Set", stackPointSet, true);
   pointSetInteractor->SetDataNode(pointSetNode);
+
+  PointSetChanged(stackPointSet);
 }
 
 /**
   * Called by the current point set being created when it is changed.
   */
 void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
-  std::cout << "Sam's View also sees that change." << std::endl;
+  bool firstNotSet = true;
+  std::vector<QPushButton *> * buttons = landmarkIndicatorMap->find(currentLandmarkSliceStack)->second;
+  for (unsigned int i = 0; i < numberOfLandmarks; i++) {
+    std::cout << "Landmark " << i << ": " << pointSet->IndexExists(i) << std::endl;
+    if (pointSet->IndexExists(i)) {
+      buttons->at(i)->setProperty("class", "set");
+      buttons->at(i)->style()->unpolish(buttons->at(i));
+      buttons->at(i)->style()->polish(buttons->at(i));
+      buttons->at(i)->update();
+      std::cout << "set button " << buttons->at(i) << " at index " << currentLandmarkSliceStack << std::endl;
+    }
+    else {
+      if (firstNotSet) {
+        firstNotSet = false;
+        buttons->at(i)->setProperty("class", "selected");
+        buttons->at(i)->style()->unpolish(buttons->at(i));
+        buttons->at(i)->style()->polish(buttons->at(i));
+        buttons->at(i)->update();
+        std::cout << "selected" << std::endl;        
+      }
+      else {
+        buttons->at(i)->setProperty("class", "");
+        buttons->at(i)->style()->unpolish(buttons->at(i));
+        buttons->at(i)->style()->polish(buttons->at(i));
+        buttons->at(i)->update();
+        std::cout << "not set" << std::endl;
+      }
+    }
+  }
 }
 
 /**

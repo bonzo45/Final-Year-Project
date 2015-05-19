@@ -221,8 +221,10 @@ class Sams_View : public QmitkAbstractView {
     ctkCmdLineModuleFrontend* frontend;
 
     std::list<std::string> * landmarkNameList;
+    unsigned int numberOfLandmarks;
     unsigned int numSliceStacks;
     std::vector<QComboBox *> * landmarkComboBoxVector;
+    std::map<unsigned int, std::vector<QPushButton *> *> * landmarkIndicatorMap;
     std::map<unsigned int, mitk::PointSet::Pointer> * landmarkPointSetMap;
     unsigned int currentLandmarkSliceStack;
     unsigned int currentLandmark;
