@@ -71,6 +71,10 @@ class Sams_View : public QmitkAbstractView {
     // ---- RECONSTRUCTION ---- //
     // ------------------------ //
     void ReconstructGUI();
+    void ReconstructInitializeLandmarkList();
+    void ReconstructLandmarksNumStacksChanged(int numStacks);
+    void ReconstructLandmarksAddStack(unsigned int index);
+    void ReconstructLandmarksRemoveStack(unsigned int index);
     void ClearReconstructionUI();
     void ReconstructGo();
     
@@ -210,6 +214,10 @@ class Sams_View : public QmitkAbstractView {
     ctkCmdLineModuleManager* moduleManager;
     ctkCmdLineModuleBackend* processBackend;
     ctkCmdLineModuleFrontend* frontend;
+
+    std::list<std::string> * landmarkNameList;
+    unsigned int numSliceStacks;
+    std::list<QComboBox *> * landmarkComboBoxList;
 
     // ----------------------- //
     // ---- VISUALIZATION ---- //

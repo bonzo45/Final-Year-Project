@@ -168,6 +168,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // RECONSTRUCTION
   connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
+  connect(UI.spinBoxMarkLandmarksNumStacks, SIGNAL(valueChanged(int)), this, SLOT(ReconstructLandmarksNumStacksChanged(int)));
   connect(UI.buttonReconstructGo, SIGNAL(clicked()), this, SLOT(ReconstructGo()));
 
   // SCAN SIMULATION
@@ -233,6 +234,12 @@ void Sams_View::Initialize() {
 
   UI.buttonScanPreview->setChecked(false);
   scanPreviewEnabled = false;
+
+  ReconstructInitializeLandmarkList();
+
+  numSliceStacks = 0;
+  UI.toolBoxMarkLandmarks->removeItem(0);
+  ReconstructLandmarksNumStacksChanged(1);
 }
 
 // ------------------------ //
@@ -523,6 +530,138 @@ void Sams_View::ReconstructGUI() {
   // ADD TO UI
   ClearReconstructionUI();
   UI.widgetPutGUIHere->layout()->addWidget(gui);
+}
+
+/**
+  * Creates the list of landmarks used in the optional annotation stage.
+  */
+void Sams_View::ReconstructInitializeLandmarkList() {
+  landmarkNameList = new std::list<std::string>();
+  landmarkNameList->push_back("Left Eye");
+  landmarkNameList->push_back("Right Eye");
+  landmarkNameList->push_back("Thing");
+  landmarkNameList->push_back("Something");
+  landmarkNameList->push_back("Sausage");
+  landmarkNameList->push_back("Croissant");
+
+  landmarkComboBoxList = new std::list<QComboBox *>();
+}
+
+/**
+  * Called when the number of stacks being annotated changes.
+  */
+void Sams_View::ReconstructLandmarksNumStacksChanged(int numStacks) {
+  // Cannot set it to less than one.
+  if (numStacks < 1) {
+    UI.spinBoxMarkLandmarksNumStacks->setValue(this->numSliceStacks);
+    return;
+  }
+
+  // If we've added a stack(s).
+  if (this->numSliceStacks < numStacks) {
+    unsigned int stacksToAdd = numStacks - this->numSliceStacks;
+    for (unsigned int i = 0; i < stacksToAdd; i++) {
+      // Add stack.
+      ReconstructLandmarksAddStack(this->numSliceStacks + i);
+    }
+  }
+  // If we've removed a stack(s).
+  else {
+    unsigned int stacksToRemove = this->numSliceStacks - numStacks;
+    for (unsigned int i = 0; i < stacksToRemove; i++) {
+      // Remove stack
+      ReconstructLandmarksRemoveStack((this->numSliceStacks - 1) - i);
+    }
+  }
+
+  this->numSliceStacks = numStacks;
+}
+
+/**
+  * Adds a stack to the annotation toolbox.
+  */
+void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
+  // Create the widget to put in the toolbox.
+  QWidget * widget = new QWidget();
+  QVBoxLayout * layout = new QVBoxLayout(widget);
+  layout->setContentsMargins(9, 0, 9, 9);
+  
+  // Add a label/combo box to pick which volume this stack is.
+  QLabel * titleLable = new QLabel(QString::fromStdString("Pick a stack."));
+  titleLable->setStyleSheet(
+    "font-weight: bold;"
+  );
+  layout->addWidget(titleLable);
+
+  QComboBox * comboBox = new QComboBox();
+  layout->addWidget(comboBox);
+
+  // Go through each landmark and add their name and an indicator.
+  for (std::list<std::string>::const_iterator iterator = landmarkNameList->begin(); iterator != landmarkNameList->end(); ++iterator) {
+    QWidget * innerWidget = new QWidget();
+    QHBoxLayout * innerLayout = new QHBoxLayout(innerWidget);
+    innerLayout->setContentsMargins(0, 0, 0, 0);
+
+    std::string landmarkName = *iterator;
+    QLabel * label = new QLabel(QString::fromStdString(landmarkName));
+    innerLayout->addWidget(label);
+
+    QPushButton * button = new QPushButton();
+    button->setProperty("class", "");
+    button->setEnabled(false);
+    button->setStyleSheet(
+      "QPushButton {"
+        "background-color: rgb(200, 200, 200);"
+        "border: 2px solid rgb(128, 128, 128);"
+        "max-width: 8px;"
+        "max-height: 8px;"
+        "min-width: 8px;"
+        "min-height: 8px;"
+        "border-radius: 4px;"
+        "border-style: outset;"
+      "}"
+      ""
+      "QPushButton.set {"
+        "border-style: inset;"
+        "background-color: rgb(0, 255, 0);"
+      "}"      
+      ""
+      "QPushButton.selected {"
+        "border-style: inset;"
+        "background-color: rgb(255, 153, 0);"
+      "}"
+    );
+    innerLayout->addWidget(button);
+    layout->addWidget(innerWidget);
+  }
+
+  layout->insertStretch(-1);
+
+  // Add the page to the toolbox.
+  std::ostringstream stackName;
+  stackName << "Slice Stack #" << index + 1;
+  UI.toolBoxMarkLandmarks->insertItem(index, widget, QString::fromStdString(stackName.str()));
+}
+
+/**
+  * Removes a stack to the annotation toolbox.
+  */
+void Sams_View::ReconstructLandmarksRemoveStack(unsigned int index) {
+  // Get the widget.
+  QWidget * widget = UI.toolBoxMarkLandmarks->widget(index);
+  if (widget) {
+    // Remove it from the tool box.
+    UI.toolBoxMarkLandmarks->removeItem(index);
+    // Delete it's layout.
+    QLayout *layout = UI.widgetPutGUIHere->layout();
+    if (layout != NULL) {
+      delete layout;
+    }
+    // Delete it's children.
+    qDeleteAll(widget->children());
+    // Delete it.
+    delete widget;
+  }
 }
 
 /**
