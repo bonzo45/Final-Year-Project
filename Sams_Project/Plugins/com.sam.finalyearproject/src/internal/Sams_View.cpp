@@ -1962,12 +1962,29 @@ void Sams_View::debug1() {
   this->RequestRenderWindowUpdate();
 }
 
+#include <mitkPointSetDataInteractor.h>
+#include <mitkPointSet.h>
+#include "SamsPointSet.h"
+
+mitk::PointSetDataInteractor::Pointer m_CurrentInteractor;
+mitk::PointSet::Pointer m_TestPointSet;
+mitk::DataNode::Pointer m_TestPointSetNode;
+
 /**
   * A convenient method (attached to button 2 in the debug menu) to test out functionality.
   */
 void Sams_View::debug2() {
+  // Set up interactor
+  m_CurrentInteractor = mitk::PointSetDataInteractor::New();
+  m_CurrentInteractor->LoadStateMachine("PointSet.xml");
+  m_CurrentInteractor->SetEventConfig("PointSetConfig.xml");
+  //Create new PointSet which will receive the interaction input
+  m_TestPointSet = SamsPointSet::New();
+  // Add the point set to the mitk::DataNode *before* the DataNode is added to the mitk::PointSetDataInteractor
+  m_TestPointSetNode = SaveDataNode("Point Set", m_TestPointSet, true);
+  // finally add the mitk::DataNode (which already is added to the mitk::DataStorage) to the mitk::PointSetDataInteractor
+  m_CurrentInteractor->SetDataNode(m_TestPointSetNode);
 }
-
 
 // ------------------- //
 // ---- Inherited ---- //
