@@ -31,6 +31,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "UncertaintySurfaceMapper.h"
 #include "UncertaintyThresholder.h"
 #include "ColourLegendOverlay.h"
+class SamsPointSet;     // TODO: Remove forward declaration bodge. I'm a bad person.
 #include <ctkCmdLineModuleManager.h>
 #include <ctkCmdLineModuleBackend.h>
 #include <ctkCmdLineModuleFrontendFactory.h>
@@ -49,6 +50,9 @@ class Sams_View : public QmitkAbstractView {
   public:
     static const std::string VIEW_ID;
     virtual void CreateQtPartControl(QWidget *parent);
+
+    // Callback for SamsPointSet.
+    void PointSetChanged(SamsPointSet * pointSet);
 
   protected slots:
     void Initialize();

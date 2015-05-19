@@ -2,13 +2,19 @@
 #define Sams_Point_Set_h
 
 #include <mitkPointSet.h>
+#include "internal/Sams_View.h"
 
 class SamsPointSet : public mitk::PointSet {
   public:
     mitkClassMacro(SamsPointSet, mitk::PointSet);
     itkFactorylessNewMacro(Self)
 
+    void SetSamsView(Sams_View * samsView);
+
     virtual void OnPointSetChange();
+
+  private:
+    Sams_View * samsView;
 };
 
 #endif

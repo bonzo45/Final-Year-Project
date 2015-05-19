@@ -672,6 +672,13 @@ void Sams_View::ReconstructLandmarksRemoveStack(unsigned int index) {
 }
 
 /**
+  * Called by the current point set being created when it is changed.
+  */
+void Sams_View::PointSetChanged(SamsPointSet * pointSet) {
+  std::cout << "Sam's View also sees that change." << std::endl;
+}
+
+/**
   * Calls the reconstruction executable.
   */
 void Sams_View::ReconstructGo() {
