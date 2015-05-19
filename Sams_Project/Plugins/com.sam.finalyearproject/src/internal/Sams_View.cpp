@@ -660,8 +660,13 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
       ""
       "QPushButton.selected {"
         "border-style: inset;"
-        "background-color: rgb(255, 153, 0);"
+        "background-color: rgb(255, 0, 0);"
       "}"
+      ""
+      "QPushButton.next {"
+        "border-style: inset;"
+        "background-color: rgb(255, 153, 0);"
+      "}"      
     );
     buttonVector->push_back(button);
     std::cout << "Added button " << button << " to index " << index << std::endl;
@@ -758,7 +763,7 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
     else {
       if (firstNotSet) {
         firstNotSet = false;
-        buttons->at(i)->setProperty("class", "selected");
+        buttons->at(i)->setProperty("class", "next");
         buttons->at(i)->style()->unpolish(buttons->at(i));
         buttons->at(i)->style()->polish(buttons->at(i));
         buttons->at(i)->update();
@@ -772,6 +777,14 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
         std::cout << "not set" << std::endl;
       }
     }
+  }
+
+  int selectedPoint = pointSet->SearchSelectedPoint();
+  if (selectedPoint != -1) {
+    buttons->at(selectedPoint)->setProperty("class", "selected");
+    buttons->at(selectedPoint)->style()->unpolish(buttons->at(selectedPoint));
+    buttons->at(selectedPoint)->style()->polish(buttons->at(selectedPoint));
+    buttons->at(selectedPoint)->update();
   }
 }
 
