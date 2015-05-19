@@ -217,7 +217,7 @@ class Sams_View : public QmitkAbstractView {
 
     std::list<std::string> * landmarkNameList;
     unsigned int numSliceStacks;
-    std::list<QComboBox *> * landmarkComboBoxList;
+    std::vector<QComboBox *> * landmarkComboBoxVector;
 
     // ----------------------- //
     // ---- VISUALIZATION ---- //

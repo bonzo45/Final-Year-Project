@@ -210,9 +210,6 @@ void Sams_View::Initialize() {
   // Hide Options Widget
   UI.widget4Minimizable->setVisible(false);
 
-  // Initialize Drop-Down boxes.
-  UpdateSelectionDropDowns();
-
   // Hide erode options boxes.
   UI.widgetVisualizeSelectErodeOptions->setVisible(false);
 
@@ -240,6 +237,9 @@ void Sams_View::Initialize() {
   numSliceStacks = 0;
   UI.toolBoxMarkLandmarks->removeItem(0);
   ReconstructLandmarksNumStacksChanged(1);
+
+  // Initialize Drop-Down boxes.
+  UpdateSelectionDropDowns();
 }
 
 // ------------------------ //
@@ -544,7 +544,7 @@ void Sams_View::ReconstructInitializeLandmarkList() {
   landmarkNameList->push_back("Sausage");
   landmarkNameList->push_back("Croissant");
 
-  landmarkComboBoxList = new std::list<QComboBox *>();
+  landmarkComboBoxVector = new std::vector<QComboBox *>();
 }
 
 /**
@@ -595,6 +595,10 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
 
   QComboBox * comboBox = new QComboBox();
   layout->addWidget(comboBox);
+
+  // Add the combo box to our list of all combo boxes.
+  std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin();
+  landmarkComboBoxVector->insert(it + index, comboBox);  
 
   // Go through each landmark and add their name and an indicator.
   for (std::list<std::string>::const_iterator iterator = landmarkNameList->begin(); iterator != landmarkNameList->end(); ++iterator) {
@@ -652,6 +656,9 @@ void Sams_View::ReconstructLandmarksRemoveStack(unsigned int index) {
   if (widget) {
     // Remove it from the tool box.
     UI.toolBoxMarkLandmarks->removeItem(index);
+    // Remove it's comboBox from the list of comboBoxes.
+    std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin();
+    landmarkComboBoxVector->erase(it + index);
     // Delete it's layout.
     QLayout *layout = UI.widgetPutGUIHere->layout();
     if (layout != NULL) {
@@ -844,12 +851,19 @@ void Sams_View::UpdateSelectionDropDowns() {
   QString uncertaintyName = UI.comboBoxUncertainty->currentText();
   QString simulatedScanName = UI.comboBoxSimulateScanVolume->currentText();
   QString surfaceName = UI.comboBoxSurface->currentText();
+  std::list<QString> * landmarkNamesRemembered = new std::list<QString>();
+  for (std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin(); it != landmarkComboBoxVector->end(); it++) {
+    landmarkNamesRemembered->push_back((*it)->currentText());
+  }
 
-  // Clear the dropdowns.
+  // Clear all the dropdowns.
   UI.comboBoxScan->clear();
   UI.comboBoxUncertainty->clear();
   UI.comboBoxSimulateScanVolume->clear();
   UI.comboBoxSurface->clear();
+  for (std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin(); it != landmarkComboBoxVector->end(); it++) {
+    (*it)->clear();
+  }
 
   // Get all the potential images.
   mitk::TNodePredicateDataType<mitk::Image>::Pointer imagePredicate(mitk::TNodePredicateDataType<mitk::Image>::New());
@@ -862,6 +876,9 @@ void Sams_View::UpdateSelectionDropDowns() {
     UI.comboBoxScan->addItem(name);
     UI.comboBoxUncertainty->addItem(name);
     UI.comboBoxSimulateScanVolume->addItem(name);
+    for (std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin(); it != landmarkComboBoxVector->end(); it++) {
+      (*it)->addItem(name);
+    }
     ++image;
   }
 
@@ -903,6 +920,17 @@ void Sams_View::UpdateSelectionDropDowns() {
   if (surfaceStillThere != -1) {
     UI.comboBoxSurface->setCurrentIndex(surfaceStillThere);
   }
+
+  std::list<QString>::iterator rememberedIt = landmarkNamesRemembered->begin();
+  for (std::vector<QComboBox *>::iterator comboIt = landmarkComboBoxVector->begin(); comboIt != landmarkComboBoxVector->end(); comboIt++) {
+    int sliceStackStillThere = (*comboIt)->findText(*rememberedIt);
+    if (sliceStackStillThere != -1) {
+      (*comboIt)->setCurrentIndex(sliceStackStillThere);
+    }
+    rememberedIt++;
+  }
+
+  delete landmarkNamesRemembered;
 }
 
 /**
