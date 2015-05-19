@@ -665,7 +665,7 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
       ""
       "QPushButton.next {"
         "border-style: inset;"
-        "background-color: rgb(255, 153, 0);"
+        "background-color: rgb(255, 0, 255);"
       "}"      
     );
     buttonVector->push_back(button);
