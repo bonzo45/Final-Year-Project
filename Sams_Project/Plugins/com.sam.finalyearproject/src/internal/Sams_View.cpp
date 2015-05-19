@@ -30,6 +30,10 @@
 #include <algorithm> // for min/max
 #include <cstdlib>
 
+// Reconstruction Landmarks
+#include <mitkPointSet.h>
+#include "SamsPointSet.h"
+
 // ------------------------ //
 // ---- Reconstruction ---- //
 // ------------------------ //
@@ -545,6 +549,8 @@ void Sams_View::ReconstructInitializeLandmarkList() {
   landmarkNameList->push_back("Croissant");
 
   landmarkComboBoxVector = new std::vector<QComboBox *>();
+
+  landmarkPointSetMap = new std::map<unsigned int, mitk::PointSet::Pointer>();
 }
 
 /**
@@ -586,15 +592,30 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
   QVBoxLayout * layout = new QVBoxLayout(widget);
   layout->setContentsMargins(9, 0, 9, 9);
   
-  // Add a label/combo box to pick which volume this stack is.
-  QLabel * titleLable = new QLabel(QString::fromStdString("Pick a stack."));
+  // Add a label/combo box/button to pick which volume this stack is.
+  QLabel * titleLable = new QLabel(QString::fromStdString("Pick a stack. Then click 'mark' to begin."));
   titleLable->setStyleSheet(
     "font-weight: bold;"
   );
   layout->addWidget(titleLable);
 
+  QWidget * comboButtonWidget = new QWidget();
+  QHBoxLayout * comboButtonLayout = new QHBoxLayout(comboButtonWidget);
+  comboButtonLayout->setContentsMargins(0, 0, 0, 0);
+
   QComboBox * comboBox = new QComboBox();
-  layout->addWidget(comboBox);
+  comboButtonLayout->addWidget(comboBox);
+
+  QPushButton * pushButton = new QPushButton();
+  std::ostringstream buttonName;
+  buttonName << "markStack-" << index;
+  pushButton->setObjectName(QString::fromStdString(buttonName.str()));
+  pushButton->setText("Mark");
+  pushButton->setMaximumWidth(60);
+  connect(pushButton, SIGNAL(clicked()), this, SLOT(LandmarkingStart()));
+  comboButtonLayout->addWidget(pushButton);
+
+  layout->addWidget(comboButtonWidget);
 
   // Add the combo box to our list of all combo boxes.
   std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin();
@@ -672,9 +693,45 @@ void Sams_View::ReconstructLandmarksRemoveStack(unsigned int index) {
 }
 
 /**
+  * Called when the landmarking for a particular stack is started/continued.
+  * The stack being landmarked is determined by the name of the button that
+  * called this method.
+  */
+void Sams_View::LandmarkingStart() {
+  // Get the slice stack index that we're landmarking.
+  QString buttonName = sender()->objectName();
+  QStringList pieces = buttonName.split("-");
+  QString indexString = pieces.value(pieces.length() - 1);
+  int index = indexString.toInt();
+  std::cout << "Starting Landmarking for " << index << std::endl;
+  currentLandmarkSliceStack = index;
+
+  mitk::PointSet::Pointer stackPointSet;
+  // See if we have a partially completed PointSet.
+  std::map<unsigned int, mitk::PointSet::Pointer>::const_iterator it = landmarkPointSetMap->find(index);
+  if (it != landmarkPointSetMap->end()) {
+    stackPointSet = it->second;
+  }
+  // If we don't then create one.
+  else {
+    SamsPointSet::Pointer samsPointSet = SamsPointSet::New();
+    samsPointSet->SetSamsView(this);
+    stackPointSet = samsPointSet;
+    landmarkPointSetMap->insert(std::pair<unsigned int, mitk::PointSet::Pointer>(index, stackPointSet));
+  }
+
+  // Set up interactor
+  pointSetInteractor = mitk::PointSetDataInteractor::New();
+  pointSetInteractor->LoadStateMachine("PointSet.xml");
+  pointSetInteractor->SetEventConfig("PointSetConfig.xml");
+  pointSetNode = SaveDataNode("Point Set", stackPointSet, true);
+  pointSetInteractor->SetDataNode(pointSetNode);
+}
+
+/**
   * Called by the current point set being created when it is changed.
   */
-void Sams_View::PointSetChanged(SamsPointSet * pointSet) {
+void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
   std::cout << "Sam's View also sees that change." << std::endl;
 }
 
@@ -1968,10 +2025,6 @@ void Sams_View::debug1() {
   surfaceBaseGeometry->SetIndexToWorldTransformByVtkMatrix(matrix);
   this->RequestRenderWindowUpdate();
 }
-
-#include <mitkPointSetDataInteractor.h>
-#include <mitkPointSet.h>
-#include "SamsPointSet.h"
 
 mitk::PointSetDataInteractor::Pointer m_CurrentInteractor;
 mitk::PointSet::Pointer m_TestPointSet;

@@ -31,11 +31,11 @@ PURPOSE.  See the above copyright notices for more information.
 #include "UncertaintySurfaceMapper.h"
 #include "UncertaintyThresholder.h"
 #include "ColourLegendOverlay.h"
-class SamsPointSet;     // TODO: Remove forward declaration bodge. I'm a bad person.
+#include <mitkPointSet.h>
+#include <mitkPointSetDataInteractor.h>
 #include <ctkCmdLineModuleManager.h>
 #include <ctkCmdLineModuleBackend.h>
 #include <ctkCmdLineModuleFrontendFactory.h>
-
 
 /*!
   \brief Sams_View
@@ -52,7 +52,7 @@ class Sams_View : public QmitkAbstractView {
     virtual void CreateQtPartControl(QWidget *parent);
 
     // Callback for SamsPointSet.
-    void PointSetChanged(SamsPointSet * pointSet);
+    void PointSetChanged(mitk::PointSet::Pointer pointSet);
 
   protected slots:
     void Initialize();
@@ -79,6 +79,7 @@ class Sams_View : public QmitkAbstractView {
     void ReconstructLandmarksNumStacksChanged(int numStacks);
     void ReconstructLandmarksAddStack(unsigned int index);
     void ReconstructLandmarksRemoveStack(unsigned int index);
+    void LandmarkingStart();
     void ClearReconstructionUI();
     void ReconstructGo();
     
@@ -222,6 +223,12 @@ class Sams_View : public QmitkAbstractView {
     std::list<std::string> * landmarkNameList;
     unsigned int numSliceStacks;
     std::vector<QComboBox *> * landmarkComboBoxVector;
+    std::map<unsigned int, mitk::PointSet::Pointer> * landmarkPointSetMap;
+    unsigned int currentLandmarkSliceStack;
+    unsigned int currentLandmark;
+
+    mitk::PointSetDataInteractor::Pointer pointSetInteractor;
+    mitk::DataNode::Pointer pointSetNode;
 
     // ----------------------- //
     // ---- VISUALIZATION ---- //
