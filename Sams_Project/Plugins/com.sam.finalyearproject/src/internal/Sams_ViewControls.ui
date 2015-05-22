@@ -251,9 +251,9 @@ font-weight: normal;</string>
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>0</y>
+               <y>-342</y>
                <width>463</width>
-               <height>786</height>
+               <height>807</height>
               </rect>
              </property>
              <attribute name="label">
@@ -1655,7 +1655,7 @@ margin-left: 5px;</string>
                        <double>360.000000000000000</double>
                       </property>
                       <property name="value">
-                       <double>15.000000000000000</double>
+                       <double>5.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1706,7 +1706,32 @@ margin-left: 5px;</string>
                     <string notr="true">font-weight: bold;</string>
                    </property>
                    <property name="text">
-                    <string>NAME:</string>
+                    <string>OUTPUT NAME:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelReconstructionDescription_14">
+                   <property name="styleSheet">
+                    <string notr="true">font-size: 9pt;</string>
+                   </property>
+                   <property name="text">
+                    <string>What should the simulated scan be called?</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::AutoText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
                    </property>
                   </widget>
                  </item>
