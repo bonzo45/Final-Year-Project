@@ -66,6 +66,10 @@ class Sams_View : public QmitkAbstractView {
     void ScanSimulationSetDirectionAxial();
     void ScanSimulationSetDirectionCoronal();
     void ScanSimulationSetDirectionSagittal();
+    void ScanSimulationResetRotations();
+    void ScanSimulationRotateX(int angle);
+    void ScanSimulationRotateY(int angle);
+    void ScanSimulationRotateZ(int angle);
     void ScanSimulationPreview();
     void ScanSimulationRemovePreview();
     void ScanSimulationTogglePreview(bool checked);
@@ -212,6 +216,16 @@ class Sams_View : public QmitkAbstractView {
     // Scan Simulation Volume 
     mitk::DataNode::Pointer scanSimulationVolume;
     bool scanPreviewEnabled;
+
+    // Direction of scan.
+    vtkVector<float, 3> directionX;
+    vtkVector<float, 3> directionY;
+    vtkVector<float, 3> directionZ;
+
+    // Rotation of scan.
+    int rotationX;
+    int rotationY;
+    int rotationZ;
 
     // ------------------------ //
     // ---- RECONSTRUCTION ---- //

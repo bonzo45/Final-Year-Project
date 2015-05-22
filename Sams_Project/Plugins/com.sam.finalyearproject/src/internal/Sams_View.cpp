@@ -203,7 +203,11 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.doubleSpinBoxScanZAxisX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanZAxisY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanZAxisZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
-
+  
+  connect(UI.dialScanRotationX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationRotateX(int)));
+  connect(UI.dialScanRotationY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationRotateY(int)));
+  connect(UI.dialScanRotationZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationRotateZ(int)));
+  
   Initialize();
 }
 
@@ -247,6 +251,10 @@ void Sams_View::Initialize() {
 
   // Initialize Drop-Down boxes.
   UpdateSelectionDropDowns();
+
+  directionX = vtkVector<float, 3>(0.0f);
+  directionY = vtkVector<float, 3>(0.0f);
+  directionZ = vtkVector<float, 3>(0.0f);
 }
 
 // ------------------------ //
@@ -287,72 +295,111 @@ void Sams_View::ScanSimulationSetPointCenter() {
   * Sets the scan direction to axial.
   */
 void Sams_View::ScanSimulationSetDirectionAxial() {
-  bool previousEnabled = scanPreviewEnabled;
-  scanPreviewEnabled = false;
-
   // X is X
-  UI.doubleSpinBoxScanXAxisX->setValue(1.0);
-  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisZ->setValue(0.0);
+  directionX[0] = 1.0;
+  directionX[1] = 0.0;
+  directionX[2] = 0.0;
 
   // Y is -Z
-  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisZ->setValue(-1.0);
+  directionY[0] = 0.0;
+  directionY[1] = 0.0;
+  directionY[2] = -1.0;
 
   // Z is Y
-  UI.doubleSpinBoxScanZAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanZAxisY->setValue(1.0);
-  scanPreviewEnabled = previousEnabled;
-  UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
+  directionZ[0] = 0.0;
+  directionZ[1] = 1.0;
+  directionZ[2] = 0.0;
+
+  ScanSimulationResetRotations();
+  ScanSimulationPreview();
 }
 
 /**
   * Sets the scan direction to coronal.
   */
 void Sams_View::ScanSimulationSetDirectionCoronal() {
-  bool previousEnabled = scanPreviewEnabled;
-  scanPreviewEnabled = false;
-
   // X is X
-  UI.doubleSpinBoxScanXAxisX->setValue(1.0);
-  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisZ->setValue(0.0);
+  directionX[0] = 1.0;
+  directionX[1] = 0.0;
+  directionX[2] = 0.0;
 
   // Y is Y
-  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisY->setValue(1.0);
-  UI.doubleSpinBoxScanYAxisZ->setValue(0.0);
+  directionY[0] = 0.0;
+  directionY[1] = 1.0;
+  directionY[2] = 0.0;
 
   // Z is Z
-  UI.doubleSpinBoxScanZAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanZAxisY->setValue(0.0);
-  scanPreviewEnabled = previousEnabled;
-  UI.doubleSpinBoxScanZAxisZ->setValue(1.0);
+  directionZ[0] = 0.0;
+  directionZ[1] = 0.0;
+  directionZ[2] = 1.0;
+
+  ScanSimulationResetRotations();
+  ScanSimulationPreview();
 }
 
 /**
   * Sets the scan direction to sagittal.
   */
-void Sams_View::ScanSimulationSetDirectionSagittal() {
-  bool previousEnabled = scanPreviewEnabled;
-  scanPreviewEnabled = false;
-  
+void Sams_View::ScanSimulationSetDirectionSagittal() {  
   // X is -Z
-  UI.doubleSpinBoxScanXAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisZ->setValue(-1.0);
+  directionX[0] = 0.0;
+  directionX[1] = 0.0;
+  directionX[2] = -1.0;
 
   // Y is Y
-  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisY->setValue(1.0);
-  UI.doubleSpinBoxScanYAxisZ->setValue(0.0);
+  directionY[0] = 0.0;
+  directionY[1] = 1.0;
+  directionY[2] = 0.0;
 
   // Z is X
-  UI.doubleSpinBoxScanZAxisX->setValue(1.0);
-  UI.doubleSpinBoxScanZAxisY->setValue(0.0);
-  scanPreviewEnabled = previousEnabled;
-  UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
+  directionZ[0] = 1.0;
+  directionZ[1] = 0.0;
+  directionZ[2] = 0.0;
+
+  ScanSimulationResetRotations();
+  ScanSimulationPreview();
+}
+
+/**
+  * Resets all of the rotations to be 0 degrees.
+  */
+void Sams_View::ScanSimulationResetRotations() {
+  bool wasEnabled = scanPreviewEnabled;
+  scanPreviewEnabled = false;
+  
+  UI.dialScanRotationX->setValue(0);
+  UI.dialScanRotationY->setValue(0);
+  UI.dialScanRotationZ->setValue(0);
+
+  // rotationX = 0;
+  // rotationY = 0;
+  // rotationZ = 0;
+
+  scanPreviewEnabled = wasEnabled;
+}
+
+/**
+  * Rotates the scan around the X-axis.
+  */
+void Sams_View::ScanSimulationRotateX(int angle) {
+  rotationX = angle;
+  ScanSimulationPreview();
+}
+
+/**
+  * Rotates the scan around the Y-axis.
+  */
+void Sams_View::ScanSimulationRotateY(int angle) {
+  rotationY = angle;
+  ScanSimulationPreview();
+}
+
+/**
+  * Rotates the scan around the Z-axis.
+  */
+void Sams_View::ScanSimulationRotateZ(int angle) {
+  rotationZ = angle;
+  ScanSimulationPreview();
 }
 
 /**
@@ -365,20 +412,32 @@ void Sams_View::ScanSimulationPreview() {
     center[1] = UI.doubleSpinBoxScanPointY->value();
     center[2] = UI.doubleSpinBoxScanPointZ->value();
 
-    vtkVector<float, 3> xAxis = vtkVector<float, 3>();
-    xAxis[0] = UI.doubleSpinBoxScanXAxisX->value();
-    xAxis[1] = UI.doubleSpinBoxScanXAxisY->value();
-    xAxis[2] = UI.doubleSpinBoxScanXAxisZ->value();
+    // Update scan direction in UI by combining rotation and direction.
+    vtkVector<float, 3> xAxis = vtkVector<float, 3>(directionX);
+    vtkVector<float, 3> yAxis = vtkVector<float, 3>(directionY);
+    vtkVector<float, 3> zAxis = vtkVector<float, 3>(directionZ);
 
-    vtkVector<float, 3> yAxis = vtkVector<float, 3>();
-    yAxis[0] = UI.doubleSpinBoxScanYAxisX->value();
-    yAxis[1] = UI.doubleSpinBoxScanYAxisY->value();
-    yAxis[2] = UI.doubleSpinBoxScanYAxisZ->value();
+    // TODO: work out the rotations...
+    vtkSmartPointer<vtkTransform> rotation = vtkSmartPointer<vtkTransform>::New();
+    rotation->RotateX(rotationX);
+    rotation->RotateY(rotationY);
+    rotation->RotateZ(rotationZ);
 
-    vtkVector<float, 3> zAxis = vtkVector<float, 3>();
-    zAxis[0] = UI.doubleSpinBoxScanZAxisX->value();
-    zAxis[1] = UI.doubleSpinBoxScanZAxisY->value();
-    zAxis[2] = UI.doubleSpinBoxScanZAxisZ->value();
+    rotation->TransformPoint(&(xAxis[0]), &(xAxis[0]));
+    rotation->TransformPoint(&(yAxis[0]), &(yAxis[0]));
+    rotation->TransformPoint(&(zAxis[0]), &(zAxis[0]));
+
+    UI.doubleSpinBoxScanXAxisX->setValue(xAxis[0]);
+    UI.doubleSpinBoxScanXAxisY->setValue(xAxis[1]);
+    UI.doubleSpinBoxScanXAxisZ->setValue(xAxis[2]);
+
+    UI.doubleSpinBoxScanYAxisX->setValue(yAxis[0]);
+    UI.doubleSpinBoxScanYAxisY->setValue(yAxis[1]);
+    UI.doubleSpinBoxScanYAxisZ->setValue(yAxis[2]);
+
+    UI.doubleSpinBoxScanZAxisX->setValue(zAxis[0]);
+    UI.doubleSpinBoxScanZAxisY->setValue(zAxis[1]);
+    UI.doubleSpinBoxScanZAxisZ->setValue(zAxis[2]);
 
     mitk::Surface::Pointer scanPreview = SurfaceGenerator::generateCuboid(
         UI.spinBoxScanDimensionX->value() * UI.spinBoxScanResolutionX->value(),

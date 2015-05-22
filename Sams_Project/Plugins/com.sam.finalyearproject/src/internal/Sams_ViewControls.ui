@@ -251,7 +251,7 @@ font-weight: normal;</string>
              <property name="geometry">
               <rect>
                <x>0</x>
-               <y>-342</y>
+               <y>-251</y>
                <width>463</width>
                <height>807</height>
               </rect>
@@ -1126,6 +1126,28 @@ margin-left: 5px;</string>
                      </widget>
                     </item>
                     <item>
+                     <widget class="QDial" name="dialScanRotationX">
+                      <property name="maximumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="minimum">
+                       <number>-180</number>
+                      </property>
+                      <property name="maximum">
+                       <number>180</number>
+                      </property>
+                      <property name="value">
+                       <number>0</number>
+                      </property>
+                      <property name="sliderPosition">
+                       <number>0</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_6">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -1371,6 +1393,28 @@ margin-left: 5px;</string>
                      </widget>
                     </item>
                     <item>
+                     <widget class="QDial" name="dialScanRotationY">
+                      <property name="maximumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="minimum">
+                       <number>-180</number>
+                      </property>
+                      <property name="maximum">
+                       <number>180</number>
+                      </property>
+                      <property name="value">
+                       <number>0</number>
+                      </property>
+                      <property name="sliderPosition">
+                       <number>0</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_7">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -1511,6 +1555,28 @@ margin-left: 5px;</string>
                       </property>
                       <property name="maximum">
                        <double>100000.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDial" name="dialScanRotationZ">
+                      <property name="maximumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="minimum">
+                       <number>-180</number>
+                      </property>
+                      <property name="maximum">
+                       <number>180</number>
+                      </property>
+                      <property name="value">
+                       <number>0</number>
+                      </property>
+                      <property name="sliderPosition">
+                       <number>0</number>
                       </property>
                      </widget>
                     </item>
