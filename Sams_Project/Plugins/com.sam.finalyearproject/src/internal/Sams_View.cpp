@@ -371,10 +371,6 @@ void Sams_View::ScanSimulationResetRotations() {
   UI.dialScanRotationY->setValue(0);
   UI.dialScanRotationZ->setValue(0);
 
-  // rotationX = 0;
-  // rotationY = 0;
-  // rotationZ = 0;
-
   scanPreviewEnabled = wasEnabled;
 }
 
