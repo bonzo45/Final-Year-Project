@@ -188,6 +188,9 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.spinBoxScanDimensionX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.spinBoxScanDimensionY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.spinBoxScanDimensionZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanResolutionX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanResolutionY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanResolutionZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanPointX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanPointY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanPointZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
@@ -378,16 +381,16 @@ void Sams_View::ScanSimulationPreview() {
     zAxis[2] = UI.doubleSpinBoxScanZAxisZ->value();
 
     mitk::Surface::Pointer scanPreview = SurfaceGenerator::generateCuboid(
-        UI.spinBoxScanDimensionY->value(),
-        UI.spinBoxScanDimensionX->value(),
-        UI.spinBoxScanDimensionZ->value() * 2.0,
+        UI.spinBoxScanDimensionX->value() * UI.spinBoxScanResolutionX->value(),
+        UI.spinBoxScanDimensionY->value() * UI.spinBoxScanResolutionY->value(),
+        UI.spinBoxScanDimensionZ->value() * UI.spinBoxScanResolutionZ->value(),
         center,
         xAxis,
         yAxis,
         zAxis
     );
 
-    // Align it with the ground truth volume.
+    // If the the ground truth volume exists then align the preview and volume render the volume.
     if (scanSimulationVolume.IsNotNull()) {
       mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScanVolume()->GetSlicedGeometry();
       mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
@@ -396,6 +399,8 @@ void Sams_View::ScanSimulationPreview() {
       mitk::BaseGeometry * baseBoxGeometry = scanPreview->GetGeometry();
       baseBoxGeometry->SetOrigin(scanOrigin);
       baseBoxGeometry->SetIndexToWorldTransform(scanTransform);
+
+      scanSimulationVolume->SetProperty("volumerendering", mitk::BoolProperty::New(true));
     }
 
     mitk::DataNode::Pointer previewBox = SaveDataNode(SCAN_PREVIEW_NAME.c_str(), scanPreview, true);
@@ -408,6 +413,10 @@ void Sams_View::ScanSimulationPreview() {
   */
 void Sams_View::ScanSimulationRemovePreview() {
   RemoveDataNode(SCAN_PREVIEW_NAME.c_str());
+  
+  if (scanSimulationVolume.IsNotNull()) {
+    scanSimulationVolume->SetProperty("volumerendering", mitk::BoolProperty::New(false));
+  }
 }
 
 /**
@@ -450,7 +459,7 @@ void Sams_View::ScanSimulationSimulateScan() {
   ScanSimulator * simulator = new ScanSimulator();
   simulator->setVolume(GetMitkScanVolume());
   simulator->setScanAxes(xAxis, yAxis, zAxis);
-  simulator->setScanResolution(1.0, 1.0, 2.0);
+  simulator->setScanResolution(UI.spinBoxScanResolutionX->value(), UI.spinBoxScanResolutionY->value(), UI.spinBoxScanResolutionZ->value());
   simulator->setScanSize(UI.spinBoxScanDimensionX->value(), UI.spinBoxScanDimensionY->value(), UI.spinBoxScanDimensionZ->value());
   simulator->setMotionCorruption(UI.checkBoxMotionCorruptionEnabled->isChecked());
   simulator->setMotionCorruptionMaxAngle(UI.spinBoxMotionCorruptionAngle->value());
@@ -459,7 +468,11 @@ void Sams_View::ScanSimulationSimulateScan() {
   mitk::Image::Pointer sliceStack = simulator->scan();
 
   // Store it as a DataNode.
-  mitk::DataNode::Pointer cubeNode = SaveDataNode("Slice Stack", sliceStack, true);
+  std::ostringstream stackName;
+  stackName << UI.lineEditScanName->text().toStdString() << UI.spinBoxScanNameNumber->value();
+  SaveDataNode(stackName.str().c_str(), sliceStack, true);
+
+  UI.spinBoxScanNameNumber->setValue(UI.spinBoxScanNameNumber->value() + 1);
 }
 
 // ------------------------ //

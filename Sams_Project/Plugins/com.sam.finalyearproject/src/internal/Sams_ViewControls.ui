@@ -50,7 +50,7 @@ font-weight: bold;</string>
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="tabSpacing">
       <number>6</number>
@@ -119,8 +119,8 @@ font-weight: normal;</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>174</width>
-               <height>130</height>
+               <width>476</width>
+               <height>465</height>
               </rect>
              </property>
              <attribute name="label">
@@ -253,7 +253,7 @@ font-weight: normal;</string>
                <x>0</x>
                <y>0</y>
                <width>463</width>
-               <height>603</height>
+               <height>786</height>
               </rect>
              </property>
              <attribute name="label">
@@ -353,13 +353,32 @@ margin-top: 4px;</string>
                       <property name="font">
                        <font>
                         <family>Quicksand</family>
-                        <pointsize>8</pointsize>
+                        <pointsize>11</pointsize>
                         <weight>50</weight>
                         <bold>false</bold>
                        </font>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">font-size: 8pt;</string>
+                       <string notr="true">QPushButton {
+	background-color: rgb(128, 0, 128);
+	color: rgb(225, 225, 225);
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 160px;
+	max-height: 26px;
+	min-width: 160px;
+	min-height: 26px;
+	border-radius: 13px;
+    border-style: outset;
+}
+
+QPushButton:checked {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(100, 0, 100);
+}
+
+
+</string>
                       </property>
                       <property name="text">
                        <string>Preview Scan</string>
@@ -532,6 +551,190 @@ margin-top: 4px;</string>
                   </widget>
                  </item>
                  <item>
+                  <widget class="QLabel" name="labelSCAN_13">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>140</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font-weight: bold;</string>
+                   </property>
+                   <property name="text">
+                    <string>SCAN RESOLUTION</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelReconstructionDescription_11">
+                   <property name="styleSheet">
+                    <string notr="true">font-size: 9pt;</string>
+                   </property>
+                   <property name="text">
+                    <string>The in-plane and slice resolution. (x, y, z)</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::AutoText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget1Scan_11" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_39">
+                    <property name="margin">
+                     <number>9</number>
+                    </property>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanResolutionX">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanResolutionY">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanResolutionZ">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>2</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="labelReconstructionDescription_12">
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
+                      </property>
+                      <property name="text">
+                       <string>(pixels)</string>
+                      </property>
+                      <property name="textFormat">
+                       <enum>Qt::AutoText</enum>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>false</bool>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
+                      <property name="textInteractionFlags">
+                       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_19">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="labelSCAN_9">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -568,7 +771,7 @@ margin-top: 4px;</string>
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>The center of the scan.</string>
+                    <string>The center of the scan. (x, y, z)</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -666,6 +869,31 @@ margin-top: 4px;</string>
                      </widget>
                     </item>
                     <item>
+                     <widget class="QLabel" name="labelReconstructionDescription_13">
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
+                      </property>
+                      <property name="text">
+                       <string>(pixels)</string>
+                      </property>
+                      <property name="textFormat">
+                       <enum>Qt::AutoText</enum>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>false</bool>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
+                      <property name="textInteractionFlags">
+                       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_5">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -750,7 +978,7 @@ QPushButton:pressed {
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>The direction to scan in.</string>
+                    <string>The direction to scan in. Specified by x, y and z axes.</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -1368,7 +1596,7 @@ margin-left: 5px;</string>
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>Simple movement simulation. Randomly rotates each slice up to the maximum angle specified</string>
+                    <string>Simple movement simulation. Randomly rotates each slice up to the maximum angle specified.</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -1458,6 +1686,88 @@ margin-left: 5px;</string>
                     </item>
                     <item>
                      <spacer name="horizontalSpacer_9">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_12">
+                   <property name="styleSheet">
+                    <string notr="true">font-weight: bold;</string>
+                   </property>
+                   <property name="text">
+                    <string>NAME:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget1Scan_12" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_36">
+                    <property name="margin">
+                     <number>9</number>
+                    </property>
+                    <item>
+                     <widget class="QLineEdit" name="lineEditScanName">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Slice-Stack-</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanNameNumber">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_20">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
                       </property>
@@ -1614,7 +1924,7 @@ font-weight: normal;</string>
           <item>
            <widget class="QToolBox" name="toolBoxReconstruct">
             <property name="currentIndex">
-             <number>1</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="pageReconstructExecutable">
              <property name="geometry">
@@ -1909,8 +2219,8 @@ color: rgb(0, 150, 0);</string>
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>280</width>
-               <height>184</height>
+               <width>476</width>
+               <height>448</height>
               </rect>
              </property>
              <attribute name="label">
@@ -2019,7 +2329,7 @@ QPushButton:pressed {
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-811</y>
+        <y>0</y>
         <width>481</width>
         <height>2213</height>
        </rect>
@@ -3931,9 +4241,9 @@ QPushButton:checked {
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceFull">
+                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceHalf">
                     <property name="text">
-                     <string>full</string>
+                     <string>half</string>
                     </property>
                     <property name="checked">
                      <bool>true</bool>
@@ -3941,9 +4251,12 @@ QPushButton:checked {
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceHalf">
+                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceFull">
                     <property name="text">
-                     <string>half</string>
+                     <string>full</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4141,22 +4454,22 @@ QPushButton:checked {
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSamplingFull">
-                    <property name="text">
-                     <string>full</string>
-                    </property>
-                    <property name="checked">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <widget class="QRadioButton" name="radioButtonSamplingHalf">
                     <property name="text">
                      <string>half</string>
                     </property>
                     <property name="checked">
                      <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSamplingFull">
+                    <property name="text">
+                     <string>full</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
