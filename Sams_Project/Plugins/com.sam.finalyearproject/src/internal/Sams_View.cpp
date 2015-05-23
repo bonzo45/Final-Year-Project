@@ -712,13 +712,17 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
     QPushButton * statusButton = new QPushButton();
     statusButton->setProperty("class", "");
     //statusButton->setEnabled(false);
+    statusButton->setText("--->");
     statusButton->setStyleSheet(
       "QPushButton {"
+        "font-size: 7pt;"
+        "font-weight: bold;"
+        "color: rgb(200, 200, 200);"
         "background-color: rgb(200, 200, 200);"
         "border: 2px solid rgb(128, 128, 128);"
-        "max-width: 8px;"
+        "max-width: 32px;"
         "max-height: 8px;"
-        "min-width: 8px;"
+        "min-width: 32px;"
         "min-height: 8px;"
         "border-radius: 4px;"
         "border-style: outset;"
@@ -726,18 +730,21 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
       ""
       "QPushButton.set {"
         "border-style: inset;"
-        "background-color: rgb(0, 255, 0);"
-      "}"      
+        "color: rgb(0, 128, 0);"
+        "background-color: rgb(0, 128, 0);"
+      "}"
       ""
       "QPushButton.selected {"
         "border-style: inset;"
-        "background-color: rgb(255, 0, 0);"
+        "background-color: rgb(0, 128, 0);"
+        "color: rgb(255, 255, 255);"
       "}"
       ""
       "QPushButton.next {"
         "border-style: inset;"
-        "background-color: rgb(255, 0, 255);"
-      "}"      
+        "color: rgb(128, 0, 128);"
+        "background-color: rgb(128, 0, 128);"
+      "}"
     );
     buttonVector->push_back(statusButton);
     std::cout << "Added button " << statusButton << " to index " << index << std::endl;

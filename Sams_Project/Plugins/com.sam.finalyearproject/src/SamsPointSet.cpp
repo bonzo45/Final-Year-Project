@@ -34,6 +34,7 @@ void SamsPointSet::ExecuteOperation(mitk::Operation * operation) {
 
     case mitk::OpDESELECTPOINT://unselect the given point
       std::cout << "Deselecting a point..." << std::endl;
+      OnPointSetChange();
       break;
 
     case mitk::OpSETPOINTTYPE:
