@@ -32,6 +32,8 @@
 
 // Reconstruction Landmarks
 #include <mitkPointSet.h>
+#include <mitkPoint.h>
+#include <mitkInteractionConst.h>
 #include "SamsPointSet.h"
 
 // ------------------------ //
@@ -697,6 +699,7 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
   //new std::map<unsigned int, std::vector<QPushButton *> * >()
   std::vector<QPushButton *> * buttonVector = new std::vector<QPushButton *>();
   landmarkIndicatorMap->insert(std::pair<unsigned int, std::vector<QPushButton *> *>(index, buttonVector));
+  int landmarkCounter = 0;
   for (std::list<std::string>::const_iterator iterator = landmarkNameList->begin(); iterator != landmarkNameList->end(); ++iterator) {
     QWidget * innerWidget = new QWidget();
     QHBoxLayout * innerLayout = new QHBoxLayout(innerWidget);
@@ -706,10 +709,10 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
     QLabel * label = new QLabel(QString::fromStdString(landmarkName));
     innerLayout->addWidget(label);
 
-    QPushButton * button = new QPushButton();
-    button->setProperty("class", "");
-    //button->setEnabled(false);
-    button->setStyleSheet(
+    QPushButton * statusButton = new QPushButton();
+    statusButton->setProperty("class", "");
+    //statusButton->setEnabled(false);
+    statusButton->setStyleSheet(
       "QPushButton {"
         "background-color: rgb(200, 200, 200);"
         "border: 2px solid rgb(128, 128, 128);"
@@ -736,10 +739,44 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
         "background-color: rgb(255, 0, 255);"
       "}"      
     );
-    buttonVector->push_back(button);
-    std::cout << "Added button " << button << " to index " << index << std::endl;
-    innerLayout->addWidget(button);
+    buttonVector->push_back(statusButton);
+    std::cout << "Added button " << statusButton << " to index " << index << std::endl;
+    innerLayout->addWidget(statusButton);
+
+    QPushButton * deleteButton = new QPushButton();
+    deleteButton->setProperty("class", "");
+    //deleteButton->setEnabled(false);
+    deleteButton->setStyleSheet(
+      "QPushButton {"
+      "  background-color: rgb(50, 50, 50);"
+      "  border: 2px solid rgb(128, 128, 128);"
+      "  max-width: 8px;"
+      "  max-height: 8px;"
+      "  min-width: 8px;"
+      "  min-height: 8px;"
+      "  border-radius: 4px;"
+      "    border-style: outset;"
+      "}"
+      ""
+      "QPushButton:pressed {"
+      "  border-style: inset;"
+      "  background-color: rgb(0, 0, 0);"
+      "}"
+      ""
+      "QPushButton:disabled {"
+      "  border-style: outset;"
+      "  background-color: rgb(200,200, 200);"
+      "}"
+    );
+    std::ostringstream deleteButtonName;
+    deleteButtonName << "deleteLandmark-" << index << "-" << landmarkCounter;
+    deleteButton->setObjectName(QString::fromStdString(deleteButtonName.str()));
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(LandmarkDelete()));
+
+    innerLayout->addWidget(deleteButton);
+
     layout->addWidget(innerWidget);
+    landmarkCounter++;
   }
 
   layout->insertStretch(-1);
@@ -811,6 +848,28 @@ void Sams_View::LandmarkingStart() {
   pointSetInteractor->SetDataNode(pointSetNode);
 
   PointSetChanged(stackPointSet);
+}
+
+void Sams_View::LandmarkDelete() {
+  QString buttonName = sender()->objectName();
+  QStringList pieces = buttonName.split("-");
+  QString sliceStackIndexString = pieces.value(pieces.length() - 2);
+  QString landmarkIndexString = pieces.value(pieces.length() - 1);
+  int sliceStackIndex = sliceStackIndexString.toInt();
+  int landmarkIndex = landmarkIndexString.toInt();
+
+  std::cout << "Deleting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+
+  mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
+  
+  // Create an MITK Operation
+  // With OperationType mitk::OpREMOVE
+  // Index 'landmarkIndex'
+  mitk::Point3D point = pointSet->GetPoint(landmarkIndex);
+  mitk::PointOperation* deleteOp = new mitk::PointOperation(mitk::OpREMOVE, point, landmarkIndex);
+  pointSet->ExecuteOperation(deleteOp);
+
+  this->RequestRenderWindowUpdate();
 }
 
 /**
@@ -2116,35 +2175,7 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   * A convenient method (attached to button 1 in the debug menu) to test out functionality.
   */
 void Sams_View::debug1() {
-  mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
-  mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
-  mitk::BaseGeometry * surfaceBaseGeometry = mitkSurface->GetGeometry();
-  //surfaceBaseGeometry->SetOrigin(uncertaintyOrigin);
-
-  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  // Col 1
-  matrix->SetElement(0, 0, -1);
-  matrix->SetElement(1, 0, 0);
-  matrix->SetElement(2, 0, 0);
-  matrix->SetElement(3, 0, 0);
-  // Col 2
-  matrix->SetElement(0, 1, 0);
-  matrix->SetElement(1, 1, -1);
-  matrix->SetElement(2, 1, 0);
-  matrix->SetElement(3, 1, 0);
-  // Col 3
-  matrix->SetElement(0, 2, 0);
-  matrix->SetElement(1, 2, 0);
-  matrix->SetElement(2, 2, 1);
-  matrix->SetElement(3, 2, 0);
-  // Col 4
-  matrix->SetElement(0, 3, 0);
-  matrix->SetElement(1, 3, 0);
-  matrix->SetElement(2, 3, 0);
-  matrix->SetElement(3, 3, 1);
-
-  surfaceBaseGeometry->SetIndexToWorldTransformByVtkMatrix(matrix);
-  this->RequestRenderWindowUpdate();
+  
 }
 
 mitk::PointSetDataInteractor::Pointer m_CurrentInteractor;

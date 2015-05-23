@@ -84,6 +84,7 @@ class Sams_View : public QmitkAbstractView {
     void ReconstructLandmarksAddStack(unsigned int index);
     void ReconstructLandmarksRemoveStack(unsigned int index);
     void LandmarkingStart();
+    void LandmarkDelete();
     void ClearReconstructionUI();
     void ReconstructGo();
     
