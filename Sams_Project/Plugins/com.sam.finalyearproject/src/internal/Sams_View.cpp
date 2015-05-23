@@ -751,7 +751,7 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
     statusButton->setObjectName(QString::fromStdString(statusButtonName.str()));
     connect(statusButton, SIGNAL(clicked()), this, SLOT(LandmarkSelect()));
     buttonVector->push_back(statusButton);
-    std::cout << "Added button " << statusButton << " to index " << index << std::endl;
+    // std::cout << "Added button " << statusButton << " to index " << index << std::endl;
     innerLayout->addWidget(statusButton);
 
     QPushButton * deleteButton = new QPushButton();
@@ -861,6 +861,8 @@ void Sams_View::LandmarkingStart() {
   PointSetChanged(stackPointSet);
 }
 
+mitk::Geometry3D::Pointer bodge;
+
 void Sams_View::LandmarkSelect() {
   QString buttonName = sender()->objectName();
   QStringList pieces = buttonName.split("-");
@@ -897,6 +899,26 @@ void Sams_View::LandmarkSelect() {
   this->RequestRenderWindowUpdate();
 
   PointSetChanged(pointSet);
+
+  // TODO: Center the camera on the selected point.
+  // Get the scan geometry
+  mitk::BaseGeometry * scanGeometry = GetMitkScan()->GetGeometry();
+  
+  bodge = mitk::Geometry3D::New();
+  bodge->Initialize();
+  // // Create the bounds... (bounds of the scan).
+  mitk::BaseGeometry::BoundsArrayType bounds = scanGeometry->GetBounds();
+  int shift = pointToSelect[2] - ((bounds[5] + bounds[4]) / 2);
+  bounds[4] += shift;
+  bounds[5] += shift;
+  bodge->SetBounds(bounds);
+  // // Create the spacing... (spacing of the scan).
+  bodge->SetSpacing(scanGeometry->GetSpacing());
+
+  // Set them.
+  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
+  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
+  renderManager->InitializeViews(bodge);
 }
 
 void Sams_View::LandmarkDelete() {
@@ -933,7 +955,7 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
       buttons->at(i)->style()->unpolish(buttons->at(i));
       buttons->at(i)->style()->polish(buttons->at(i));
       buttons->at(i)->update();
-      std::cout << "set" << std::endl;
+      std::cout << "set";
     }
     else {
       if (firstNotSet) {
@@ -942,15 +964,21 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
         buttons->at(i)->style()->unpolish(buttons->at(i));
         buttons->at(i)->style()->polish(buttons->at(i));
         buttons->at(i)->update();
-        std::cout << "next" << std::endl;        
+        std::cout << "next";      
       }
       else {
         buttons->at(i)->setProperty("class", "");
         buttons->at(i)->style()->unpolish(buttons->at(i));
         buttons->at(i)->style()->polish(buttons->at(i));
         buttons->at(i)->update();
-        std::cout << "not set" << std::endl;
+        std::cout << "not set";
       }
+    }
+    if (i < numberOfLandmarks - 1) {
+      std::cout << ", ";
+    }
+    else {
+      std::cout << std::endl;
     }
   }
 

@@ -17,6 +17,8 @@ class SamsPointSet : public mitk::PointSet {
 
   private:
     Sams_View * samsView;
+
+    static const bool DEBUGGING = true;
 };
 
 #endif
