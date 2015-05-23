@@ -746,6 +746,10 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
         "background-color: rgb(128, 0, 128);"
       "}"
     );
+    std::ostringstream statusButtonName;
+    statusButtonName << "selectLandmark-" << index << "-" << landmarkCounter;
+    statusButton->setObjectName(QString::fromStdString(statusButtonName.str()));
+    connect(statusButton, SIGNAL(clicked()), this, SLOT(LandmarkSelect()));
     buttonVector->push_back(statusButton);
     std::cout << "Added button " << statusButton << " to index " << index << std::endl;
     innerLayout->addWidget(statusButton);
@@ -857,6 +861,44 @@ void Sams_View::LandmarkingStart() {
   PointSetChanged(stackPointSet);
 }
 
+void Sams_View::LandmarkSelect() {
+  QString buttonName = sender()->objectName();
+  QStringList pieces = buttonName.split("-");
+  QString sliceStackIndexString = pieces.value(pieces.length() - 2);
+  QString landmarkIndexString = pieces.value(pieces.length() - 1);
+  int sliceStackIndex = sliceStackIndexString.toInt();
+  int landmarkIndex = landmarkIndexString.toInt();
+
+  std::cout << "Selecting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+
+  mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
+  
+  // Deselect all points.
+  mitk::Point3D * pointToDeselect = new mitk::Point3D(0);
+  for (unsigned int i = 0; i < numberOfLandmarks; i++) {
+    if (pointSet->GetPointIfExists(i, pointToDeselect)) {
+      mitk::PointOperation* deselectOp = new mitk::PointOperation(mitk::OpDESELECTPOINT, *pointToDeselect, i);
+      pointSet->ExecuteOperation(deselectOp);
+    }
+  }
+
+  // Select one.
+  // Create an MITK Operation
+  // With OperationType mitk::OpSELECTPOINT
+  // Index 'landmarkIndex'
+  mitk::Point3D pointToSelect = pointSet->GetPoint(landmarkIndex);
+  mitk::PointOperation* selectOp = new mitk::PointOperation(mitk::OpSELECTPOINT, pointToSelect, landmarkIndex);
+  pointSet->ExecuteOperation(selectOp);
+
+  std::cout << "Immediately after selection: " << std::endl;
+  int selectedPoint = pointSet->SearchSelectedPoint();
+  std::cout << "  - Selected Point: " << selectedPoint << std::endl;
+
+  this->RequestRenderWindowUpdate();
+
+  PointSetChanged(pointSet);
+}
+
 void Sams_View::LandmarkDelete() {
   QString buttonName = sender()->objectName();
   QStringList pieces = buttonName.split("-");
@@ -886,13 +928,12 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
   bool firstNotSet = true;
   std::vector<QPushButton *> * buttons = landmarkIndicatorMap->find(currentLandmarkSliceStack)->second;
   for (unsigned int i = 0; i < numberOfLandmarks; i++) {
-    std::cout << "Landmark " << i << ": " << pointSet->IndexExists(i) << std::endl;
     if (pointSet->IndexExists(i)) {
       buttons->at(i)->setProperty("class", "set");
       buttons->at(i)->style()->unpolish(buttons->at(i));
       buttons->at(i)->style()->polish(buttons->at(i));
       buttons->at(i)->update();
-      std::cout << "set button " << buttons->at(i) << " at index " << currentLandmarkSliceStack << std::endl;
+      std::cout << "set" << std::endl;
     }
     else {
       if (firstNotSet) {
@@ -901,7 +942,7 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
         buttons->at(i)->style()->unpolish(buttons->at(i));
         buttons->at(i)->style()->polish(buttons->at(i));
         buttons->at(i)->update();
-        std::cout << "selected" << std::endl;        
+        std::cout << "next" << std::endl;        
       }
       else {
         buttons->at(i)->setProperty("class", "");
@@ -914,6 +955,7 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
   }
 
   int selectedPoint = pointSet->SearchSelectedPoint();
+  std::cout << "Selected Point: " << selectedPoint << std::endl;
   if (selectedPoint != -1) {
     buttons->at(selectedPoint)->setProperty("class", "selected");
     buttons->at(selectedPoint)->style()->unpolish(buttons->at(selectedPoint));
