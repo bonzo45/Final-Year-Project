@@ -80,6 +80,8 @@ class Sams_View : public QmitkAbstractView {
     // ------------------------ //
     void ReconstructGUI();
     void ReconstructInitializeLandmarkList();
+    mitk::DataNode::Pointer GetSliceStack(int index);
+    mitk::Image::Pointer GetMitkSliceStack(int index);
     void ReconstructLandmarksNumStacksChanged(int numStacks);
     void ReconstructLandmarksAddStack(unsigned int index);
     void ReconstructLandmarksRemoveStack(unsigned int index);

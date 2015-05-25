@@ -634,6 +634,25 @@ void Sams_View::ReconstructInitializeLandmarkList() {
 }
 
 /**
+  * Returns the mitk::DataNode::Pointer for the given slice stack.
+  */
+mitk::DataNode::Pointer Sams_View::GetSliceStack(int index) {
+  // Get the combo box stored in the vector.
+  QComboBox * comboBox = landmarkComboBoxVector->at(index);
+  // Get the name it contains.
+  QString scanName = comboBox->currentText();
+  // Return the corresponding data node.
+  return this->GetDataStorage()->GetNamedNode(scanName.toStdString());
+}
+
+/**
+  * Returns the mitk::Image::Pointer for the given slice stack.
+  */
+mitk::Image::Pointer Sams_View::GetMitkSliceStack(int index) {
+  return Util::MitkImageFromNode(GetSliceStack(index));
+}
+
+/**
   * Called when the number of stacks being annotated changes.
   */
 void Sams_View::ReconstructLandmarksNumStacksChanged(int numStacks) {
@@ -693,6 +712,7 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
   pushButton->setText("Start");
   pushButton->setStyleSheet(
     "min-width: 40px;"
+    "max-width: 40px;"
   );
   connect(pushButton, SIGNAL(clicked()), this, SLOT(LandmarkingStart()));
   comboButtonLayout->addWidget(pushButton);
@@ -859,6 +879,10 @@ void Sams_View::LandmarkingStart() {
     landmarkPointSetMap->insert(std::pair<unsigned int, mitk::PointSet::Pointer>(index, stackPointSet));
   }
 
+  // Show the stack we're going to mark.
+  HideAllDataNodes();
+  ShowDataNode(GetSliceStack(index));
+
   // Set up interactor
   pointSetInteractor = mitk::PointSetDataInteractor::New();
   pointSetInteractor->SetMaxPoints(numberOfLandmarks);
@@ -915,9 +939,9 @@ void Sams_View::LandmarkSelect() {
 
   PointSetChanged(pointSet);
 
-  // TODO: Center the camera on the selected point.
+  // TODO: Center the camera on the selected point in a more robust way.
   // Get the scan geometry
-  mitk::BaseGeometry * scanGeometry = GetMitkScan()->GetGeometry();
+  mitk::BaseGeometry * scanGeometry = GetMitkSliceStack(sliceStackIndex)->GetGeometry();
   
   bodge = mitk::Geometry3D::New();
   bodge->Initialize();
