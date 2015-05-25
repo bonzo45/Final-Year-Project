@@ -157,11 +157,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // UI
   connect(UI.buttonMinimize4, SIGNAL(clicked()), this, SLOT(ToggleOptions()));
   connect(UI.buttonReset2, SIGNAL(clicked()), this, SLOT(ResetPreprocessingSettings()));
-  connect(UI.buttonVisualizeSelect, SIGNAL(clicked()), this, SLOT(ShowVisualizeSelect()));
-  connect(UI.buttonVisualizeThreshold, SIGNAL(clicked()), this, SLOT(ShowVisualizeThreshold()));
-  connect(UI.buttonVisualizeSphere, SIGNAL(clicked()), this, SLOT(ShowVisualizeSphere()));
-  connect(UI.buttonVisualizeSurface, SIGNAL(clicked()), this, SLOT(ShowVisualizeSurface()));
-  connect(UI.buttonVisualizeNextScanPlane, SIGNAL(clicked()), this, SLOT(ShowVisualizeNextScanPlane()));
+
+  connect(UI.buttonScan, SIGNAL(clicked()), this, SLOT(ShowScan()));
+  connect(UI.buttonReconstruct, SIGNAL(clicked()), this, SLOT(ShowReconstruct()));
+  connect(UI.buttonVisualize, SIGNAL(clicked()), this, SLOT(ShowVisualize()));
 
   // Debug
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
@@ -240,7 +239,7 @@ void Sams_View::Initialize() {
   // Hide SVD error
   UI.labelNextScanSVDError->setVisible(false);
   
-  ShowVisualizeSelect();
+  ShowScan();
 
   UI.buttonScanPreview->setChecked(false);
   scanPreviewEnabled = false;
@@ -611,12 +610,19 @@ void Sams_View::ReconstructGUI() {
   */
 void Sams_View::ReconstructInitializeLandmarkList() {
   landmarkNameList = new std::list<std::string>();
-  landmarkNameList->push_back("Left Eye");
-  landmarkNameList->push_back("Right Eye");
-  landmarkNameList->push_back("Thing");
-  landmarkNameList->push_back("Something");
-  landmarkNameList->push_back("Sausage");
-  landmarkNameList->push_back("Croissant");
+  landmarkNameList->push_back("Skull (frontmost point)");
+  landmarkNameList->push_back("Skull (rearmost point)");
+  landmarkNameList->push_back("Skull (leftmost point)");
+  landmarkNameList->push_back("Skull (rightmost point)");
+  landmarkNameList->push_back("Left Eye -> Pupil");
+  landmarkNameList->push_back("Right Eye -> Pupil");
+  landmarkNameList->push_back("Left Nostril");
+  landmarkNameList->push_back("Right Nostril");
+  landmarkNameList->push_back("Center of Brain Stem");
+  landmarkNameList->push_back("Front Left Ventricle (frontmost point)");
+  landmarkNameList->push_back("Front Right Ventricle (frontmost point)");
+  landmarkNameList->push_back("Back Left Ventricle (frontmost point)");
+  landmarkNameList->push_back("Back Right Ventricle (frontmost point)");
 
   numberOfLandmarks = landmarkNameList->size();
 
@@ -667,7 +673,7 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
   layout->setContentsMargins(9, 0, 9, 9);
   
   // Add a label/combo box/button to pick which volume this stack is.
-  QLabel * titleLable = new QLabel(QString::fromStdString("Pick a stack. Then click 'mark' to begin."));
+  QLabel * titleLable = new QLabel(QString::fromStdString("Pick a stack. Then click 'Start' to begin."));
   titleLable->setStyleSheet(
     "font-weight: bold;"
   );
@@ -684,8 +690,10 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
   std::ostringstream buttonName;
   buttonName << "markStack-" << index;
   pushButton->setObjectName(QString::fromStdString(buttonName.str()));
-  pushButton->setText("Mark");
-  pushButton->setMaximumWidth(60);
+  pushButton->setText("Start");
+  pushButton->setStyleSheet(
+    "min-width: 40px;"
+  );
   connect(pushButton, SIGNAL(clicked()), this, SLOT(LandmarkingStart()));
   comboButtonLayout->addWidget(pushButton);
 
@@ -707,7 +715,6 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
 
     std::string landmarkName = *iterator;
     QLabel * label = new QLabel(QString::fromStdString(landmarkName));
-    innerLayout->addWidget(label);
 
     QPushButton * statusButton = new QPushButton();
     statusButton->setProperty("class", "");
@@ -751,8 +758,6 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
     statusButton->setObjectName(QString::fromStdString(statusButtonName.str()));
     connect(statusButton, SIGNAL(clicked()), this, SLOT(LandmarkSelect()));
     buttonVector->push_back(statusButton);
-    // std::cout << "Added button " << statusButton << " to index " << index << std::endl;
-    innerLayout->addWidget(statusButton);
 
     QPushButton * deleteButton = new QPushButton();
     deleteButton->setProperty("class", "");
@@ -784,6 +789,8 @@ void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
     deleteButton->setObjectName(QString::fromStdString(deleteButtonName.str()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(LandmarkDelete()));
 
+    innerLayout->addWidget(statusButton);
+    innerLayout->addWidget(label);
     innerLayout->addWidget(deleteButton);
 
     layout->addWidget(innerWidget);
@@ -833,7 +840,9 @@ void Sams_View::LandmarkingStart() {
   QStringList pieces = buttonName.split("-");
   QString indexString = pieces.value(pieces.length() - 1);
   int index = indexString.toInt();
-  std::cout << "Starting Landmarking for " << index << std::endl;
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Starting Landmarking for " << index << std::endl;
+  }
   currentLandmarkSliceStack = index;
 
   mitk::PointSet::Pointer stackPointSet;
@@ -871,7 +880,9 @@ void Sams_View::LandmarkSelect() {
   int sliceStackIndex = sliceStackIndexString.toInt();
   int landmarkIndex = landmarkIndexString.toInt();
 
-  std::cout << "Selecting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Selecting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+  }
 
   mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
   
@@ -892,9 +903,13 @@ void Sams_View::LandmarkSelect() {
   mitk::PointOperation* selectOp = new mitk::PointOperation(mitk::OpSELECTPOINT, pointToSelect, landmarkIndex);
   pointSet->ExecuteOperation(selectOp);
 
-  std::cout << "Immediately after selection: " << std::endl;
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Immediately after selection: " << std::endl;
+  }
   int selectedPoint = pointSet->SearchSelectedPoint();
-  std::cout << "  - Selected Point: " << selectedPoint << std::endl;
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "  - Selected Point: " << selectedPoint << std::endl;
+  }
 
   this->RequestRenderWindowUpdate();
 
@@ -929,7 +944,9 @@ void Sams_View::LandmarkDelete() {
   int sliceStackIndex = sliceStackIndexString.toInt();
   int landmarkIndex = landmarkIndexString.toInt();
 
-  std::cout << "Deleting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Deleting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+  }
 
   mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
   
@@ -955,7 +972,9 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
       buttons->at(i)->style()->unpolish(buttons->at(i));
       buttons->at(i)->style()->polish(buttons->at(i));
       buttons->at(i)->update();
-      std::cout << "set";
+      if (DEBUGGING_RECONSTRUCTION) {
+        std::cout << "set";
+      }
     }
     else {
       if (firstNotSet) {
@@ -964,26 +983,35 @@ void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
         buttons->at(i)->style()->unpolish(buttons->at(i));
         buttons->at(i)->style()->polish(buttons->at(i));
         buttons->at(i)->update();
-        std::cout << "next";      
+        if (DEBUGGING_RECONSTRUCTION) {
+          std::cout << "next";      
+        }
       }
       else {
         buttons->at(i)->setProperty("class", "");
         buttons->at(i)->style()->unpolish(buttons->at(i));
         buttons->at(i)->style()->polish(buttons->at(i));
         buttons->at(i)->update();
-        std::cout << "not set";
+        if (DEBUGGING_RECONSTRUCTION) {
+          std::cout << "not set";
+        }
       }
     }
-    if (i < numberOfLandmarks - 1) {
-      std::cout << ", ";
-    }
-    else {
-      std::cout << std::endl;
+
+    if (DEBUGGING_RECONSTRUCTION) {
+      if (i < numberOfLandmarks - 1) {
+        std::cout << ", ";
+      }
+      else {
+        std::cout << std::endl;
+      }
     }
   }
 
   int selectedPoint = pointSet->SearchSelectedPoint();
-  std::cout << "Selected Point: " << selectedPoint << std::endl;
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Selected Point: " << selectedPoint << std::endl;
+  }
   if (selectedPoint != -1) {
     buttons->at(selectedPoint)->setProperty("class", "selected");
     buttons->at(selectedPoint)->style()->unpolish(buttons->at(selectedPoint));
@@ -2146,64 +2174,66 @@ void Sams_View::ToggleDebug() {
 }
 
 /**
-  * Shows the 'Visualize -> Select' UI.
+  * Shows the 'Scan' UI.
   */
-void Sams_View::ShowVisualizeSelect() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSelect->setVisible(true);
-  UI.buttonVisualizeSelect->setChecked(true);
+void Sams_View::ShowScan() {
+  HideAll();
+  UI.widgetSCAN->setVisible(true); 
+  UI.buttonScan->setChecked(true);
+  UI.labelScanButton->setProperty("class", "selected");
+  UI.labelScanButton->style()->unpolish(UI.labelScanButton);
+  UI.labelScanButton->style()->polish(UI.labelScanButton);
+  UI.labelScanButton->update();
 }
 
 /**
-  * Shows the 'Visualize -> Threshold' UI.
+  * Shows the 'Reconstruct' UI.
   */
-void Sams_View::ShowVisualizeThreshold() {
-  HideVisualizeAll();
-  UI.widgetVisualizeThreshold->setVisible(true);
-  UI.buttonVisualizeThreshold->setChecked(true);
+void Sams_View::ShowReconstruct() {
+  HideAll();
+  UI.widgetRECONSTRUCT->setVisible(true); 
+  UI.buttonReconstruct->setChecked(true);
+  UI.labelReconstructButton->setProperty("class", "selected");
+  UI.labelReconstructButton->style()->unpolish(UI.labelReconstructButton);
+  UI.labelReconstructButton->style()->polish(UI.labelReconstructButton);
+  UI.labelReconstructButton->update();
 }
 
 /**
-  * Shows the 'Visualize -> Uncertainty Sphere' UI.
+  * Shows the 'Visualize' UI.
   */
-void Sams_View::ShowVisualizeSphere() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSphere->setVisible(true); 
-  UI.buttonVisualizeSphere->setChecked(true);  
+void Sams_View::ShowVisualize() {
+  HideAll();
+  UI.widgetVISUALIZE->setVisible(true); 
+  UI.buttonVisualize->setChecked(true); 
+  UI.labelVisualizeButton->setProperty("class", "selected");
+  UI.labelVisualizeButton->style()->unpolish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->style()->polish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->update();
 }
 
 /**
-  * Shows the 'Visualize -> Uncertainty Surface' UI.
+  * Hides all the UIs.
   */
-void Sams_View::ShowVisualizeSurface() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSurface->setVisible(true); 
-  UI.buttonVisualizeSurface->setChecked(true);  
-}
-
-/**
-  * Shows the 'Visualize -> Next Scan Plane' UI.
-  */
-void Sams_View::ShowVisualizeNextScanPlane() {
-  HideVisualizeAll();
-  UI.widgetVisualizeNextScanPlane->setVisible(true); 
-  UI.buttonVisualizeNextScanPlane->setChecked(true);  
-}
-
-/**
-  * Hides all of the Visualize UIs.
-  */
-void Sams_View::HideVisualizeAll() {
-  UI.widgetVisualizeSelect->setVisible(false);
-  UI.widgetVisualizeThreshold->setVisible(false);
-  UI.widgetVisualizeSphere->setVisible(false);
-  UI.widgetVisualizeSurface->setVisible(false);
-  UI.widgetVisualizeNextScanPlane->setVisible(false);
-  UI.buttonVisualizeSelect->setChecked(false);
-  UI.buttonVisualizeThreshold->setChecked(false);
-  UI.buttonVisualizeSphere->setChecked(false);
-  UI.buttonVisualizeSurface->setChecked(false);
-  UI.buttonVisualizeNextScanPlane->setChecked(false);
+void Sams_View::HideAll() {  
+  UI.widgetSCAN->setVisible(false); 
+  UI.buttonScan->setChecked(false);  
+  UI.widgetRECONSTRUCT->setVisible(false); 
+  UI.buttonReconstruct->setChecked(false); 
+  UI.widgetVISUALIZE->setVisible(false); 
+  UI.buttonVisualize->setChecked(false);
+  UI.labelScanButton->setProperty("class", "");
+  UI.labelScanButton->style()->unpolish(UI.labelScanButton);
+  UI.labelScanButton->style()->polish(UI.labelScanButton);
+  UI.labelScanButton->update();
+  UI.labelReconstructButton->setProperty("class", "");
+  UI.labelReconstructButton->style()->unpolish(UI.labelReconstructButton);
+  UI.labelReconstructButton->style()->polish(UI.labelReconstructButton);
+  UI.labelReconstructButton->update();
+  UI.labelVisualizeButton->setProperty("class", "");
+  UI.labelVisualizeButton->style()->unpolish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->style()->polish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->update();
 }
 
 // --------------- //

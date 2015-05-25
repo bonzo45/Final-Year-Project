@@ -188,12 +188,10 @@ class Sams_View : public QmitkAbstractView {
     void ToggleOptions();
     void ToggleDebug();
 
-    void ShowVisualizeSelect();
-    void ShowVisualizeThreshold();
-    void ShowVisualizeSphere();
-    void ShowVisualizeSurface();
-    void ShowVisualizeNextScanPlane();
-    void HideVisualizeAll();
+    void ShowScan();
+    void ShowReconstruct();
+    void ShowVisualize();
+    void HideAll();
     
     // --------------- //
     // ---- Debug ---- //
@@ -232,6 +230,8 @@ class Sams_View : public QmitkAbstractView {
     // ------------------------ //
     // ---- RECONSTRUCTION ---- //
     // ------------------------ //
+    static const bool DEBUGGING_RECONSTRUCTION = false;
+
     ctkCmdLineModuleManager* moduleManager;
     ctkCmdLineModuleBackend* processBackend;
     ctkCmdLineModuleFrontend* frontend;

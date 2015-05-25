@@ -66,6 +66,7 @@ void SamsPointSet::ExecuteOperation(mitk::Operation * operation) {
 }
 
 void SamsPointSet::OnPointSetChange() {
-  std::cout << "Point set changed." << std::endl;
+  if (DEBUGGING)
+    std::cout << "Point set changed." << std::endl;
   samsView->PointSetChanged(this);
 }
