@@ -252,7 +252,7 @@ QWidget {
        </widget>
       </item>
       <item>
-       <widget class="QTabWidget" name="tabWidget">
+       <widget class="QTabWidget" name="tabWidgetScan">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
@@ -2201,7 +2201,7 @@ border-radius: 4px;
        </widget>
       </item>
       <item>
-       <widget class="QTabWidget" name="tabWidget_2">
+       <widget class="QTabWidget" name="tabWidgetReconstruct">
         <property name="currentIndex">
          <number>2</number>
         </property>
@@ -2974,12 +2974,12 @@ QPushButton:pressed {
        </widget>
       </item>
       <item>
-       <widget class="QTabWidget" name="tabWidget_3">
+       <widget class="QTabWidget" name="tabWidgetVisualize">
         <property name="styleSheet">
          <string notr="true">font-size: 8pt;</string>
         </property>
         <property name="currentIndex">
-         <number>2</number>
+         <number>3</number>
         </property>
         <property name="iconSize">
          <size>

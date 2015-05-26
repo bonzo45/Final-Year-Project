@@ -256,6 +256,10 @@ void Sams_View::Initialize() {
   directionX = vtkVector<float, 3>(0.0f);
   directionY = vtkVector<float, 3>(0.0f);
   directionZ = vtkVector<float, 3>(0.0f);
+
+  UI.tabWidgetScan->setCurrentIndex(0);
+  UI.tabWidgetReconstruct->setCurrentIndex(0);
+  UI.tabWidgetVisualize->setCurrentIndex(0);
 }
 
 // ------------------------ //
@@ -909,6 +913,13 @@ void Sams_View::LandmarkSelect() {
   }
 
   mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
+
+  if (!pointSet->IndexExists(landmarkIndex)) {
+    if (DEBUGGING_RECONSTRUCTION) {
+      std::cout << "It doesn't exist. Not selecting it." << std::endl;
+    }
+    return;
+  }
   
   // Deselect all points.
   mitk::Point3D * pointToDeselect = new mitk::Point3D(0);
