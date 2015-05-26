@@ -1772,9 +1772,9 @@ void Sams_View::GenerateUncertaintySphere() {
   else if (UI.radioButtonSphereScalingLinear->isChecked()) {
     scaling = UncertaintySurfaceMapper::LINEAR;
   }
-  else if (UI.radioButtonSphereScalingHistogram->isChecked()) {
-    scaling = UncertaintySurfaceMapper::HISTOGRAM;
-  }
+  // else if (UI.radioButtonSphereScalingHistogram->isChecked()) {
+  //   scaling = UncertaintySurfaceMapper::HISTOGRAM;
+  // }
 
   // ---- Colour Options ---- //
   UncertaintySurfaceMapper::COLOUR colour;
@@ -1835,9 +1835,9 @@ void Sams_View::SurfaceMapping() {
   else if (UI.radioButtonScalingLinear->isChecked()) {
     scaling = UncertaintySurfaceMapper::LINEAR;
   }
-  else if (UI.radioButtonScalingHistogram->isChecked()) {
-    scaling = UncertaintySurfaceMapper::HISTOGRAM;
-  }
+  // else if (UI.radioButtonScalingHistogram->isChecked()) {
+  //   scaling = UncertaintySurfaceMapper::HISTOGRAM;
+  // }
 
   // ---- Colour Options ---- //
   UncertaintySurfaceMapper::COLOUR colour;

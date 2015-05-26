@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>435</width>
-    <height>730</height>
+    <height>1662</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -451,7 +451,7 @@ QWidget {
                 <property name="geometry">
                  <rect>
                   <x>0</x>
-                  <y>-698</y>
+                  <y>0</y>
                   <width>380</width>
                   <height>801</height>
                  </rect>
@@ -2125,27 +2125,6 @@ QPushButton:pressed {
                   </widget>
                  </item>
                 </layout>
-                <zorder>labelSCAN_11</zorder>
-                <zorder>widget_6</zorder>
-                <zorder>labelReconstructionDescription_11</zorder>
-                <zorder>widget1Scan_5</zorder>
-                <zorder>widget1Scan_11</zorder>
-                <zorder>labelSCAN_4</zorder>
-                <zorder>labelReconstructionDescription_9</zorder>
-                <zorder>labelReconstructionDescription_6</zorder>
-                <zorder>labelReconstructionDescription_5</zorder>
-                <zorder>labelSCAN_13</zorder>
-                <zorder>label_12</zorder>
-                <zorder>widget1Scan_3</zorder>
-                <zorder>widget1Scan_7</zorder>
-                <zorder>widget</zorder>
-                <zorder>labelSCAN_9</zorder>
-                <zorder>labelReconstructionDescription_7</zorder>
-                <zorder>widget1Scan_6</zorder>
-                <zorder>labelReconstructionDescription_14</zorder>
-                <zorder>widget1Scan_12</zorder>
-                <zorder>widget1Scan_4</zorder>
-                <zorder>widget1Scan_8</zorder>
                 <zorder>widget_6</zorder>
                 <zorder>labelReconstructionDescription_11</zorder>
                 <zorder>widget1Scan_5</zorder>
@@ -2528,7 +2507,7 @@ color: rgb(200, 0, 0);</string>
                   <x>0</x>
                   <y>0</y>
                   <width>395</width>
-                  <height>78</height>
+                  <height>184</height>
                  </rect>
                 </property>
                 <attribute name="label">
@@ -3000,7 +2979,7 @@ QPushButton:pressed {
          <string notr="true">font-size: 8pt;</string>
         </property>
         <property name="currentIndex">
-         <number>4</number>
+         <number>2</number>
         </property>
         <property name="iconSize">
          <size>
@@ -4335,10 +4314,10 @@ QPushButton:checked {
                    <number>10000</number>
                   </property>
                   <property name="singleStep">
-                   <number>100</number>
+                   <number>50</number>
                   </property>
                   <property name="value">
-                   <number>200</number>
+                   <number>100</number>
                   </property>
                  </widget>
                 </item>
@@ -4351,10 +4330,10 @@ QPushButton:checked {
                    <number>5000</number>
                   </property>
                   <property name="singleStep">
-                   <number>100</number>
+                   <number>50</number>
                   </property>
                   <property name="value">
-                   <number>100</number>
+                   <number>50</number>
                   </property>
                  </widget>
                 </item>
@@ -4366,12 +4345,11 @@ QPushButton:checked {
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
                   <property name="text">
                    <string>Lock</string>
-                  </property>
-                  <property name="icon">
-                   <iconset theme="chain">
-                    <normaloff>../../../../../../../.designer/backup</normaloff>../../../../../../../.designer/backup</iconset>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -4408,14 +4386,14 @@ QPushButton:checked {
                   <item>
                    <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorMin">
                     <property name="text">
-                     <string>min</string>
+                     <string>worst</string>
                     </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorMax">
                     <property name="text">
-                     <string>max</string>
+                     <string>best</string>
                     </property>
                    </widget>
                   </item>
@@ -4438,7 +4416,7 @@ QPushButton:checked {
                       <family>Quicksand</family>
                       <pointsize>11</pointsize>
                       <weight>50</weight>
-                      <italic>true</italic>
+                      <italic>false</italic>
                       <bold>false</bold>
                      </font>
                     </property>
@@ -4463,7 +4441,7 @@ QPushButton:checked {
                <item row="0" column="0">
                 <widget class="QGroupBox" name="groupBoxSphereSamplingDistance">
                  <property name="title">
-                  <string>Sampling</string>
+                  <string>Distance</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_39">
                   <property name="bottomMargin">
@@ -4507,7 +4485,7 @@ QPushButton:checked {
                      <string>none</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4516,12 +4494,8 @@ QPushButton:checked {
                     <property name="text">
                      <string>linear</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonSphereScalingHistogram">
-                    <property name="text">
-                     <string>histogram eqn</string>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -4693,7 +4667,7 @@ QPushButton:checked {
                <item row="0" column="0">
                 <widget class="QGroupBox" name="groupBox_9">
                  <property name="title">
-                  <string>Sampling</string>
+                  <string>Distance</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_35">
                   <property name="bottomMargin">
@@ -4738,7 +4712,7 @@ QPushButton:checked {
                       <family>Quicksand</family>
                       <pointsize>11</pointsize>
                       <weight>50</weight>
-                      <italic>true</italic>
+                      <italic>false</italic>
                       <bold>false</bold>
                      </font>
                     </property>
@@ -4775,7 +4749,7 @@ QPushButton:checked {
                      <string>none</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4784,12 +4758,8 @@ QPushButton:checked {
                     <property name="text">
                      <string>linear</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonScalingHistogram">
-                    <property name="text">
-                     <string>histogram eqn</string>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -4818,14 +4788,14 @@ QPushButton:checked {
                   <item>
                    <widget class="QRadioButton" name="radioButtonSurfaceSampleMinimum">
                     <property name="text">
-                     <string>min</string>
+                     <string>worst</string>
                     </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QRadioButton" name="radioButtonSurfaceSampleMaximum">
                     <property name="text">
-                     <string>max</string>
+                     <string>best</string>
                     </property>
                    </widget>
                   </item>
@@ -4860,7 +4830,7 @@ QPushButton:checked {
                      <string>simple</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4868,6 +4838,9 @@ QPushButton:checked {
                    <widget class="QRadioButton" name="radioButtonSurfaceRegistrationBodge">
                     <property name="text">
                      <string>*bodge*</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
