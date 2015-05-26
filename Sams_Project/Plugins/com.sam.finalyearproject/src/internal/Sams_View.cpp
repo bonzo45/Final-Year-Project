@@ -1959,6 +1959,7 @@ void Sams_View::SurfaceMapping(
 void Sams_View::NextScanPlaneShowThresholded() {
   thresholdingEnabled = false;
   SetLowerThreshold(0.0);
+  UI.checkBoxIgnoreZeros->setChecked(UI.checkBoxNextScanPlaneIgnoreZeros->isChecked());
   thresholdingEnabled = true;
   SetUpperThreshold(UI.spinBoxNextScanPlaneSVDThreshold->value());
 

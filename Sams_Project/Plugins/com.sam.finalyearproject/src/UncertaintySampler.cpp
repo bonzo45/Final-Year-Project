@@ -94,6 +94,13 @@ double UncertaintySampler::sampleUncertainty(vtkVector<float, 3> startPosition, 
             "Hare Direction: (" << hareDirection[0] << ", " << hareDirection[1] << ", " << hareDirection[2] << ")" << endl;  
   }
 
+  // If we're not starting within the uncertainty. Stop. Cannot continue.
+  if (!isWithinUncertainty(tortoise)) {
+    std::cerr << "Bad registration. Start point for uncertainty sampling not within uncertainty" << std::endl;
+    std::cerr << " - Point: (" << tortoise[0] << ", " << tortoise[1] << ", " << tortoise[2] << ")" << std::endl;
+    return -1;
+  }
+
   // Move the tortoise and hare to the start of the uncertainty (i.e. not background)
   while (isWithinUncertainty(tortoise)) {
     double sample = interpolateUncertaintyAtPosition(tortoise);

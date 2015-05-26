@@ -259,7 +259,7 @@ void UncertaintySurfaceMapper::map() {
         mitk::Point3D uncertaintyIndex;
         this->uncertainty->GetGeometry()->WorldToIndex(surfaceWorld, uncertaintyIndex);
 
-        position[0] = uncertaintyIndex[0];
+        position[0] = uncertaintyIndex[0] + 0.2;
         position[1] = uncertaintyIndex[1];
         position[2] = uncertaintyIndex[2];
       }
