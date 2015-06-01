@@ -1,0 +1,9 @@
+\chapter{Introduction}
+
+MRI is very suited to imaging the developing fetus due to its impressive contrast and lack of harmful side effects. However, limitations in resolution make imaging what can often be a very small target volume difficult. Super resolution is a technique to mitigate this that constructs a higher resolution image from many lower resolution images. Unfortunately super resolution introduces some uncertainty which may not be obvious from looking at the reconstructed image.
+
+Each pixel in the reconstructed image is a weighted combination of pixels in the input images. The confidence we have for a reconstructed pixel will vary depending on the amount of information we have for that region in the low resolution images. Crucially when using these images for diagnostic purposes it is important to be aware of the uncertainty in each region.
+
+The purpose of this project is to develop visualisations that can help a radiologist understand this uncertainty. A number of different visualisations will be tried and then compared for effectiveness to see what works well and what does not. In addition it should be possible to use the uncertainty information to guide the process of scanning. MRI is an iterative procedure where previous scans are used to decide where next to scan for best effect. Incorporating this uncertainty information at scan time might be able to guide the scanning process to minimize uncertainty and produce better images.
+
+Hopefully the findings of this project will be able to guide the incorporation of these techniques in clinical use.

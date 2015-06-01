@@ -37,11 +37,15 @@ moc_*
 ui_*
 
 # Report
-Interim-Report/.*
-Interim-Report/*.aux
-Interim-Report/*.bbl
-Interim-Report/*.blg
-Interim-Report/*.log
-Interim-Report/*.out
-Interim-Report/*.pdf
-Interim-Report/*.toc
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.toc
+*.enc
+*.gz
+*.fd
+*.tfm
+*.ttf
