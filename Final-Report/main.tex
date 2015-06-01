@@ -24,9 +24,11 @@
 % New Lines not Indentation for Paragraphs
 \usepackage[parfill]{parskip}
 
-% Distance to Headings
+% Style Headings
 \usepackage{titlesec}
 \titlespacing\subsection{0pt}{0pt}{0pt}
+\titleformat{\section}
+  {\normalfont\scshape}{\thesection}{1em}{}
 
 % Shiny Pictures
 \usepackage{graphicx}
@@ -46,7 +48,18 @@
 \usepackage{babel}
 \usepackage[]{datetime}
 
+% Styling Contents Page
+\usepackage{tocstyle}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+
+\usepackage{textcase}
+
 \begin{document}
+
+\makeatletter
+\patchcmd{\l@subsection}{#1}{\MakeTextUppercase{#1}}{}{}
+\makeatother
 
 \input{title.tex}
 
