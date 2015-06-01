@@ -49,3 +49,5 @@ ui_*
 *.fd
 *.tfm
 *.ttf
+*.swp
+*.gummi

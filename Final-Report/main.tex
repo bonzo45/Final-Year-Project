@@ -2,6 +2,7 @@
 \documentclass[
   % Replace twoside with oneside if you are printing your thesis on a single side
   % of the paper, or for viewing on screen.
+  english,
   oneside,
   11pt, a4paper,
   footinclude=true,
@@ -36,6 +37,14 @@
 %\renewcommand{\sfdefault}{phv}
 %\renewcommand{\ttdefault}{pcr}
 %\newcommand\customfont[1]{{\usefont{T1}{custom}{m}{n} #1 }}
+\usepackage{fontspec}
+\setmainfont{Quicksand}
+%\setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]
+%\setmonofont{Inconsolata}[Scale=MatchLowercase]
+
+% Date
+\usepackage{babel}
+\usepackage[]{datetime}
 
 \begin{document}
 
