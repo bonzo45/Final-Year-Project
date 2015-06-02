@@ -41,6 +41,8 @@
 %\newcommand\customfont[1]{{\usefont{T1}{custom}{m}{n} #1 }}
 \usepackage{fontspec}
 \setmainfont{Quicksand}
+%\usepackage{unicode-math}
+%\setmathfont{Quicksand}
 %\setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]
 %\setmonofont{Inconsolata}[Scale=MatchLowercase]
 
@@ -60,7 +62,7 @@
 \makeatletter
 \patchcmd{\l@subsection}{#1}{\MakeTextUppercase{#1}}{}{}
 \makeatother
-hi\cite{uncertaintysvd}
+
 \input{title}
 
 \input{abstract}
