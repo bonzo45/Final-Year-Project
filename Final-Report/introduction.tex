@@ -1,38 +1,37 @@
-% This is one of the most important components of the report. 
-% It should begin with a clear statement of what the project is about so that the nature and scope of the project can be understood by a lay reader.
-
-% It should summarise everything you set out to achieve, provide a clear summary of the project's background, relevance and main contributions.
-
-% It should explain the motivation for the project (i.e., why the problem is important) and identify the issues to be addressed (i.e., why the problem is difficult).
-
-% The introduction should set the scene for the project and should provide the reader with a summary of the key things to look out for in the remainder of the report.
-
-% When detailing the contributions it is helpful to provide pointers to the section(s) of the report that provide the relevant technical details.
-
-% The introduction itself should be largely non-technical.
-
-% It is sometimes useful to state the main objectives of the project as part of the introduction.
-
-% However, avoid the temptation to list low-level objectives one after another in the introduction and then later, in the evaluation section (see below), say something like "All the objectives of the project have been met blah blah...".
-
-% A project that meets all its objectives is, by definition, weak and unambitious.
-
-% Concentrate instead on the big issues, e.g. the main questions (scientific or otherwise) that the project sets out to answer.
-
 \chapter{Introduction}
 
-In many ways MRI is highly suited for creating fetal images; it has impressive contrast and no known harmful side effects. However, limitations in resolution make imaging what can often be very small area difficult. Super resolution reconstruction is a technique designed to mitigate this which constructs a high resolution volume from a number of lower resolution scans.
+% Provide necessary background.
+% Why is the project important?
 
-The quality of the reconstruction of course depends on the quality of the scans you give it. If for example the fetus moves during the scanning process there will be some areas that will be less well sampled than others which will effect the quality of the reconstruction in that area. It may not be immediately obvious which areas are less well sampled and crucially when using these images for diagnostic purposes it is important to be aware of the uncertainty in each region.
+Magnetic Resonance Imaging (MRI) has found itself being used in an ever increasing number of applications. Uses range from imaging the spinal cord and heart to detecting brain activity (fMRI) and refinements to the technique have resulted in its use in fetal imaging increasing.
 
-The main purpose of this project is to develop visualizations that can help researchers and radiographers understand how well a particular reconstruction went and to highlight problem areas. Two different approaches to visualizing the uncertainty will be prototyped: volume rendering (using ray tracing)[section ???] and conventional rasterization [section ???]. These two will then be compared [section ???] to get an idea of what works well and where future efforts should be focused.
+In many ways MRI is highly suited to fetal imaging; it has impressive contrast in soft tissue and no known harmful side effects. However, limitations in resolution make imaging what can often be very small area difficult. Super resolution reconstruction is a technique designed to mitigate this problem by constructing a high resolution volume from a number of lower resolution scans.
 
-As well as visualizing the uncertainty recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is if we can perform the reconstruction in real time and know at the time of scanning where the largest areas of uncertainty are then we can target them in order to improve the quality of the scan. Visualizations of this next scan plane will also be explored.
+Of course the quality of the reconstruction depends on the quality of these scans. If, for example, the fetus moves during the scanning process, then some areas will be less well sampled than others. This results in less data to use in some areas of the reconstruction than others and gives rise to areas of high uncertainty.
+ 
+From just looking at the reconstructed image it is not necessarily obvious where these areas are. Crucially when using these images for diagnostic purposes it very is important to be aware of this. If a diagnosis needs to be made based on a region of the reconstruction with high uncertainty then this indicates that further scanning may be required.
 
-// Research Tool
+% Specify main objectives.
+% Specify main contributions - provide section numbers.
 
-// Some objectives that weren't accomplished.
-	- registering generic brain model
-	- 
+The main aim of the project was to prototype visualizations that can communicate the uncertainty of a reconstruction to researchers and radiographers. This will allow them to both gauge how well a reconstruction went and highlight any particular problem areas.
+
+Two distinctive approaches have been prototyped and their effectiveness has been evaluated with a group of expert users. The first technique (section \cite{section:thresholding}) uses thresholding to show areas of the scan within a particular uncertainty range; the areas that fall in a given range (e.g. the worst 1\%) can then be displayed on top of the scan in 2D and as a volume in 3D. The second technique (section \cite{section:uncertaintysurface}) projects the uncertainty in a scan on to a surface representation of the object that has been scanned, highlighting the worst regions.
+
+These trade-offs off the two approaches have been looked at to see what works well and where future development should be focused. See chapter \cite{chapter:evaluation}.
+
+As well as being able to visualize the uncertainty, recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is if we can compute, at the time of scanning, the areas of high uncertainty then we can then tailor the next scan position and direction to target these problem areas. A visualization designed to communicate this information has also been created (see section \cite{section:nextscanplane}) and also evaluated.
+
+\subsection{TODO}
+The prototype that has been developed also forms the basis of a research tool to combine the... bla bla bla... pipeline... was the Research Tool an objective?
+% Specify objectives that didn't get met.
+
+TODO: What objectives weren't accomplished?
+\begin{enumerate}
+	\item Registering a generic model to a volume.
+	\item Animation.	
+\end{enumerate}
 
 Hopefully the findings of this project will be able to guide the incorporation of these techniques in clinical use.
+
+% Why is the project difficult - discuss problems to overcome?
