@@ -1,4 +1,4 @@
-\chapter{Introduction}
+\chapter{Introduction}\label{chapter:introduction}
 
 % Provide necessary background.
 % Why is the project important?
@@ -16,11 +16,11 @@ From just looking at the reconstructed image it is not necessarily obvious where
 
 The main aim of the project was to prototype visualizations that can communicate the uncertainty of a reconstruction to researchers and radiographers. This will allow them to both gauge how well a reconstruction went and highlight any particular problem areas.
 
-Two distinctive approaches have been prototyped and their effectiveness has been evaluated with a group of expert users. The first technique (section \cite{section:thresholding}) uses thresholding to show areas of the scan within a particular uncertainty range; the areas that fall in a given range (e.g. the worst 1\%) can then be displayed on top of the scan in 2D and as a volume in 3D. The second technique (section \cite{section:uncertaintysurface}) projects the uncertainty in a scan on to a surface representation of the object that has been scanned, highlighting the worst regions.
+Two distinctive approaches have been prototyped and their effectiveness has been evaluated with a group of expert users. The first technique (section \ref{section:thresholding}) uses thresholding to show areas of the scan within a particular uncertainty range; the areas that fall in a given range (e.g. the worst 1$\%$) can then be displayed on top of the scan in 2D and as a volume in 3D. The second technique (section \ref{section:uncertaintysurface}) projects the uncertainty in a scan on to a surface representation of the object that has been scanned, highlighting the worst regions.
 
-These trade-offs off the two approaches have been looked at to see what works well and where future development should be focused. See chapter \cite{chapter:evaluation}.
+These trade-offs off the two approaches have been looked at to see what works well and where future development should be focused. See chapter \ref{chapter:evaluation}.
 
-As well as being able to visualize the uncertainty, recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is if we can compute, at the time of scanning, the areas of high uncertainty then we can then tailor the next scan position and direction to target these problem areas. A visualization designed to communicate this information has also been created (see section \cite{section:nextscanplane}) and also evaluated.
+As well as being able to visualize the uncertainty, recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is if we can compute, at the time of scanning, the areas of high uncertainty then we can then tailor the next scan position and direction to target these problem areas. A visualization designed to communicate this information has also been created (see section \ref{section:nextscanplane}) and also evaluated.
 
 \subsection{TODO}
 The prototype that has been developed also forms the basis of a research tool to combine the... bla bla bla... pipeline... was the Research Tool an objective?
