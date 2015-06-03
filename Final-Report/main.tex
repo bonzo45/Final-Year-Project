@@ -10,7 +10,6 @@
   cleardoublepage=empty
 ]{scrbook}
 
-\usepackage{lipsum}
 \usepackage[linedheaders,parts,pdfspacing]{classicthesis}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -45,19 +44,36 @@
     }
     % After
     [\normalcolor\normalsize\vspace*{.8\baselineskip}\titlerule]
+\titlespacing\chapter{0pt}{0pt}{10pt}[0pt]
   
-\titleformat{name=\section}[block]
-  {\large}
-  {\hspace*{\normalparindent}\thesection}
-  {1em}
-  {}  
+\titleformat{\section}[display]
+   	% Format
+   	{\large\bfseries}
+   	% Label
+   	{}
+   	%Separation
+   	{-2em}
+   	% Before
+    {
+    	\hspace*{1em} \thesection \hspace*{0.25em} --- \hspace*{0.25em}\spacedallcaps
+    }
+    % After
+    []
+\titlespacing\section{0pt}{0pt}{0pt}
 
-%\titleformat{\section}
-%	{\LARGE\sffamily\slshape}
-%	{\thesection}{1em}{}
-%\titlespacing{\section}
-%	{-6pc}{3.5ex plus .1ex minus .2ex}{1.5ex minus .1ex}
-
+\titleformat{\subsection}[display]
+   	% Format
+   	{\large\bfseries}
+   	% Label
+   	{}
+   	%Separation
+   	{-2em}
+   	% Before
+    {
+    	\hspace*{1em} \thesubsection \hspace*{0.25em} --- \hspace*{0.25em}\spacedallcaps
+    }
+    % After
+    []
 \titlespacing\subsection{0pt}{0pt}{0pt}
 
 % Shiny Pictures
