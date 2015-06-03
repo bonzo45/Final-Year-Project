@@ -1,6 +1,21 @@
 \chapter{Visualization}
 
+When the reconstruction process is run it outputs both the reconstructed MRI volume as well as the uncertainty. The uncertainty essentially tells us, for each pixel in the reconstructed volume, how confident are we in that value.
+
+Before this can be visualized the uncertainty is normalized so that it is between 0.0 and 1.0, where 0.0 represents a completely uncertain value is completely uncertain and 1.0 represents the most certain value in the volume.
+
+The reconstruction process is also focused by using a mask to isolate the area of the scan that we are interested in. For example, if the scan is to target the brain of a fetus then a mask is created to ignore surrounding areas that are also in view such as tissue of the mother and amniotic fluid.
+
+% Idea -> Implementation -> Results
 \section{Thresholding}\label{section:thresholding}
+
+The idea behind thresholding is to isolate areas in the reconstructed image within a range of uncertainty. This allows the viewer to show regions within a particular range (e.g. 0.2 to 0.5) and also lets them isolate the worst values in the volume (e.g. the worst 1$\%$).
+
+The implementation uses a filter provided by ITK to go create a binary mask which is set to 1 where the value is within the range of interest and 0 where it is not. This mask is then overlayed on top of the scan in 2D to highlight the areas within that range but it can also be viewed in 3D.
+
+The mask uses volume rendering to display it in 3D to the viewer. The transfer function used maps 0 to fully transparent and 1 to fully opaque.
+
+// Compare with applying transfer function to actual uncertainty. Illustrate the problems with small dots.
 
 \section{Uncertainty Surface}\label{section:uncertaintysurface}
 

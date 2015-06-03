@@ -99,11 +99,19 @@ These matrices can be combined to give us this result, without loss of generalit
 
 There are a number of different processes that are used to try and reverse this process, however this detail is sufficient to understand the kind of errors or uncertainties that can arise when reconstructing MRI images.
 
+\newpage
+\subsubsection{Uncertainty in Super Resolution}
+Three main types of uncertainty have been considered:
+
 \begin{enumerate}
 	\item sampling - How many points in the original scans correspond to the area in the reconstruction? Some parts of reconstruction will have many points in the original stacks to use, but others will not and will have to be interpolated.
 	\item registration - How precisely is the registration known? Depending on the calibration of the scanner and also any movement that occurs during the scan our confidence in the registration will change.
-	\item bias/intensity - Bias is an artefact that occurs in MRI that means that some areas of the image are darker than others, not due to the tissue itself, but due to the distance from the receiver coil. Some areas have more of this inhomogeneity than others.
+	\item intensity bias - Bias is an artefact that occurs in MRI that means that some areas of the image are darker than others, not due to the tissue itself, but due to the distance from the receiver coil. Some areas have more of this inhomogeneity than others.
 \end{enumerate}
+
+Having three separate 'channels' of uncertainty makes visualizing it more difficult as trying to display all three at one time will likely be too much information to communicate at once. Any visualization that is developed should in theory be applicable to each uncertainty individually or alternately the three types can be aggregated to form one combined uncertainty.
+
+An aggregation of all three will be able to give a useful overview of the situation, however being able to isolate a single type of uncertainty is important as it gives the viewer an idea of what caused the reconstruction issues.
 
 \newpage
 \subsection{Singular Value Decomposition and Principal Component Analysis}
@@ -275,17 +283,9 @@ This technique could be useful for illustrating the area of greatest uncertainty
 
 When visualising uncertainty in particular you must consider which extreme you would like to draw attention to. A lot of uncertainty visualisations draw larger attention to high uncertainty areas, for example brighter colours on a heatmap or larger error bars, but it may be the case that the viewer is interested in areas of high certainty as this is what they can draw conclusions from.
 
-The uncertainty that we will be dealing with in this project is in fact a vector quantity, composed of three values. 
-
-\begin{enumerate}
-	\item (over)sampling - confidence in our sampling resolution
-	\item registration - confidence in registration
-	\item bias/intensity - confidence in the intensity.
-\end{enumerate}
-
-This extra dimensionality will make visualising the uncertainty harder than it would otherwise be. One aspect that is worth investigating is to see whether the three scalar values can be combined to create one representative value or whether they are better visualised individually.
-
-Another aspect of this project will be proposing (and visualising) the next scan plane. This, and potentially other parts of the project, will involve labelling the data in some way. Work on choosing a good labelling system has been done previously and there are a number of different approaches that can be taken\cite{labelling}.
+\newpage
+\subsection{Labelling - didn't use this... is it worth mentioning...}
+One part of the project that there wasn't time to explore was Another aspect of this project will be proposing (and visualising) the next scan plane. This, and potentially other parts of the project, will involve labelling the data in some way. Work on choosing a good labelling system has been done previously and there are a number of different approaches that can be taken\cite{labelling}.
 
 \begin{figure}[h]
     \centering
