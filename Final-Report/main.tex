@@ -26,9 +26,39 @@
 
 % Style Headings
 \usepackage{titlesec}
+\usepackage{indentfirst}
+\newlength{\normalparindent}
+\AtBeginDocument{\setlength{\normalparindent}{\parindent}}
+
+\titleformat{\chapter}[display]
+   	% Format
+   	{\huge}
+   	% Label
+   	{}
+   	%Separation
+   	{-10pt}
+   	% Before
+    {
+    	\titlerule\vspace*{0.4\baselineskip}
+    	\ifnum\thechapter=0 - \else \thechapter. \fi
+    	\spacedallcaps
+    }
+    % After
+    [\normalcolor\normalsize\vspace*{.8\baselineskip}\titlerule]
+  
+\titleformat{name=\section}[block]
+  {\large}
+  {\hspace*{\normalparindent}\thesection}
+  {1em}
+  {}  
+
+%\titleformat{\section}
+%	{\LARGE\sffamily\slshape}
+%	{\thesection}{1em}{}
+%\titlespacing{\section}
+%	{-6pc}{3.5ex plus .1ex minus .2ex}{1.5ex minus .1ex}
+
 \titlespacing\subsection{0pt}{0pt}{0pt}
-\titleformat{\section}
-  {\normalfont\scshape}{\thesection}{1em}{}
 
 % Shiny Pictures
 \usepackage{graphicx}
