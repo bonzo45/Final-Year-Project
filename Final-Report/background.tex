@@ -13,7 +13,7 @@ As with all medical imaging techniques the benefits and risks need to be weighed
 
 \subsection{MRI (Magnetic Resonance Imaging)\cite{howmriworks}}
 
-MRI is a medical imaging technique that uses a strong magnetic field and radio waves to produce images of the body. MRI can be used to produce 2D, 3D and even 4D images and has the advantage that it doesn’t use any ionizing radiation during the scanning process.
+MRI uses a strong magnetic field and radio waves to produce images of the body. MRI can be used to produce 2D, 3D and even 4D images and has the advantage that it doesn’t use any ionizing radiation during the scanning process.
 
 MRI is able to detect the amount of water that is contained in different types of tissue in the body by exploiting a property of protons called spin. Each water molecule in the body contains two hydrogen atoms and the nucleus of each is simply a proton.
 
@@ -36,7 +36,7 @@ There are no known side effects associated with using MRI, however it is current
 
 \newpage
 \subsection{Super Resolution\cite{superresolution1}\cite{superresolution2}}
-One of the challenges with using MRI for fetal imaging the resolution that is achievable with current scanners. A typical slice thickness when performing a scan on a fetal brain for example is 3mm, which is set to provide a good balance between resolution and noise. Comparing this to the brain, which may only be 5cm, limits the diagnostic potential.
+One of the challenges with using MRI for fetal imaging is the resolution that is achievable with current scanners. A typical slice thickness when performing a scan on a fetal brain for example is 3mm, which is set to provide a good balance between resolution and noise. Comparing this to the brain, which may only be 5cm, limits the diagnostic potential.
 
 Super resolution is a technique that is designed to address this issue. The idea behind super resolution is to construct a higher resolution image by combining information from multiple lower resolution images. A similar approach is used in stereoscopic 3D where the information from two images taken from different perspectives are combined to create one 3D image.
 
@@ -76,10 +76,10 @@ These processes can be represented by a series of transformations that can be ap
 & y = DBMx + n \nonumber \\ 
 & \text{where} \\
 & y \text{ - low resolution image} \nonumber \\
-& x \text{ - high resolution (ideal) image} \nonumber \\
-& M \text{ - warping (translation, rotation)} \nonumber \\
-& B \text{ - blurring (optical effects, motion blur)} \nonumber \\
 & D \text{ - scaling (discrete sampling)} \nonumber \\
+& B \text{ - blurring (optical effects, motion blur)} \nonumber \\
+& M \text{ - warping (translation, rotation)} \nonumber \\
+& x \text{ - high resolution (ideal) image} \nonumber \\
 & n \text{ - noise} \nonumber
 \end{align*}
 
@@ -97,15 +97,13 @@ These matrices can be combined to give us this result, without loss of generalit
 & y = Wx + n \nonumber
 \end{align}
 
-There are a number of different processes that are used to try and reverse this process. In particular we can see that we will have different confidence in each pixel based on:
+There are a number of different processes that are used to try and reverse this process, however this detail is sufficient to understand the kind of errors or uncertainties that can arise when reconstructing MRI images.
 
 \begin{enumerate}
-	\item sampling - If we sample our new image too finely then a lot of the pixels will just blend together yielding no new information.
-	\item registration - Depending on the calibration of the scanner we will know the registration values to within a certain tolerance.
-	\item bias/intensity.
+	\item sampling - How many points in the original scans correspond to the area in the reconstruction? Some parts of reconstruction will have many points in the original stacks to use, but others will not and will have to be interpolated.
+	\item registration - How precisely is the registration known? Depending on the calibration of the scanner and also any movement that occurs during the scan our confidence in the registration will change.
+	\item bias/intensity - Bias is an artefact that occurs in MRI that means that some areas of the image are darker than others, not due to the tissue itself, but due to the distance from the receiver coil. Some areas have more of this inhomogeneity than others.
 \end{enumerate}
-
-% TODO: Work out what bias is.
 
 \newpage
 \subsection{Singular Value Decomposition and Principal Component Analysis}
@@ -176,20 +174,14 @@ RANSAC gets over this problem using random sampling and iteration. It relies on 
 
 As many points are taken randomly from the data set as are needed to fully specify the model. e.g. you need two points to specify a line.
 
-The model is fit to these points. e.g. by minimizing the sum of squared differences.
-All of the data points are compared to this model. If they differ by more than a threshold value they are discarded. If they fit the model they are put into this iterations ‘inlier set’.
+The points are then fit to the model and then all of the data points are compared to this model. If they differ by more than a threshold value they are discarded. If they fit the model they are put into this iterations ‘inlier set’.
 
-A number of iterations are then performed and the winning iteration is the one with the largest inlier set. The final model is then either the model which gave the largest inlier set or alternatively the model can be generated using every point in the inlier set.
-This algorithm relies on certain parameters being tweaked to perform well.
+A number of iterations are then performed and the winning iteration is the one with the largest inlier set. The final model is then either the model which gave the largest inlier set or alternatively the model can be generated using every point in the inlier set. This algorithm relies on certain parameters being tweaked to perform well.
 
 \begin{itemize}
 	\item threshold (how picky to be when discarding points)
 	\item iterations (how many times to perform the algorithm)
 \end{itemize}
-
-RANSAC may be of use in this project to pick the next scan plane given our uncertainty values. The scan plane will be chosen such that it provides the most information, given the uncertainty, and so in this case you can imagine using it to fit a ‘plane’ to the uncertainty values.
-
-The algorithm will need to be modified to account for the three types of uncertainty that the visualisation uses and some experimentation will be needed to find a solution that performs well.
 
 \newpage
 \subsection{Direct Volume Rendering\cite{nvidia:volumerendering}}
@@ -199,7 +191,7 @@ Direct volume rendering is a technique for visualising 3D volumetric data which 
 
 Each ray of light (we have one per pixel) is sent into the volume and samples are taken at a regular interval. Each sample point may not exactly hit a voxel in the volume and so the value will be interpolated from the neighbouring points. Trilinear interpolation can be used but may introduce some visual artefacts in which case more complex interpolation (such as piecewise cubic polynomials) can be used.
 
-Each of these samples, which is just an intensity value, needs to be mapped to something that we can visualise. We use a transfer function to map these values to colour and transparency values. We can change our transfer function to highlight different features of our volume, for example we could make all values below a certain threshold completely transparent.
+Each of these samples, which is just an intensity value, needs to be mapped to something that we can visualise. A transfer function is used to map these values to colour and transparency values. This transfer function can then be changed to highlight different features of our volume, for example we could make all values below a certain threshold completely transparent.
 
 All of the samples along the ray are then combined to calculate the value of the pixel.
 
@@ -214,10 +206,6 @@ All of the samples along the ray are then combined to calculate the value of the
 \end{align*}
 
 NOTE: If the final opacity is greater than 0 then the colour is normalised (divided by $O$).
-
-For this project I will experiment with using both 2D and 3D to visualise the uncertainty. Direct volume rendering can be used to visualise the raw MRI image and also the errors themselves, which are a set of scalar values for each pixel in the scene.
-
-Direct volume rendering is a very powerful technique for visualising 3D datasets but it is also computationally expensive. It requires the entire scan to be stored in memory and altering the viewpoint requires the volume to be constantly resampled. Part of the experimentation in this project will be to see if this overhead is worth it when compared to using surface rendering.
 
 \newpage
 \subsection{Surface Extraction}
@@ -240,11 +228,9 @@ The marching cubes algorithm generates as a result a mesh of triangles which can
 
 There are some constraints associated with using surface extraction for volume visualisation. Firstly the number of primitives required to represent certain volumes may be prohibitively high. As an extreme you can imagine trying to extract surfaces from the volumetric representation of a dust cloud; in this case it would not be practical to do so and in other situations an accuracy/efficiency trade off must be found. Also, there is a certain amount of information loss with this technique, importantly the intensity values are lost.
 
-For this project surface extraction could prove useful for generating a rough overview of the scan being worked on that uncertainty data or other information can be overlayed on. If however it is not possible to get a good enough extraction from the data then a reference image, also known as an imposter, could be used instead.
-
 \newpage
 \subsection{Uncertainty Visualisation\cite{uncertaintyoverview}}
-Uncertainty visualisation tackles the problem of trying to represent the ambiguity or uncertainty in a some data or a model when visualising it.
+Uncertainty visualisation in a general sense tackles the problem of trying to represent the ambiguity or uncertainty in a some data or a model when visualising it.
 
 Most data visualisation techniques implicitly assume that all of the data being used is perfect and because of this create visualisations that are misleading or appear to represent with great precision a model when in fact the underlying data cannot be that sure.
 

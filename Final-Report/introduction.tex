@@ -22,16 +22,16 @@ These trade-offs off the two approaches have been looked at to see what works we
 
 As well as being able to visualize the uncertainty, recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is if we can compute, at the time of scanning, the areas of high uncertainty then we can then tailor the next scan position and direction to target these problem areas. A visualization designed to communicate this information has also been created (see section \ref{section:nextscanplane}) and also evaluated.
 
-\subsection{TODO}
-The prototype that has been developed also forms the basis of a research tool to combine the... bla bla bla... pipeline... was the Research Tool an objective?
-% Specify objectives that didn't get met.
+Finally these features have been wrapped up in a research tool that combines every stage in the reconstruction pipeline together. It allows the user to simulate a scan (section \ref{section:simulatescan}), reconstruct the image (section \ref{section:reconstruction}) and then visualize the results.
 
+The scan simulation part of the tool allows you to take an existing, well reconstructed image and use this as a basis for creating new, lower resolution scans. The idea behind this is that we can assume that the initial image is the 'perfect' reconstruction, then create lower resolution scans from it, run our reconstruction algorithm and then compare the result to the original. This will allow tweaks to the reconstruction algorithm to be thoroughly tested without actually scanning thousands of patients. Currently a very simple motion corruption 'simulation' is implemented which will allow the tolerance of a reconstruction algorithm to motion to be tested. Speaking to expert users has given rise to a large number of additional features that can be simulated.
+
+The reconstruction part of the tool uses the GPU implementation from a previous research paper\cite{gpureconstruction} to perform fast reconstruction of the slice stacks. One additional feature that has been prototyped is the ability to guide the reconstruction by marking landmarks on each of the slice stacks. One way to improve the quality of the reconstruction, by guiding the registration process, is to manually mark on each of the slices stacks a set of landmarks (e.g. Left Eye, Right Eye, ...). These points can then be used to guide the reconstruction.
+
+\subsection{TODO}
+% Specify objectives that didn't get met.
 TODO: What objectives weren't accomplished?
 \begin{enumerate}
 	\item Registering a generic model to a volume.
 	\item Animation.	
 \end{enumerate}
-
-Hopefully the findings of this project will be able to guide the incorporation of these techniques in clinical use.
-
-% Why is the project difficult - discuss problems to overcome?
