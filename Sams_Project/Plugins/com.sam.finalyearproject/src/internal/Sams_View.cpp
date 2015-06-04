@@ -2318,7 +2318,7 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   * A convenient method (attached to button 1 in the debug menu) to test out functionality.
   */
 void Sams_View::debug1() {
-  
+  VolumeRenderThreshold(true);
 }
 
 mitk::PointSetDataInteractor::Pointer m_CurrentInteractor;
