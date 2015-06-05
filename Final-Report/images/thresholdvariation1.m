@@ -20,7 +20,6 @@ ax = gca;
 ax.XTick = [0, 1];
 ax.YTick = [0, 1];
 
-hold off;
 hold on;
 
 % Vertical Lines
@@ -33,8 +32,8 @@ text([min], [1.1], ['<---'], 'VerticalAlignment','bottom', 'HorizontalAlignment'
 text([(min + max) / 2], [1.1], [' Threshold '], 'VerticalAlignment','bottom', 'HorizontalAlignment','center');
 text([max], [1.1], ['--->'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right');
 
-set(text([1], [1.0], ['Opaque'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right'), 'FontAngle', 'italic');
-set(text([1], [0.0], ['Transparent'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right'), 'FontAngle', 'italic');;
+% set(text([1], [1.0], ['Opaque'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right'), 'FontAngle', 'italic');
+% set(text([1], [0.0], ['Transparent'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right'), 'FontAngle', 'italic');;
 
 % Plot Data
 plot(x, y, 'Color', 'b');
