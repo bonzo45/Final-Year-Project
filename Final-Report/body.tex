@@ -89,17 +89,65 @@ The idea behind thresholding is to isolate areas in the reconstructed image with
 \subsection*{Implementation}
 The implementation uses a filter provided by ITK to go create a binary mask which is set to 1 where the uncertainty is in the range and 0 where it is not. This mask is then overlayed on the reconstructed scan in 2D and made transparent so both the uncertain area and underlying scan can be seen simultaneously.
 
-Two variations on the volume rendering approach have been implemented to view the threshold in 3D.
+To view the uncertainty in 3D, two variations have been implemented, both using volume rendering (see section \ref{background:volumerendering}). Variation 1 applies volume rendering directly to the uncertainty whereas and variation 2 applies volume rendering to the binary mask.
 
-Variation 1 - Volume Render the Uncertainty:
-<graph> Transfer Function (transparency): (0, 0), (min - epsilon, 0), (min, 1), (max, 1), (max + epsilon, 0), (1, 0)
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1.jpg}
+    \caption{Variation 1}
+    \label{fig:thresholdingvariation1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation2.jpg}
+    \caption{Variation 2}
+    \label{fig:thresholdingvariation2}
+  \end{subfigure}
+  \caption{Opacity Transfer Functions. Opacity of 0 is transparent, 1 is opaque.}\label{fig:threshldingoverview}
+\end{figure}
 
-The problem that was found with variation 1 was that the renderer draws the edge of the uncertainty, even though it had previously been removed by erosion. This is due to the renderer using linear interpolation to take samples along each ray fired into the volume. Figure <SOMETHING> illustrates the problem - the background has value 0.0, and the start of the uncertainty has a value of approximately ~0.6. This means that points interpolated between the two get values in the range 0.0-0.6, for example 0.3, when there is only uncertainty 0.0 and 0.6 there.
+An issue found with variation 1 was that the renderer still draws the edge of the uncertainty, even though it had previously been removed by erosion. This is due to the renderer using linear interpolation to take samples along each ray fired into the volume. Figure \ref{fig:threshldingvariation1problem} illustrates the problem - the background has uncertainty 0.0, and the object has uncertainty ~0.6. Points interpolated between the two will lie in the range 0.0-0.6 and so we find values of uncertainty that don't actually exist in the object.
 
-Variation 2 - Volume Render the Mask:
-<graph> Transfer Function (transparency): (0, transparent), (1, opaque)
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1example.png}
+    \caption{Simplified View}
+    \label{fig:thresholdingvariation1example}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1problem.png}
+    \caption{Edge Artefacts}
+    \label{fig:thresholdingvariation1artefacts}
+  \end{subfigure}
+  \caption{Opacity Transfer Functions. Opacity of 0 is transparent, 1 is opaque.}\label{fig:threshldingvariation1problem}
+\end{figure}
 
-This thresholded mask is also displayed in 3D using volume rendering (see section \ref{background:volumerendering}). The transfer function used maps a value of 0 (out of the range) to be completely transparent and a value of 1 (in the range) to be opaque.
+A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. Figure \ref{fig:thresholdingvariationfix} shows that this can be tweaked to remove the edges but also hides some of the smaller regions of genuine uncertainty.
+
+<figure>
+
+Variation 2 was not found to have these problems and so this implementation was used in the final version of the tool to be evaluated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \begin{figure}[h]
   \centering
