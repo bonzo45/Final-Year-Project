@@ -127,11 +127,40 @@ An issue found with variation 1 was that the renderer still draws the edge of th
   \caption{Opacity Transfer Functions. Opacity of 0 is transparent, 1 is opaque.}\label{fig:threshldingvariation1problem}
 \end{figure}
 
-A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. Figure \ref{fig:thresholdingvariationfix} shows that this can be tweaked to remove the edges but also hides some of the smaller regions of genuine uncertainty.
+A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. The cutoff can be adjusted to remove the entire edge but there is a tradeoff as some genuine regions of uncertainty can also be filteredout. Figure \ref{fig:thresholdingvariationfix} shows the transfer function and the effect of tweaking the threshold.
 
-<figure>
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1fix.jpg}
+    \caption{Gradient Transfer Function}
+    \label{fig:thresholdingvariation1example}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1threshold1.png}
+    \caption{Threshold 0.05}
+    \label{fig:thresholdingvariation1threshold1}
+  \end{subfigure}  
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1threshold2.png}
+    \caption{Threshold 0.02}
+    \label{fig:thresholdingvariation1threshold2}  
+  \end{subfigure}
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholdvariation1threshold3.png}
+    \caption{Threshold 0.01}
+    \label{fig:thresholdingvariation1threshold3}  
+  \end{subfigure}  
+  \caption{Reducing the threshold removes the edge but removes some uncertainty.}\label{fig:thresholdingvariationfix}
+\end{figure}
 
-Variation 2 was not found to have these problems and so this implementation was used in the final version of the tool to be evaluated.
+Although tweaking the threshold can remove edge artefact variation 2 was found not to exhibit these problems and so this implementation was used in the evaluation of the prototype.
 
 
 
