@@ -1710,11 +1710,30 @@ void Sams_View::ThresholdUncertainty() {
 
   // Save it. (replace if it already exists)
   thresholdedUncertainty = SaveDataNode("Thresholded", thresholdedImage, true, preprocessedUncertainty);
-  thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(true));
+  thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(false));
   thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0));
   thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(10));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+
+  // REPORT: Customize Transfer Function
+  double epsilon = 0.001;
+
+  // Opacity Transfer Function
+  mitk::TransferFunction::ControlPoints scalarOpacityPoints;
+  scalarOpacityPoints.push_back(std::make_pair(0.0, 0.0));
+  scalarOpacityPoints.push_back(std::make_pair(1.0, 1.0));
+
+  // Colour Transfer Function
+  vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  colorTransferFunction->AddRGBPoint(0.0, 1.0, 0.0, 0.0);
+  
+  // Combine them.
+  mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+  transferFunction->SetScalarOpacityPoints(scalarOpacityPoints);
+  transferFunction->SetColorTransferFunction(colorTransferFunction);
+
+  thresholdedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
 
   DisplayThreshold();
 }
