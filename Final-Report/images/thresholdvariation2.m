@@ -15,7 +15,7 @@ set(gca, 'FontWeight', 'bold');
 % set(title('Variant 1: Opacity Transfer Function'), 'FontSize', 16);
 set(xlabel('Mask Value'), 'FontWeight', 'bold');
 set(ylabel('Opacity'), 'FontWeight', 'bold');
-axis([-0.5, 1.5, 0, 1.3]);
+axis([0, 1, 0, 1.3]);
 ax = gca;
 ax.XTick = [0, 1];
 ax.YTick = [0, 1];
@@ -33,4 +33,4 @@ hold on;
 % text([max], [1.1], ['--->'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right');
 
 % Plot Data
-bar(x, y, 0.05) %, 'Color', 'b');
+plot(x, y, 'Color', 'b');
