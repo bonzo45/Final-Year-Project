@@ -22,13 +22,13 @@ ax.YTick = [0, 1];
 hold on;
 
 % Vertical Lines
-% yL = get(gca,'YLim');
-% line([min min], yL, 'Color', 'r', 'LineStyle', ':');
+yL = get(gca,'YLim');
+line([min min], yL, 'Color', 'r', 'LineStyle', ':');
 % line([max max], yL, 'Color', 'r', 'LineStyle', ':');
 
 % Labels
 % text([min], [1.1], ['<---'], 'VerticalAlignment','bottom', 'HorizontalAlignment','left');
-% text([(min + max) / 2], [1.1], [' Threshold '], 'VerticalAlignment','bottom', 'HorizontalAlignment','center');
+text([min], [1.1], [' <-- Threshold '], 'VerticalAlignment','bottom', 'HorizontalAlignment','left');
 % text([max], [1.1], ['--->'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right');
 
 % set(text([1], [1.0], ['Opaque'], 'VerticalAlignment','bottom', 'HorizontalAlignment','right'), 'FontAngle', 'italic');
