@@ -2403,7 +2403,7 @@ void Sams_View::VolumeRenderThreshold(bool checked) {
     mitk::TransferFunction::ControlPoints gradientOpacityPoints;
     gradientOpacityPoints.push_back(std::make_pair(0.0, 1.0));
     gradientOpacityPoints.push_back(std::make_pair(UI.double1->value(), 1.0));
-    gradientOpacityPoints.push_back(std::make_pair(UI.double1->value() + 0.01, 0.0));
+    gradientOpacityPoints.push_back(std::make_pair(UI.double1->value() + epsilon, 0.0));
 
     // Colour Transfer Function
     vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();

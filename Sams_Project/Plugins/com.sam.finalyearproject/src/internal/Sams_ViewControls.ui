@@ -452,8 +452,8 @@ QWidget {
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>380</width>
-                  <height>801</height>
+                  <width>377</width>
+                  <height>792</height>
                  </rect>
                 </property>
                 <property name="sizePolicy">
@@ -2506,8 +2506,8 @@ color: rgb(200, 0, 0);</string>
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>395</width>
-                  <height>184</height>
+                  <width>100</width>
+                  <height>30</height>
                  </rect>
                 </property>
                 <attribute name="label">
@@ -2827,6 +2827,12 @@ QPushButton:pressed {
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::NoButtons</enum>
               </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="singleStep">
+               <double>0.005000000000000</double>
+              </property>
               <property name="value">
                <double>0.030000000000000</double>
               </property>
@@ -2979,7 +2985,7 @@ QPushButton:pressed {
          <string notr="true">font-size: 8pt;</string>
         </property>
         <property name="currentIndex">
-         <number>3</number>
+         <number>1</number>
         </property>
         <property name="iconSize">
          <size>
@@ -3936,9 +3942,6 @@ QPushButton:pressed {
                   </property>
                   <property name="tracking">
                    <bool>true</bool>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
