@@ -83,7 +83,7 @@ Figure \ref{fig:erosionoverview} shows how the soft fade out of uncertainty due 
 \newpage
 \section{Test Uncertainties}\label{section:testuncertainties}
 
-To test the different visualizations during development a number of artificial uncertainty volumes were used, as well as an example fetal brain scan.
+To test the different visualizations during development a number of artificial uncertainty volumes were used, as well as uncertainty from a fetal brain reconstruction.
 
 For each visualization that has been developed the results with these test uncertainties will be examined and compared.
 
@@ -134,7 +134,7 @@ Uncertainty generated from an example super resolution reconstruction of a fetal
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.18\textwidth}
     \fcolorbox{gray}{white}{\includegraphics[width=\textwidth]{images/test/test_scan.png}}
-    \caption{Scan}
+    \caption{Fetal Brain}
     \label{fig:erosion3}
   \end{subfigure}
   \caption{Steps involved in removing the edge.}\label{fig:erosionoverview}
@@ -313,15 +313,296 @@ Here are the results that are achieved with the test uncertainties (see section 
 
 \newpage
 \section{Uncertainty Surface}\label{section:uncertaintysurface}
+The idea behind the uncertainty surface is to project the uncertainty (a 3D volume) onto a surface (effectively 2D) to give an overview of the uncertainty hotspots. Two versions have been implemented; the first maps the uncertainty to a sphere and the second maps the uncertainty to a surface representation of the organ being scanned.
+
+The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question. Both use the same technique; for each point (on the sphere/surface) a ray is fired into the uncertainty volume to accumulate the uncertainty (see volume rendering section \ref{background:volumerendering}) and the result is mapped to a colour.
+
+\subsection{Implementation - Sphere}
+
+Firstly a surface representation of a sphere is generated - the resolution of this model can be changed to alter the number of points used to approximate the sphere.
+
+Then each point on the sphere is registered to a start point to begin sampling in the volume (volume intersection in figure). The normal of the point on the sphere is then used as a direction to sample in. The start of the genuine uncertainty is then found by following the sampling direction until the value is not background (uncertainty intersection in figure). Figure \ref{fig:surface_sampling_example} illustrates this process.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/surface/sampling_example.png}
+  \caption{Sampling Overview}\label{fig:surface_sampling_example}
+\end{figure}
+
+A tortoise and hare algorithm is then used to be able to vary how far into the volume the sampling goes. The tortoise moves through the uncertainty accumulating samples whilst the hare shoots off trying to find the edge. When the hare does find the edge the sampling stops. If the hare travels at the same speed as the tortoise then the entire object is sampled, if it travels at twice the speed of the tortoise then the sampling stops half the way through and so on. This is illustrated in figure \ref{fig:tortoiseandhareexample}.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/tortoise_and_hare_1.png}
+    \caption{Start}
+    \label{fig:tortoiseandhare1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/tortoise_and_hare_2.png}
+    \caption{...}
+    \label{fig:tortoiseandhare2}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/tortoise_and_hare_3.png}
+    \caption{End}
+    \label{fig:tortoiseandhare3}  
+  \end{subfigure}
+  \caption{Illustration of Tortoise and Hare Algorithm}\label{fig:tortoiseandhareexample}
+\end{figure}
+
+The accumulation that the tortoise does can also be customized. By default it will take the average of all of the samples it takes, but the best value and also the worst value along the ray can be extracted.
+
+Once all of the points have been computed some scaling can be implemented to improve the contrast of the visualization. In many cases the average uncertainty will be roughly the same everywhere and if the range (0-1) is mapped to the entire colour range the values end up looking idential; to fix this the outputted colour range can be linearly mapped to make better use of the colours available.
+
+\subsection{Implementation - Surface}
+
+To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation.
+
+The registration step in this case is trivial as the mask uses the same coordinate system as the uncertainty volume. The normal at the surface can then be used, as before, and scaling similarly applied.
+
+\newpage
+\subsection{Results}
+Scaling was found to significantly increase the contrast of the visualization. The legend shows the scaling applied in each case.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_no_scaling.png}
+    \caption*{Sphere\\(No Scaling)}
+    \label{fig:surfacespherenoscaling}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_scaling.png}
+    \caption*{Sphere\\(Linear)}
+    \label{fig:surfacespherescaling}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_no_scaling.png}
+    \caption*{Surface\\(No Scaling)}
+    \label{fig:surfacesurfacenoscaling}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_scaling.png}
+    \caption*{Sphere\\(Linear)}
+    \label{fig:surfacesurfacescaling}
+  \end{subfigure}
+  \caption{The effect of linear mapping.}\label{fig:surfacescaling}
+\end{figure}
+
+The surface representation difficult to interpret by looking at a single image in a report. Figure \ref{fig:surface180} illustrates various angles. In practice all of these visualizations can be rotated and zoomed.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_1.png}
+    \caption*{Left}
+    \label{fig:erosion0}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_2.png}
+    \caption*{Front Left}
+    \label{fig:erosion1}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_3.png}
+    \caption*{Front}
+    \label{fig:erosion2}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_4.png}
+    \caption*{Front Right}
+    \label{fig:erosion3}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_5.png}
+    \caption*{Right}
+    \label{fig:erosion3}
+  \end{subfigure}
+  \caption{Brain surface viewed from different directions.}\label{fig:surface180}
+\end{figure}
+
+The default behaviour of taking the average uncertainty along the ray does a good job of bringing out the uncertainty but switching to the worst brings severe values that would otherwise be outweighed by good values to the surface. Switching to the best value isolates only truly terrible areas.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_average.png}
+    \caption{Average}
+    \label{fig:sphereaverage}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_worst.png}
+    \caption{Worst}
+    \label{fig:sphereworst}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_best.png}
+    \caption{Best}
+    \label{fig:spherebest}  
+  \end{subfigure}
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)  
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_average.png}
+    \caption{Average}
+    \label{fig:surfaceaverage}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_worst.png}
+    \caption{Worst}
+    \label{fig:surfaceworst}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_best.png}
+    \caption{Best}
+    \label{fig:surfacebest}  
+  \end{subfigure}  
+  \caption{Comparison of Average/Best/Worst sampling.}\label{fig:surfaceaccumulator}
+\end{figure}
+
+The sample distance determines how far into the volume samples go. Currently there are two options available - half and full. These options are less applicable to the sphere as if it is set to full then opposite sides of the sphere give identical values. When applied to the surface the use of this option very much depends on the area of the body that is being scanned. The brain is a large, and for the most part (ignoring folds particularly) convex; in this respect it is similar to the sphere and the effect of sampling all the way through is much the same (see figure \ref{fig:surfacesampledistance}). You can notice that the average uncertainty gets better with full sampling as there are more good points to outweigh the bad.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_half.png}
+    \caption{Half}
+    \label{fig:surfacehalf}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_full.png}
+    \caption{Full}
+    \label{fig:surfacefull}
+  \end{subfigure}
+  \caption{Comparing half and full distance sampling.}\label{fig:surfacesampledistance}
+\end{figure}
+
+Where this parameter may be more useful however is when dealing with smaller, more intricate objects, such as arteries. It would allow the uncertainty the entire cross section to be mapped to the surface which would give an overview of the uncertainty in that section at a glance, rather than having to rotate around it to get the full picture.
 
 \newpage
 \section{Next Scan Plane}\label{section:nextscanplane}
+The idea behind this visualization is based on some previous research\cite{uncertaintysvd} on finding the optimum place to scan next given the current uncertainty. With this knowledge the scanning process can continually target areas of uncertainty to optimize the quality of the scan.
+
+This visualization is designed to communicate this next best scan to the radiographer in a way that gives them some context as to why this is in some sense optimal.
+
+The main obstacle that prevents this being integrated into MRI scanners currently is the fact that the reconstruction code takes far too long to run during a scan, which generally last no longer than 45-60 minutes.
+
+\subsection{Implementation}
+The technique, based on SVD, takes in a set of points, and finds the optimal direction to scan in. The implementation lets the user determine the set of points given to the algorithm by specifying a threshold of uncertainty. Before generating the next scan the threshold is first visualized, using the thresholding visualization (section \ref{section:thresholding}). Then the SVD implementation from the VNL numerics library is then used to produce the scan direction and center point.
+
+The resulting scan is then visualized as a circle which shows the center of the scan, and a cylinder which shows the direction of the scan. The reason that the scan is shown as a circle is because the technique only determines the scan direction (z-axis/slice direction) and not the x and y axes.
+
+The next scan plane can be overlayed on both the thresholded uncertainty as well as a volume rendering of the original scan.
+
+\subsection{Results}
+
+Figure \ref{fig:nextscanplane} illustrates the process the user goes through.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/next_scan_plane_threshold.png}
+    \caption{Target Uncertainty}
+    \label{fig:nextscanplanethreshold}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/next_scan_plane_1.png}
+    \caption{Next Scan Plane}
+    \label{fig:nextscanplane1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/next_scan_plane_2.png}
+    \caption{With Scan}
+    \label{fig:nextscanplane2}  
+  \end{subfigure}
+  \caption{Comparison of Average/Best/Worst sampling.}\label{fig:nextscanplane}
+\end{figure}
+
+Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symettry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/sphere.png}
+    \caption{Sphere}
+    \label{fig:nextscanplanesphere}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/sphere_in_corner.png}
+    \caption{Sphere in Corner}
+    \label{fig:nextscanplanespherecorner}
+  \end{subfigure}
+  ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/cube.png}
+    \caption{Cube}
+    \label{fig:nextscanplanecube}  
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/random.png}
+    \caption{Random}
+    \label{fig:nextscanplanerandom}  
+  \end{subfigure}  
+  \caption{Next scan planes for the test uncertainties.}\label{fig:nextscanplanetests}
+\end{figure}
 
 \newpage
 \chapter{Tool}
+Tool. Research. Prototype. Pipeline reconstruction. Easy. Integrated. Visualization + Two features. Scan simulation. Reconstruction. Visualization. Mainly to evaluate thoughts.
+
+Nice screenshot of MITK. Annotated.
 
 \newpage
 \section{Scan Simulation}\label{section:simulatescan}
+Treat reconstruction as ground truth. Rescan from different angles, different resolutions. Simulate motion. Naive. Use to test reconstruction algorithms.
+
+Simulation screenshot. Explain each control. Show example scan. Explain that this is yet to be tested.
 
 \newpage
 \section{Reconstruction}\label{section:reconstruction}
+Call GPU code. In tool. Add landmarks. Help reconstruction. Mainly evaluate thoughts.
+
+Show screenshot (of landmarks). Explain that this was just to prompt opinions and gauge how long it takes.
+
+\section{Visualization}\label{sectiontoolvisualization}
+This is where the visualizations live. The demo ones are available.
+
+Show screenshot (annotated).
