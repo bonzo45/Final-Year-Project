@@ -419,15 +419,33 @@ Here are the results that are achieved with the test uncertainties (see section 
 \section{Uncertainty Surface}\label{section:uncertaintysurface}
 The idea behind the uncertainty surface is to project the uncertainty (a 3D volume) onto a surface (effectively 2D) to give an overview of the uncertainty hotspots. Two versions have been implemented; the first maps the uncertainty to a sphere and the second maps the uncertainty to a surface representation of the organ being scanned. The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question.
 
-Two ways of mapping the uncertainty to the surfaces have been trialled. Originally the uncertainty was mapped to a texture which can then be rendered on a surface model. This worked fairly well for the sphere and figure \ref{fig:uncertaintytexture} shows an example texture that was generated. Each pixel position in the texture (x, y) is first translated to spherical coordinates (\theta, \phi). This can then be converted using trigonometry to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by taking the average uncertainty from the center to the edge travelling in direction (x', y', z').
+\subsection*{Sphere}
+Two ways of mapping the uncertainty to the surfaces have been trialled. Originally the uncertainty was mapped to a texture which could then be applied to a surface. 
 
-This technique, however does not translate as well when it comes to mapping the uncertainty onto a generic surface and so an alternative had to be found. As it turned out it is possible to store a scalar value with every point on a surface in MITK and so instead of going via a texture it is possible to store the uncertainty at each point directly.
+Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \\ref{background:volumerendering}).
 
- This allows both the sphere and generic surface to use the same technique; for each point (on the sphere/surface) a ray is fired into the uncertainty volume to accumulate the uncertainty (see volume rendering section \ref{background:volumerendering}) and the result is mapped to a colour.
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/texture_texture.png}
+    \caption{Uncertainty Texture}
+    \label{fig:texturetexture}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/texture_sphere.png}
+    \caption{Mapped to Sphere}
+    \label{fig:texturesphere}
+  \end{subfigure}
+  \caption{Mapping a texture to a sphere.}\label{fig:uncertaintytexture}
+\end{figure}
 
-\subsection*{Implementation - Sphere}
+This technique has a number of issues. Firstly, it looks quite blocky unless the resolution is set very high. Secondly, due to the conversion to spherical coordinates parts of the sphere are less well represented - as an extreme the top row of pixels on the texture all correspond to the top point on the sphere. Finally this technique does not translate very well when trying to map to arbitrary surfaces that are not as regular as a sphere.
 
-Firstly a surface representation of a sphere is generated - the resolution of this model can be changed to alter the number of points used to approximate the sphere.
+Another approach was then trialled. In MITK it is possible to store a colour at each point on a surface and use the colours at each point to interpolate values all over the surface. This effectively removes the need for the texture, as each point on the surface can be set directly in turn.
+
+This process begins by generating a surface representation of a sphere - the resolution of this model can be changed to alter the number of points used to approximate the sphere.
 
 Then each point on the sphere is registered to a start point to begin sampling in the volume (volume intersection in figure). The normal of the point on the sphere is then used as a direction to sample in. The start of the genuine uncertainty is then found by following the sampling direction until the value is not background (uncertainty intersection in figure). Figure \ref{fig:surface_sampling_example} illustrates this process.
 
@@ -467,7 +485,7 @@ The accumulation that the tortoise does can also be customized. By default it wi
 
 Once all of the points have been computed some scaling can be implemented to improve the contrast of the visualization. In many cases the average uncertainty will be roughly the same everywhere and if the range (0-1) is mapped to the entire colour range the values end up looking idential; to fix this the outputted colour range can be linearly mapped to make better use of the colours available.
 
-\subsection*{Implementation - Surface}
+\subsection*{Surface}
 
 To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation.
 
