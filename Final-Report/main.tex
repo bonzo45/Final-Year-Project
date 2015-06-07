@@ -23,9 +23,16 @@
 % New Lines not Indentation for Paragraphs
 \usepackage[parfill]{parskip}
 
+\usepackage{hyperref}
+
 % Styling Contents Page
 \usepackage{tocstyle} 
-\usetocstyle{classic}
+%\usetocstyle{classic}
+\newtocstyle[classic][]{newstyle}{%
+  \settocfeature[0]{entryhook}{\bfseries}%
+}
+\usetocstyle{newstyle}
+
 
 % Style Headings
 \usepackage{titlesec}

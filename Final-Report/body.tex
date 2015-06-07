@@ -417,9 +417,13 @@ Here are the results that are achieved with the test uncertainties (see section 
 
 \newpage
 \section{Uncertainty Surface}\label{section:uncertaintysurface}
-The idea behind the uncertainty surface is to project the uncertainty (a 3D volume) onto a surface (effectively 2D) to give an overview of the uncertainty hotspots. Two versions have been implemented; the first maps the uncertainty to a sphere and the second maps the uncertainty to a surface representation of the organ being scanned.
+The idea behind the uncertainty surface is to project the uncertainty (a 3D volume) onto a surface (effectively 2D) to give an overview of the uncertainty hotspots. Two versions have been implemented; the first maps the uncertainty to a sphere and the second maps the uncertainty to a surface representation of the organ being scanned. The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question.
 
-The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question. Both use the same technique; for each point (on the sphere/surface) a ray is fired into the uncertainty volume to accumulate the uncertainty (see volume rendering section \ref{background:volumerendering}) and the result is mapped to a colour.
+Two ways of mapping the uncertainty to the surfaces have been trialled. Originally the uncertainty was mapped to a texture which can then be rendered on a surface model. This worked fairly well for the sphere and figure \ref{fig:uncertaintytexture} shows an example texture that was generated. Each pixel position in the texture (x, y) is first translated to spherical coordinates (\theta, \phi). This can then be converted using trigonometry to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by taking the average uncertainty from the center to the edge travelling in direction (x', y', z').
+
+This technique, however does not translate as well when it comes to mapping the uncertainty onto a generic surface and so an alternative had to be found. As it turned out it is possible to store a scalar value with every point on a surface in MITK and so instead of going via a texture it is possible to store the uncertainty at each point directly.
+
+ This allows both the sphere and generic surface to use the same technique; for each point (on the sphere/surface) a ray is fired into the uncertainty volume to accumulate the uncertainty (see volume rendering section \ref{background:volumerendering}) and the result is mapped to a colour.
 
 \subsection*{Implementation - Sphere}
 
