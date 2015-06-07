@@ -441,8 +441,14 @@ QWidget {
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
                <property name="frameShadow">
                 <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
                </property>
                <property name="widgetResizable">
                 <bool>true</bool>
@@ -452,7 +458,7 @@ QWidget {
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>377</width>
+                  <width>379</width>
                   <height>792</height>
                  </rect>
                 </property>
@@ -768,7 +774,7 @@ QPushButton:checked {
                     <string notr="true">font-weight: bold;</string>
                    </property>
                    <property name="text">
-                    <string>SCAN RESOLUTION</string>
+                    <string>SCAN RESOLUTION:</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2506,8 +2512,8 @@ color: rgb(200, 0, 0);</string>
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>100</width>
-                  <height>30</height>
+                  <width>395</width>
+                  <height>184</height>
                  </rect>
                 </property>
                 <attribute name="label">

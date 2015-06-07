@@ -260,6 +260,8 @@ void Sams_View::Initialize() {
   UI.tabWidgetScan->setCurrentIndex(0);
   UI.tabWidgetReconstruct->setCurrentIndex(0);
   UI.tabWidgetVisualize->setCurrentIndex(0);
+
+  ScanSimulationResetRotations();
 }
 
 // ------------------------ //
@@ -371,6 +373,10 @@ void Sams_View::ScanSimulationSetDirectionSagittal() {
 void Sams_View::ScanSimulationResetRotations() {
   bool wasEnabled = scanPreviewEnabled;
   scanPreviewEnabled = false;
+
+  rotationX = 0;
+  rotationY = 0;
+  rotationZ = 0;
   
   UI.dialScanRotationX->setValue(0);
   UI.dialScanRotationY->setValue(0);

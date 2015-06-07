@@ -1,5 +1,109 @@
-\chapter{Visualization}
+\chapter{Implementation - Tool}
+This project has been implemented as an MITK plugin. MITK, the Medical Imaging Interaction Toolkit, is a free open-source software system for the development of interactive medical image processing software. It combines ITK (for image processing) and VTK (for visualization) together and provides a basic application, the MITK Workbench, that can be extended with plugins.
 
+\begin{figure}[H]
+  \includegraphics[width=\textwidth]{images/tool/mitk.png}
+  \caption{MITK Workbench + Plugin}\label{fig:scansettings}
+\end{figure}
+
+The plugin that has been developed is a research prototype designed primarily to visualize the uncertainty in MRI reconstructions. However, it also begins to integrate all parts of the reconstruction pipeline together into one application. Broadly speaking the pipeline can be split into three steps: scan -> reconstruct -> visualize. The plugin developed incorporates components from each stage.
+
+\subsection*{Scan Simulation}
+Given a previous reconstruction, that is assumed to be a perfect, ground truth, representation, we can simulate a scan by re-sampling it.
+
+\subsection*{Reconstruct}
+Using slice stacks (simulated or otherwise) we can reconstruct a super resolution image. Optionally landmarks can be provided to guide the registration process.
+
+\subsection*{Visualize}
+When the reconstruction has finished we can visualize how well it went.
+\begin{itemize}
+  \item Thresholding
+  \item Uncertainty Sphere
+  \item Uncertainty Surface
+  \item Next Scan Plane
+\end{itemize}
+
+\newpage
+\section{Scan Simulation}\label{section:simulatescan}
+The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. This idea was used in the same paper concerned with finding the optimum scan plane\cite{uncertaintysvd}. The focus of this part of the tool is not to evaluate the effectiveness of this approach, that is a project in it's own right, but to make this simulation easier to perform and customize for future research.
+
+\begin{wrapfigure}[23]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/scan_simulation/scan_settings.png}
+  \caption{Controls}\label{fig:scansettings}
+\end{wrapfigure}
+
+The user has a number of controls (see figure \ref{fig:scansettings}) available to tweak:
+
+\subsection*{Scan Dimensions}
+Number of pixels in the scan (x, y, z).
+
+\subsection*{Scan Resolution}
+Size of each pixel, relative to the reconstructed scan (x, y, z).
+
+\subsection*{Scan Center}
+The center point of the scan (x, y, z). This can be set to the center of the volume or adjusted manually.
+
+\subsection*{Scan Direction}
+The direction to scan in. You may expect this to be just one vector (the z-direction) but since the scan is rectangular in shape the x and y-direction also need to be specified. The standard axial, coronal and sagittal directions are available and the direction can be rotated about each axis using the dials.
+
+\subsection*{Motion Corruption}
+Some simple motion corruption can be enabled. Currently the implementation is quite simple; the motion only happens in between slices being scanned. Before each slice gets scanned a random rotation (up to a maximum specified) is applied about a random axis to the original image.
+
+Figure \ref{fig:scansimulationexample} shows an example of an axial scan (y-axis) where the preview is overlayed on a volume rendering of the ground truth volume. The preview box shows the boundary of the scan, which is updated to show any changes to the configuration. The effects of the motion corruption are apparent when viewed from the side; successive stacks don't line up.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/scan_simulation/scan_axial_preview.png}
+    \caption{Axial Scan Preview}\label{fig:scansimulationpreview}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/scan_simulation/scan_axial_result.png}
+    \caption{Side (Sagittal) View of Simulation}\label{fig:scansimulationresult}
+  \end{subfigure}
+  \caption{Example Scan Simulation.}\label{fig:scansimulationexample}
+\end{figure}
+
+\newpage
+\section{Reconstruction}\label{section:reconstruction}
+This part of the tool uses the fast GPU reconstruction code developed in \cite{uncertaintysvd}. The Common Toolkit (CTK) includes functionality that allows you to run external binaries from within MITK\cite{ctkcmd}. A wrapper executable has been written, which conforms to the Command Line Module XML Schema, which essentially allows the MITK plugin to make calls to the GPU reconstruction code and automatically import the result.
+
+One of the ways that the quality of the reconstruction can be improved is by manually labelling landmarks in the scans, such as the eyes and extreme points of the skull. This helps the registration step of the reconstruction align each of the initial scans. A prototype to allow each stack to be marked up in this way has been developed with the view of getting the opinion of researchers on whether this is a process they are willing to do, or even if they have the time to do it.
+
+Figure \ref{fig:reconstructionlandmarks} shows the process with some example landmarks. Each landmark can be placed, moved, deleted and you can also jump quickly to a previously marked point.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.358\textwidth}
+    \includegraphics[width=\textwidth]{images/reconstruction/axial.png}
+    \caption*{Axial}
+    \label{fig:reconstructionaxial}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.358\textwidth}
+    \includegraphics[width=\textwidth]{images/reconstruction/sagittal.png}
+    \caption*{Sagittal}
+    \label{fig:reconstructionsagittal}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.283\textwidth}
+    \includegraphics[width=\textwidth]{images/reconstruction/controls.png}
+    \caption*{Controls}
+    \label{fig:reconstructioncontrols}
+  \end{subfigure}
+  \caption{Placing Landmarks on Slice Stacks.}\label{fig:reconstructionlandmarks}
+\end{figure}
+
+\newpage
+\chapter{Implementation - Visualizations}\label{sectiontoolvisualization}
+This is where the visualizations live. The demo ones are available.
+
+Show screenshot (annotated).
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{images/reconstruction_overview.png}
@@ -12,7 +116,7 @@ The super resolution reconstruction process takes in a set of slice stacks (scan
 \section{Preprocessing}\label{section:preprocessing}
 The uncertainty tells us for each pixel in the reconstructed volume how much confidence we have in that value. However, before we can visualize it some preprocessing must be applied. 
 
-\subsection{Normalization}
+\subsection*{Normalization}
 The uncertainty is linearly scaled so each value is between 0 and 1.
 
 \begin{verbatim}
@@ -20,7 +124,7 @@ The uncertainty is linearly scaled so each value is between 0 and 1.
   1 - maximum information (low uncertainty - best)
 \end{verbatim}
 
-\subsection{Erosion}
+\subsection*{Erosion}
 The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume.
 
 The edges are removed in five steps:
@@ -87,19 +191,19 @@ To test the different visualizations during development a number of artificial u
 
 For each visualization that has been developed the results with these test uncertainties will be examined and compared.
 
-\subsection{Sphere of Uncertainty}
+\subsection*{Sphere of Uncertainty}
 An uncertainty volume where the uncertainty is proportional to the distance from the center. The uncertainty at the center is 0 (very uncertain) which then goes to 1 (very certain) at the edges.
 
-\subsection{Sphere in Corner}
+\subsection*{Sphere in Corner}
 Similar to the sphere, but instead of being placed in the middle it is placed in one corner of the volume.
 
-\subsection{Cube of Uncertainty}
+\subsection*{Cube of Uncertainty}
 An uncertainty volume that is 1 (very good) everywhere except for fixed size cube of uncertainty 0 (very bad) in the center.
 
-\subsection{Random Uncertainty}
+\subsection*{Random Uncertainty}
 The uncertainty at every point is a random uniformly distributed value.
 
-\subsection{Reconstruction Uncertainty}
+\subsection*{Reconstruction Uncertainty}
 Uncertainty generated from an example super resolution reconstruction of a fetal brain.\\
 
 \begin{figure}[h]
@@ -317,7 +421,7 @@ The idea behind the uncertainty surface is to project the uncertainty (a 3D volu
 
 The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question. Both use the same technique; for each point (on the sphere/surface) a ray is fired into the uncertainty volume to accumulate the uncertainty (see volume rendering section \ref{background:volumerendering}) and the result is mapped to a colour.
 
-\subsection{Implementation - Sphere}
+\subsection*{Implementation - Sphere}
 
 Firstly a surface representation of a sphere is generated - the resolution of this model can be changed to alter the number of points used to approximate the sphere.
 
@@ -359,14 +463,14 @@ The accumulation that the tortoise does can also be customized. By default it wi
 
 Once all of the points have been computed some scaling can be implemented to improve the contrast of the visualization. In many cases the average uncertainty will be roughly the same everywhere and if the range (0-1) is mapped to the entire colour range the values end up looking idential; to fix this the outputted colour range can be linearly mapped to make better use of the colours available.
 
-\subsection{Implementation - Surface}
+\subsection*{Implementation - Surface}
 
 To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation.
 
 The registration step in this case is trivial as the mask uses the same coordinate system as the uncertainty volume. The normal at the surface can then be used, as before, and scaling similarly applied.
 
 \newpage
-\subsection{Results}
+\subsection*{Results}
 Scaling was found to significantly increase the contrast of the visualization. The legend shows the scaling applied in each case.
 
 \begin{figure}[H]
@@ -516,14 +620,14 @@ This visualization is designed to communicate this next best scan to the radiogr
 
 The main obstacle that prevents this being integrated into MRI scanners currently is the fact that the reconstruction code takes far too long to run during a scan, which generally last no longer than 45-60 minutes.
 
-\subsection{Implementation}
+\subsection*{Implementation}
 The technique, based on SVD, takes in a set of points, and finds the optimal direction to scan in. The implementation lets the user determine the set of points given to the algorithm by specifying a threshold of uncertainty. Before generating the next scan the threshold is first visualized, using the thresholding visualization (section \ref{section:thresholding}). Then the SVD implementation from the VNL numerics library is then used to produce the scan direction and center point.
 
 The resulting scan is then visualized as a circle which shows the center of the scan, and a cylinder which shows the direction of the scan. The reason that the scan is shown as a circle is because the technique only determines the scan direction (z-axis/slice direction) and not the x and y axes.
 
 The next scan plane can be overlayed on both the thresholded uncertainty as well as a volume rendering of the original scan.
 
-\subsection{Results}
+\subsection*{Results}
 
 Figure \ref{fig:nextscanplane} illustrates the process the user goes through.
 
@@ -584,25 +688,28 @@ Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test unce
   \caption{Next scan planes for the test uncertainties.}\label{fig:nextscanplanetests}
 \end{figure}
 
-\newpage
-\chapter{Tool}
-Tool. Research. Prototype. Pipeline reconstruction. Easy. Integrated. Visualization + Two features. Scan simulation. Reconstruction. Visualization. Mainly to evaluate thoughts.
+The next scan plane can also be displayed in the 2D view (figure \ref{fig:nextscanplane2d}).
 
-Nice screenshot of MITK. Annotated.
-
-\newpage
-\section{Scan Simulation}\label{section:simulatescan}
-Treat reconstruction as ground truth. Rescan from different angles, different resolutions. Simulate motion. Naive. Use to test reconstruction algorithms.
-
-Simulation screenshot. Explain each control. Show example scan. Explain that this is yet to be tested.
-
-\newpage
-\section{Reconstruction}\label{section:reconstruction}
-Call GPU code. In tool. Add landmarks. Help reconstruction. Mainly evaluate thoughts.
-
-Show screenshot (of landmarks). Explain that this was just to prompt opinions and gauge how long it takes.
-
-\section{Visualization}\label{sectiontoolvisualization}
-This is where the visualizations live. The demo ones are available.
-
-Show screenshot (annotated).
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/axial.png}
+    \caption*{Axial}
+    \label{fig:nextscanplaneaxial}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/coronal.png}
+    \caption*{Coronal}
+    \label{fig:nextscanplanecoronal}
+  \end{subfigure}%
+  ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/sagittal.png}
+    \caption*{Sagittal}
+    \label{fig:nextscanplanesagittal}
+  \end{subfigure}
+  \caption{Next Scan Plane in 2D}\label{fig:nextscanplane2d}
+\end{figure}
