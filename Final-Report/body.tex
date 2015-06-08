@@ -12,7 +12,7 @@ The plugin that has been developed is a research prototype designed primarily to
 Given a previous reconstruction, that is assumed to be a perfect, ground truth, representation, we can simulate a scan by re-sampling it.
 
 \subsection*{Reconstruct}
-Using slice stacks (simulated or otherwise) we can reconstruct a super resolution image. Optionally landmarks can be provided to guide the registration process.
+Using slice stacks (simulated or otherwise) we can reconstruct a super-resolution image. Optionally landmarks can be provided to guide the registration process.
 
 \subsection*{Visualize}
 When the reconstruction has finished we can visualize how well it went.
@@ -111,7 +111,7 @@ Show screenshot (annotated).
   \label{fig:erosionbefore}
 \end{figure}
 
-The super resolution reconstruction process takes in a set of slice stacks (scans), an optional mask and outputs the reconstructed MRI volume and the uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid.
+The super-resolution reconstruction process takes in a set of slice stacks (scans), an optional mask and outputs the reconstructed MRI volume and the uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid.
 
 \section{Preprocessing}\label{section:preprocessing}
 The uncertainty tells us for each pixel in the reconstructed volume how much confidence we have in that value. However, before we can visualize it some preprocessing must be applied. 
@@ -204,7 +204,7 @@ An uncertainty volume that is 1 (very good) everywhere except for fixed size cub
 The uncertainty at every point is a random uniformly distributed value.
 
 \subsection*{Reconstruction Uncertainty}
-Uncertainty generated from an example super resolution reconstruction of a fetal brain.\\
+Uncertainty generated from an example super-resolution reconstruction of a fetal brain.\\
 
 \begin{figure}[h]
   \centering
