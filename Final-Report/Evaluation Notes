@@ -64,3 +64,6 @@ Reconstruct selected sub-area.
 Batched reconstruction. If one area doesn't go well then landmark -> re-reconstruct a small part.
 ACPC...
 Integrating with the scanner directly is tricky as they're all running VS9 on Windows XP for stability reasons. We can tap into it, however.
+4 landmarks sufficient for rigid bodies. More for more flexible organs. Location of landmarks is important.
+Nod vs. Side-to-Side
+Julie C. Mitchell - Sampling Rotation.
