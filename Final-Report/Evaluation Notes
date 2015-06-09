@@ -1,59 +1,100 @@
-Evaluation Notes
-People who work on the acquisition side of research often do scans. Those who work on the reconstruction side don't really.
-The more information that the radiographer has the better. Josh would definitely want to see the next scan plane before continuing though. Loves the control.
+// ------------ Evaluation Notes ------------ //
+
+// ---- GENERAL ---- //
+Acquisition researchers often do scans. Reconstruction researhers don't normally.
+
+// ---- Visualization ---- //
+It is as important to show the uncertain regions as it is to explain why they are uncertain.
+  - Alignment broken? Show the alices on the reconstruction. BTK (Baby Toolkit can apparently do this.)
+  - Too dark? Show areas that were thresholded as a separate overlay.
+
+These visualizations have been designed to work primarily with stationary areas (e.g. Brain).
+  - Can they be extended to show uncertainty over time (e.g. Heart). 
+
+Maybe have a show original stack that caused this uncertainty button?
+  - How would that work?
+
+// ---- Thresholding ---- //
+Currently it's binary. It's either in the range, or it's not. Can we extend that? Perhaps looking into Hue, Saturation and Value as a way to display the scan could work.
+  - Hue (essentially the colour) determined by the scan.
+  - Saturation (how deep the colour is) determined by the scan.
+  - Value (essentially how light it is) determined by the uncertainty.
+
+It's a great idea but it doesn't work for areas that are black in the image as they'll be black anyway regardless of the uncertainty.
+
+Having the ability to target a particular area of the brain would be useful as often researchers are only interested in a certain area. This may be to determine the volume of it, for example. Being able to define either a mask or a bounding box to limit the search space further would be useful. Some predefined masks would be useful. e.g. prefrontal cortex.
+
+// ---- Sphere ---- //
+The biggest problem people had with the sphere was the lack of a grounding or anchoring in the reconstruction. This sense of disjointness with the raw data put many people off. There were a number of suggestions that people had of ways to improve this.
+
+The most simple was to mark the top, bottom, left and right of the sphere. This was something that I had planned to do but didn't quite manage to implement with the time available.
+
+Other ways of doing this would also be to mark common landmarks on the sphere. For example, the position of both eyes could be projected onto the volume.
+
+A splitscreen approach could also be taken, whereby the user could select a point in the reconstruction and the corresponding point on the sphere could be highlighted. Similarly if a point on the sphere was selected then the corresponding line could be marked in the volume.
+
+It was also suggested that perhaps the sphere is slightly unnecessarily abstract and that if it could be stretched and manipulated to create an ellipsoid it would better fit different organs available. For example the brain is slightly longer than it is wide and so stretching the sphere may better represent this shape
+me.
+
+// ---- Surface ---- //
+Some users pointed out that I could make better use of the colour range available by using different transfer functions. Currently the visualizations have a very simple 'colour' toggle that effectively changes the mapping from white to black to black to red. This is an area that I didn't focus too much on as I was trying to get the functionality of the visualizations solid before doing the fine-tuning.
+
+Effectively there are 256 * 256 * 256 colours available and I am only using 256 of them. Experimenting with this would be an easy thing to do and would instantly increase the contrast in all of the visualizations.
+
+Some researchers made clear that they are not used to visualizing the volume from an external point of view and so they were more comfortable with the 2D thresholding views. For them to use the surface view there needs to be a compelling, unique feature that can't be done with thresholding.
+
+Some suggested that the surface representation did a good job of providing an overview, but to really understand the uncertainty it would be necessary to delve into the details with thresholding. In that sense, perhaps the two aren't competing with each other but simply provide views from two different granularities.
+
+Similar feedback was received to the thresholding visualization whereby it would be nice to view the uncertainty in just a certain region in the brain. This could be achieved relatively simply by allowing the user to create a mask and creating a surface from this, or by taking a general model of that part of the brain and registering it to the reconstruction.
+
+The effectivness of this visualization is highly dependant on the surface that is used. For the demonstration the mask used in the reconstruction was used an clearly it has a few rough edges which impacts the aesthetics somewhat. This mask was primarily used as it foregoes the need for a complex reconstruction step, which mapping a general model of the organ would require.
+
+However, Having a general model in particular allows two reconstructions to be compared side by side much more easily. The next step in the development of this visualization will be to incorporate any landmarks that were used in the reconstruction to guide the registration of such a general model.
+
+In particular, when discussing the reconstruction of fetal brain images, because the brain changes so much of the course of the pregnancy a different model will be needed for each milestone. Creating these volumes from a project such as (fetal evolution atlas paper) should be investigated.
+
+Other limitations of the projection algorithm were discussed. For example the implementation currently assumes that the volume being sampled is convex in shape. Whilst this assumption is valid for a large number of organs it may be unacceptable when dealing with fine detail, like folding in the brain.
+
+Think of a fantastic example...
+
+// ---- Next Scan Plane ---- //
+Similarly to the sphere the next scan plane was also found to be a little detached from the uncertainty. Some reference axes would provide some grounding and give context to the directions.
+
+One part of this visualization that went down well was that it would allow the radiographer to isolate smaller areas that needed further scanning. This allows them to, instead of acquiring a complete stack which may take 3 minutes, focus on a smaller region which could be acquired in less time and only generate data that was genuinely needed. This tightens up the feedback loop allowing more smaller scans to be taken to target problem areas.
+
+It was mentioned that using a cylinder to represent the scanning direction is slightly ambiguous as it was unclear which direction it was intended to represent. In fact the direction could be either way and so the ambiguity is intended but to make it clear that it is representing a direction then an arrow would be more explicit.
+
+When asked whether the visualization was necessary or if they would be happy for the scanner to automatically do the next scan without showing it to them the response was a resoundingly in favour of the visualization. Having control of the scan is very important for them as it allows them to take into account factors that perhaps this visualization doesn't take into account.
+
+It should be noted that this visualization is essentially theoretical until the reconstruction process can be optimized enough to run in real time. The feedback from this part is therefore based on the assumption that this can be done. 
+
+This isn't the only hurdle that needs to be overcome, however as it became clear from conversations that the radiographers are already under massive time pressures. The time available to do a scan is usually no more than 45-60 minutes including time to set up, guide the patient and perform all the scans. Each stack takes approximately 3 minutes to acquire. With this in mind it may be necessary to have an additional person present to guide the reconstruction process which may or may not be viable.
+
+// ---- Scan Simulation ---- //
+The scan on a particular scanner used at the hospital uses an offset (in mm) and an angle (degrees) to set up the scan.
+
+Currently the only artefact that is simulated is motion between stacks. A number of ways of improving the realism of the motion corruption were suggested:
+
+\begin{itemize}
+  \item Movement during an MRI scan is not as simple as adding a blur to the pixels. A number of different artefacts ocurr such as replication, where two copies of the object, or shadowing where an object in motion appears darker than it's surroudings. To test a reconstruction algorithm's capability to deal with this these could also be simulated.
+
+  \item Applicability to moving organs. The way that a cine (moving MRI image) is acquired differs from the imaging of a static object. For periodic motion, like the beating of the heart, a number of scans are acquired and then those that happen to be at the same point in the cycle are used to reconstruct one frame in the animation. Currently the simulation assumes we have one image, not a number being acquired in sequence.
+
+  \item Another factor that can effect the quality of an image is the proximity of the fetus from the coil used to acquire the image. This can create a bias or inhomogeneity which must be corrected for. Simulating this effect can test the bias correction stage of the reconstruction.
+
+  \item The signal to noise ratio plays an important part of deciding what resolution to scan a target. Scan at too high a resolution and noise becomes a major problem. Adding in some kind of noise can simulate this effect. This is not as simple as adding some random gaussian noise to the resulting scan. This is because MRI operates in the frequency domain (k-space) and this information is used to recover an image in the spatial domain. Since the noise is gaussian in the frequency domain the noise becomes rician in the spatial domain.
+
+  \item As well as rotation a translation can also be modelled. On the subject of rotation also taking a uniform random rotation is not particularly realistic as the fetus's movements are unlikely to match exactly this. For example the fetus is more likely to nod than it is move it's head side to side. Some research has been done to model these movements and so a more realistic distribution for the rotations could be incorporated.
+
+  \item The order that slices are acquired in MRI is not strictly sequential. To give the target time to essentially recover from being scanned often every second slice is acquired and then every other second slice is acquired afterwards. The upshot of this is that neighbouring slices are likely to be acquired further apart in time than slices further away. When simulating motion this can be incorporated by simulating the scan similarly.
+
+The quality of the simulation is always going to be limited by the quality of the ground truth volume. Since it is assumed to be perfect it is assumed that there are no motion artefacts in it which may not be the case. Does the reconstruction algorithm have filters to remove noise for example. It may remove 'perfection' in that case?
+
+// ---- Reconstruction ---- //
 30 minutes to do the pre-processing (I guess that's for a whole reconstruction...) This involves looking through all of the slices stacks manually, looking for problem areas.
 Currently they take the mask from one stack. They label four landmarks (if they need to) eyes, brainstem.
 The mask can be more intricate from 36+ weeks as the brain becomes more developed.
 
-Visualization
-As well as showing the uncertainty give a sense of what caused it.
-Show slices on the brain. Where are we missing data?
-Show missing stacks -> BTK (Baby Toolkit)
-Why is it uncertain. Is it just black and so that's why it has been excluded.
-Can these visualizations be extended to work with time... uncertainty over time.
-Work backwards - show uncertainty on original stacks...?
-
-Thresholding
-Hue Saturation Value... could work as an extension for thresholding. Black no good.
-Target different areas of the brain.
-
-Sphere
-Needs anchoring.
-Needs context - render amongst the original brain somehow...
-Mark top/bottom/left/right.
-Project landmarks (eyes/nose/etc as points.) Large population study?
-Maybe tweak the sphere. Ellipsoid for the heart for example. Roughly fit it.
-Half-half view. Show sphere and scan. Pick point on one, show point on other.
-
-Surface
-Colour is key -> green and red. Not used to this view. Normally thresholding-style view.
-More colours -> better range.
-View surface of part of brain. Using a mask, for example.
-Better mask.
-All depends on quality of surface.
-Limitation of information due to projection.
-Limitations -> convex, folds
-
-Next Scan Plane
-Needs more axes. Not useful to Josh.
-Stack acquisition takes around 3 minutes. If it's done in real time you might need somebody else up there doing the reconstruction. 1 hour max.
-Allow you to scan a small part next time round, quicker.
-Arrow perhaps vs. cylinder...
-
-Scan Simulation
-Input is flawed. Assumes it is motion free. Motion also has artefacts. Not blur. Replication. Simulation might apply for something like the brain which is fairly stable, but not the heart.
-Bias correction -> shading. Inhomogeneity.
-Noise -> changes with resolution. Higher resolution -> lower snr.
-Motion: translation - signal drop due to through plane motion.
-Simulation software shows what the scanner can do. Has offset (position - mm) and angle (degrees).
-Noise. Gaussian -> Rician.
-Translation
-Interleaved acquisitions.
-K-space artefacts.
-Change distribution of rotation to be non-uniform. See matlab thing. Use real data to draw these rotations from.
-Motion looks good.
-
-Reconstruction
 Supervised vs. Manual
 Just make it easy to use.
 Sometimes landmarks aren't required. If the scan is good. Sometimes the reconstruction fails.
