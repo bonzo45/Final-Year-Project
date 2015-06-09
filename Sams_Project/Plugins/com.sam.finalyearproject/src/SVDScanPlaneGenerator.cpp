@@ -77,10 +77,17 @@ vtkSmartPointer<vtkPlane> SVDScanPlaneGenerator::calculateBestScanPlane() {
 
   // Run SVD.
   vnl_svd<mitk::ScalarType> svd(demeanedMatrix, 0.0);
-  vnl_vector<mitk::ScalarType> normal = svd.nullvector();
+  // vnl_vector<mitk::ScalarType> normal = svd.nullvector();
+  // equivalent to
+  // vnl_vector<mitk::ScalarType> normal = svd.V().get_column(2);
+  // should actually be!!
+  vnl_vector<mitk::ScalarType> normal = svd.U().get_row(2);
   if (normal[0] < 0) {
     normal = -normal;
   }
+  // also we have these!
+  // vnl_vector<mitk::ScalarType> x = svd.U().get_row(1);
+  // vnl_vector<mitk::ScalarType> t = svd.U().get_row(2);
 
   mitk::ProgressBar::GetInstance()->Progress();
 
