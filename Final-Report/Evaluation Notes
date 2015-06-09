@@ -1,0 +1,66 @@
+Evaluation Notes
+People who work on the acquisition side of research often do scans. Those who work on the reconstruction side don't really.
+The more information that the radiographer has the better. Josh would definitely want to see the next scan plane before continuing though. Loves the control.
+30 minutes to do the pre-processing (I guess that's for a whole reconstruction...) This involves looking through all of the slices stacks manually, looking for problem areas.
+Currently they take the mask from one stack. They label four landmarks (if they need to) eyes, brainstem.
+The mask can be more intricate from 36+ weeks as the brain becomes more developed.
+
+Visualization
+As well as showing the uncertainty give a sense of what caused it.
+Show slices on the brain. Where are we missing data?
+Show missing stacks -> BTK (Baby Toolkit)
+Why is it uncertain. Is it just black and so that's why it has been excluded.
+Can these visualizations be extended to work with time... uncertainty over time.
+Work backwards - show uncertainty on original stacks...?
+
+Thresholding
+Hue Saturation Value... could work as an extension for thresholding. Black no good.
+Target different areas of the brain.
+
+Sphere
+Needs anchoring.
+Needs context - render amongst the original brain somehow...
+Mark top/bottom/left/right.
+Project landmarks (eyes/nose/etc as points.) Large population study?
+Maybe tweak the sphere. Ellipsoid for the heart for example. Roughly fit it.
+Half-half view. Show sphere and scan. Pick point on one, show point on other.
+
+Surface
+Colour is key -> green and red. Not used to this view. Normally thresholding-style view.
+More colours -> better range.
+View surface of part of brain. Using a mask, for example.
+Better mask.
+All depends on quality of surface.
+Limitation of information due to projection.
+Limitations -> convex, folds
+
+Next Scan Plane
+Needs more axes. Not useful to Josh.
+Stack acquisition takes around 3 minutes. If it's done in real time you might need somebody else up there doing the reconstruction. 1 hour max.
+Allow you to scan a small part next time round, quicker.
+Arrow perhaps vs. cylinder...
+
+Scan Simulation
+Input is flawed. Assumes it is motion free. Motion also has artefacts. Not blur. Replication. Simulation might apply for something like the brain which is fairly stable, but not the heart.
+Bias correction -> shading. Inhomogeneity.
+Noise -> changes with resolution. Higher resolution -> lower snr.
+Motion: translation - signal drop due to through plane motion.
+Simulation software shows what the scanner can do. Has offset (position - mm) and angle (degrees).
+Noise. Gaussian -> Rician.
+Translation
+Interleaved acquisitions.
+K-space artefacts.
+Change distribution of rotation to be non-uniform. See matlab thing. Use real data to draw these rotations from.
+Motion looks good.
+
+Reconstruction
+Supervised vs. Manual
+Just make it easy to use.
+Sometimes landmarks aren't required. If the scan is good. Sometimes the reconstruction fails.
+Which is left, which is right!?
+Splitscreen - load two stacks. Compare them. Overlay one on the other.
+Hint for landmarks - here's an example one.
+Reconstruct selected sub-area.
+Batched reconstruction. If one area doesn't go well then landmark -> re-reconstruct a small part.
+ACPC...
+Integrating with the scanner directly is tricky as they're all running VS9 on Windows XP for stability reasons. We can tap into it, however.
