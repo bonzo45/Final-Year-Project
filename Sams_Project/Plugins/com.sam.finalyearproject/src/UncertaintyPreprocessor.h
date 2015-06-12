@@ -8,7 +8,7 @@ class UncertaintyPreprocessor {
     void setScan(mitk::Image::Pointer image);
     void setUncertainty(mitk::Image::Pointer image);
     void setNormalizationParams(double min, double max);
-    void setErodeParams(int erodeThickness, double erodeThreshold, int dilateThickness);
+    void setErodeParams(int erodeThickness);
     mitk::Image::Pointer preprocessUncertainty(bool invert, bool erode, bool align);
 
   private:
@@ -20,8 +20,6 @@ class UncertaintyPreprocessor {
     double normalizationMax;
     
     int erodeErodeThickness;
-    double erodeThreshold;
-    int erodeDilateThickness;
 
     // ITK Methods
     template <typename TPixel, unsigned int VImageDimension>

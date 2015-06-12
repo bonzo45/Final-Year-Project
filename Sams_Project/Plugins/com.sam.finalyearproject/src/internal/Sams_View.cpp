@@ -1426,8 +1426,6 @@ void Sams_View::ResetPreprocessingSettings() {
   UI.checkBoxInversionEnabled->setChecked(false);
   UI.checkBoxErosionEnabled->setChecked(false);
   UI.spinBoxErodeThickness->setValue(2);
-  UI.spinBoxErodeThreshold->setValue(0.2);
-  UI.spinBoxDilateThickness->setValue(2);
 }
 
 /**
@@ -1450,9 +1448,7 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     NORMALIZED_MAX
   );
   preprocessor->setErodeParams(
-    UI.spinBoxErodeThickness->value(),
-    UI.spinBoxErodeThreshold->value(),
-    UI.spinBoxDilateThickness->value()
+    UI.spinBoxErodeThickness->value()
   );
   mitk::Image::Pointer fullyProcessedMitkImage = preprocessor->preprocessUncertainty(
     UI.checkBoxInversionEnabled->isChecked(),

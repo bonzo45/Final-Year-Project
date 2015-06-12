@@ -46,22 +46,11 @@ void UncertaintyPreprocessor::setNormalizationParams(double min, double max) {
 }
 
 /**
-  * Configure the erosion. It works in three steps.
-  *   Firstly we do an initial erosion - as well as removing the edge this also removes detail
-        from inside the volume. 
-        (Parameter - erodeThickness)
-  *   Secondly it looks at what changed when it was eroded. The edges change a lot but
-        the inner parts change less. We threshold these changes to create a mask of where the
-        edges (which change more) actually are.
-        (Parameter - erodeThreshold)
-  *   Thirdly we dilate this mask slightly so we don't get an annoying ring of edge left.
-        (Parameter - dilateThickness)
-  *   Finally the edge is deleted.
+  * Configure the erosion. 
+  * erodeThickness - number of pixels to erode.
   */
-void UncertaintyPreprocessor::setErodeParams(int erodeThickness, double erodeThreshold, int dilateThickness) {
+void UncertaintyPreprocessor::setErodeParams(int erodeThickness) {
   this->erodeErodeThickness = erodeThickness;
-  this->erodeThreshold = erodeThreshold;
-  this->erodeDilateThickness = dilateThickness;
 }
 
 mitk::Image::Pointer UncertaintyPreprocessor::preprocessUncertainty(bool invert, bool erode, bool align) {
@@ -205,60 +194,29 @@ template <typename TPixel, unsigned int VImageDimension>
 void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimension>* itkImage, mitk::Image::Pointer & result) {
   typedef itk::Image<TPixel, VImageDimension> ImageType;
 
-  // ------------------------- //
-  // ---- Initial Erosion ---- //
-  // ------------------------- //
-  // Create the erosion kernel, this describes how the data is eroded.
-  typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(erodeErodeThickness);
-  structuringElement.CreateStructuringElement();
- 
-  // Create an erosion filter, using the kernel.
-  typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleErodeImageFilterType;
-  typename GrayscaleErodeImageFilterType::Pointer erodeFilter = GrayscaleErodeImageFilterType::New();
-  erodeFilter->SetInput(itkImage);
-  erodeFilter->SetKernel(structuringElement);
-  MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
-  command->Initialize(20, false);
-  erodeFilter->AddObserver(itk::ProgressEvent(), command);
-  erodeFilter->Update();
-
-  // ------------------------- //
-  // ------ Subtraction ------ //
-  // ------------------------- //
-  // Then we use a subtract filter to get the pixels that changed in the erosion.
-  typedef itk::SubtractImageFilter<ImageType> SubtractType;
-  typename SubtractType::Pointer diff = SubtractType::New();
-  diff->SetInput1(itkImage);
-  diff->SetInput2(erodeFilter->GetOutput());
-  command = MitkLoadingBarCommand::New();
-  command->Initialize(20, false);
-  diff->AddObserver(itk::ProgressEvent(), command);
-  diff->Update();
-
-  // ------------------------- //
-  // ----- Thresholding ------ //
-  // ------------------------- //
-  // We only really want to remove the edges. These will have changed more significantly than the rest.
+  // -------------------------------------- //
+  // ---- Threshold to find background ---- //
+  // -------------------------------------- //
+  // Create a thresholder.
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> BinaryThresholdImageFilterType;
   typename BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
-  thresholdFilter->SetInput(diff->GetOutput());
-  thresholdFilter->SetInsideValue(1.0);
-  thresholdFilter->SetOutsideValue(0.0);
-  thresholdFilter->SetLowerThreshold(erodeThreshold);
-  thresholdFilter->SetUpperThreshold(1.0);
-  command = MitkLoadingBarCommand::New();
-  command->Initialize(20, false);
+  thresholdFilter->SetInput(itkImage);
+  thresholdFilter->SetInsideValue(1);
+  thresholdFilter->SetOutsideValue(0);
+  thresholdFilter->SetLowerThreshold(0.0);
+  thresholdFilter->SetUpperThreshold(0.0);
+  MitkLoadingBarCommand::Pointer command = MitkLoadingBarCommand::New();
+  command->Initialize(30, false);
   thresholdFilter->AddObserver(itk::ProgressEvent(), command);
   thresholdFilter->Update();
 
-  // ------------------------- //
-  // -------- Growing -------- //
-  // ------------------------- //
-  // Then, because we'll still be left with a bit of a ring around the edge, we grow the mask.
+  // ------------------------------ //
+  // -------- Growing mask -------- //
+  // ------------------------------ //
+  // Grow the threshold to remove background.
+  typedef itk::BinaryBallStructuringElement<TPixel, VImageDimension> StructuringElementType;
   StructuringElementType dilationStructuringElement;
-  dilationStructuringElement.SetRadius(erodeDilateThickness);
+  dilationStructuringElement.SetRadius(erodeErodeThickness);
   dilationStructuringElement.CreateStructuringElement();
 
   typedef itk::GrayscaleDilateImageFilter<ImageType, ImageType, StructuringElementType> GrayscaleDilateImageFilterType;
@@ -266,7 +224,7 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   dilateFilter->SetInput(thresholdFilter->GetOutput());
   dilateFilter->SetKernel(dilationStructuringElement);
   command = MitkLoadingBarCommand::New();
-  command->Initialize(20, false);
+  command->Initialize(40, false);
   dilateFilter->AddObserver(itk::ProgressEvent(), command);
   dilateFilter->Update();
 
@@ -280,7 +238,7 @@ void UncertaintyPreprocessor::ItkErodeUncertainty(itk::Image<TPixel, VImageDimen
   masker->SetMaskingValue(1.0);
   masker->SetOutsideValue(0.0);
   command = MitkLoadingBarCommand::New();
-  command->Initialize(20, false);
+  command->Initialize(30, false);
   masker->AddObserver(itk::ProgressEvent(), command);
   masker->Update();
 
