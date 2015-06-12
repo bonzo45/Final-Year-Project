@@ -116,8 +116,8 @@ Show screenshot (annotated).
 
 The super-resolution reconstruction process takes in a set of slice stacks (scans), an optional mask and outputs the reconstructed MRI volume and the uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid.
 
-\section{Preprocessing}\label{section:preprocessing}
-The uncertainty tells us for each pixel in the reconstructed volume how much confidence we have in that value. However, before we can visualize it some preprocessing must be applied. 
+\section{Pre-processing}\label{section:preprocessing}
+The uncertainty tells us for each pixel in the reconstructed volume how much confidence we have in that value. However, before we can visualize it some pre-processing must be applied. 
 
 \subsection*{Normalization}
 The uncertainty is linearly scaled so each value is between 0 and 1.
