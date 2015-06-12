@@ -3,7 +3,7 @@ This project has been implemented as an MITK plugin. MITK, the Medical Imaging I
 
 \begin{figure}[H]
   \includegraphics[width=\textwidth]{images/tool/mitk.png}
-  \caption{MITK Workbench + Plugin}\label{fig:scansettings}
+  \caption{MITK Workbench + Plugin}\label{fig:mitkoverview}
 \end{figure}
 
 The plugin developed in this project is a research prototype designed primarily to visualize the uncertainty in MRI reconstructions. However, it also begins to integrate all parts of the reconstruction pipeline together into one application. Broadly speaking the pipeline can be split into three steps: scan -> reconstruct -> visualize. Components from each stage have been incorporated into the plugin.
@@ -104,9 +104,7 @@ Figure \ref{fig:reconstructionlandmarks} shows the process with some example lan
 
 \newpage
 \chapter{Implementation - Visualizations}\label{sectiontoolvisualization}
-This is where the visualizations live. The demo ones are available.
 
-Show screenshot (annotated).
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{images/reconstruction_overview.png}
@@ -116,8 +114,8 @@ Show screenshot (annotated).
 
 The super-resolution reconstruction process takes in a set of slice stacks (scans), an optional mask and outputs the reconstructed MRI volume and the uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid.
 
-\section{Preprocessing}\label{section:preprocessing}
-The uncertainty tells us for each pixel in the reconstructed volume how much confidence we have in that value. However, before we can visualize it some preprocessing must be applied. 
+\section{Pre-processing}\label{section:preprocessing}
+The uncertainty tells us for each pixel in the reconstructed volume how much confidence we have in that value. However, before we can visualize it some pre-processing must be applied. 
 
 \subsection*{Normalization}
 The uncertainty is linearly scaled so each value is between 0 and 1.
@@ -320,14 +318,14 @@ An issue found with variation 1 was that the renderer still draws the edge of th
   \caption{Edge artefacts.}\label{fig:thresholdingvariation1problem}
 \end{figure}
 
-A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. The cutoff can be adjusted to remove the entire edge but there is a tradeoff as some genuine regions of uncertainty can also be filteredout. Figure \ref{fig:thresholdingvariationfix} shows the transfer function and the effect of tweaking the threshold.
+A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. The cutoff can be adjusted to remove the entire edge but there is a tradeoff as some genuine regions of uncertainty can also be filtered out. Figure \ref{fig:thresholdingvariationfix} shows the transfer function and the effect of tweaking the threshold.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1fix.jpg}
     \caption{Gradient Transfer Function}
-    \label{fig:thresholdingvariation1example}
+    \label{fig:thresholdvariation1fix}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
@@ -427,7 +425,7 @@ Below are the results achieved with the test uncertainties (see section \ref{sec
 The idea behind the uncertainty surface is to project the uncertainty (a 3D volume) onto a surface (effectively 2D) to give an overview of the uncertainty hotspots. Two versions have been implemented; the first maps the uncertainty to a sphere and the second maps the uncertainty to a surface representation of the organ being scanned. The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question.
 
 \subsection*{Sphere}
-Two ways of mapping the uncertainty to the surfaces have been trialled. OThe first maps the uncertainty to a texture which can then be applied to a surface. 
+Two ways of mapping the uncertainty to the surfaces have been trialled. The first maps the uncertainty to a texture which can then be applied to a surface. 
 
 Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
 
@@ -540,35 +538,35 @@ The surface representation difficult to interpret by looking at a single image o
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_1.png}
     \caption*{Left}
-    \label{fig:erosion0}
+    \label{fig:surface_left}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_2.png}
     \caption*{Front Left}
-    \label{fig:erosion1}
+    \label{fig:surface_front_left}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_3.png}
     \caption*{Front}
-    \label{fig:erosion2}
+    \label{fig:surface_front}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_4.png}
     \caption*{Front Right}
-    \label{fig:erosion3}
+    \label{fig:surface_front_right}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_5.png}
     \caption*{Right}
-    \label{fig:erosion3}
+    \label{fig:surface_right}
   \end{subfigure}
   \caption{Brain surface viewed from different directions.}\label{fig:surface180}
 \end{figure}
@@ -690,7 +688,7 @@ Figure \ref{fig:nextscanplane} illustrates the process the user goes through.
   \caption{Next scan plane process.}\label{fig:nextscanplane}
 \end{figure}
 
-Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symettry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
+Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symmetry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
 
 \begin{figure}[H]
   \centering
