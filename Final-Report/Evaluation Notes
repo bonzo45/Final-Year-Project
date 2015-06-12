@@ -3,7 +3,7 @@
 // ---- GENERAL ---- //
 Acquisition researchers often do scans. Reconstruction researhers don't normally.
 
-// ---- Visualization ---- //
+// ---- Visualization ---- // (All FUTURE)
 It is as important to show the uncertain regions as it is to explain why they are uncertain.
   - Alignment broken? Show the alices on the reconstruction. BTK (Baby Toolkit can apparently do this.)
   - Too dark? Show areas that were thresholded as a separate overlay.
@@ -15,6 +15,8 @@ Maybe have a show original stack that caused this uncertainty button?
   - How would that work?
 
 // ---- Thresholding ---- //
+
+FUTURE
 Currently it's binary. It's either in the range, or it's not. Can we extend that? Perhaps looking into Hue, Saturation and Value as a way to display the scan could work.
   - Hue (essentially the colour) determined by the scan.
   - Saturation (how deep the colour is) determined by the scan.
@@ -22,34 +24,15 @@ Currently it's binary. It's either in the range, or it's not. Can we extend that
 
 It's a great idea but it doesn't work for areas that are black in the image as they'll be black anyway regardless of the uncertainty.
 
-Having the ability to target a particular area of the brain would be useful as often researchers are only interested in a certain area. This may be to determine the volume of it, for example. Being able to define either a mask or a bounding box to limit the search space further would be useful. Some predefined masks would be useful. e.g. prefrontal cortex.
-
 // ---- Sphere ---- //
-The biggest problem people had with the sphere was the lack of a grounding or anchoring in the reconstruction. This sense of disjointness with the raw data put many people off. There were a number of suggestions that people had of ways to improve this.
 
-The most simple was to mark the top, bottom, left and right of the sphere. This was something that I had planned to do but didn't quite manage to implement with the time available.
-
-Other ways of doing this would also be to mark common landmarks on the sphere. For example, the position of both eyes could be projected onto the volume.
-
-A splitscreen approach could also be taken, whereby the user could select a point in the reconstruction and the corresponding point on the sphere could be highlighted. Similarly if a point on the sphere was selected then the corresponding line could be marked in the volume.
-
+FUTURE
 It was also suggested that perhaps the sphere is slightly unnecessarily abstract and that if it could be stretched and manipulated to create an ellipsoid it would better fit different organs available. For example the brain is slightly longer than it is wide and so stretching the sphere may better represent this shape
 me.
 
 // ---- Surface ---- //
-Some users pointed out that I could make better use of the colour range available by using different transfer functions. Currently the visualizations have a very simple 'colour' toggle that effectively changes the mapping from white to black to black to red. This is an area that I didn't focus too much on as I was trying to get the functionality of the visualizations solid before doing the fine-tuning.
-
-Effectively there are 256 * 256 * 256 colours available and I am only using 256 of them. Experimenting with this would be an easy thing to do and would instantly increase the contrast in all of the visualizations.
-
-Some researchers made clear that they are not used to visualizing the volume from an external point of view and so they were more comfortable with the 2D thresholding views. For them to use the surface view there needs to be a compelling, unique feature that can't be done with thresholding.
-
-Some suggested that the surface representation did a good job of providing an overview, but to really understand the uncertainty it would be necessary to delve into the details with thresholding. In that sense, perhaps the two aren't competing with each other but simply provide views from two different granularities.
-
-Similar feedback was received to the thresholding visualization whereby it would be nice to view the uncertainty in just a certain region in the brain. This could be achieved relatively simply by allowing the user to create a mask and creating a surface from this, or by taking a general model of that part of the brain and registering it to the reconstruction.
-
-The effectivness of this visualization is highly dependant on the surface that is used. For the demonstration the mask used in the reconstruction was used an clearly it has a few rough edges which impacts the aesthetics somewhat. This mask was primarily used as it foregoes the need for a complex reconstruction step, which mapping a general model of the organ would require.
-
-However, Having a general model in particular allows two reconstructions to be compared side by side much more easily. The next step in the development of this visualization will be to incorporate any landmarks that were used in the reconstruction to guide the registration of such a general model.
+FUTURE
+The next step in the development of this visualization will be to incorporate any landmarks that were used in the reconstruction to guide the registration of such a general model.
 
 In particular, when discussing the reconstruction of fetal brain images, because the brain changes so much of the course of the pregnancy a different model will be needed for each milestone. Creating these volumes from a project such as (fetal evolution atlas paper) should be investigated.
 
@@ -58,19 +41,12 @@ Other limitations of the projection algorithm were discussed. For example the im
 Think of a fantastic example...
 
 // ---- Next Scan Plane ---- //
-Similarly to the sphere the next scan plane was also found to be a little detached from the uncertainty. Some reference axes would provide some grounding and give context to the directions.
 
-One part of this visualization that went down well was that it would allow the radiographer to isolate smaller areas that needed further scanning. This allows them to, instead of acquiring a complete stack which may take 3 minutes, focus on a smaller region which could be acquired in less time and only generate data that was genuinely needed. This tightens up the feedback loop allowing more smaller scans to be taken to target problem areas.
-
-It was mentioned that using a cylinder to represent the scanning direction is slightly ambiguous as it was unclear which direction it was intended to represent. In fact the direction could be either way and so the ambiguity is intended but to make it clear that it is representing a direction then an arrow would be more explicit.
-
-When asked whether the visualization was necessary or if they would be happy for the scanner to automatically do the next scan without showing it to them the response was a resoundingly in favour of the visualization. Having control of the scan is very important for them as it allows them to take into account factors that perhaps this visualization doesn't take into account.
-
+FUTURE
 It should be noted that this visualization is essentially theoretical until the reconstruction process can be optimized enough to run in real time. The feedback from this part is therefore based on the assumption that this can be done. 
 
 This isn't the only hurdle that needs to be overcome, however as it became clear from conversations that the radiographers are already under massive time pressures. The time available to do a scan is usually no more than 45-60 minutes including time to set up, guide the patient and perform all the scans. Each stack takes approximately 3 minutes to acquire. With this in mind it may be necessary to have an additional person present to guide the reconstruction process which may or may not be viable.
 
 // ---- Scan Simulation ---- //
-The scan on a particular scanner used at the hospital uses an offset (in mm) and an angle (degrees) to set up the scan.
 
 // ---- Reconstruction ---- //

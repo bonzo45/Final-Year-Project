@@ -1,3 +1,39 @@
 \chapter{Conclusions and Future Work}
+Overall the visualizations and prototypes represent a solid step towards a useful research tool for reconstructing MRI images. The work also provides a foothold for a number of potential future projects.
 
-Some deep thoughts and options for further development.
+\section{Scan Simulation}
+TODO: Pull stuff out of evaluation and into here that talks about future work. There is a lot of it.
+
+\section{Reconstruction}
+TODO: Pull stuff out of evaluation and into here that talks about future work. There is a lot of it.
+
+\section{Visualization}
+The visualizations implemented provide a way of communicating the uncertainty in a manner far easier than looking at the raw data.
+
+Originally the main aim of the project was to decide which of the two approaches to visualization was the best. The better of the two could then be further refined and used. If there had to be a winner then judging from the feedback  it would have to be thresholding. When asked which they preferred 7 out of 9 said that thresholding was their favourite and only 2 preferred the surface representation.
+
+Having said that it has been suggested that the surface representations did a good job of providing an overview, but to really understand the uncertainty it was necessary to delve into the details with thresholding. In that sense, perhaps the two types aren't competing with each other but provide different levels of detail.
+
+Another important point to make is that it is just as important to show where the uncertainty is as it is to indicate why it became uncertain. The two visualizations both concentrate on the first point, which is useful to determine areas that should be avoided but doesn't explicitly tell you how to fix it. An interesting and potentially very useful extension would be to target individual types of uncertainty (see section \ref{background:uncertainty} and develop specific visualizations. For example the sampling uncertainty (which indicates how much data there was to perform the reconstruction at that point) could be represented by overlaying the positions of the original stacks (after motion correction) on the reconstructed image.
+
+One limitation of these visualizations is that they only really work with stationary targets, like the brain. An interesting point for future work would be to try and extend the visualizations to show how uncertainty in a cine (moving MRI image) changes over time. The use of time as a dimension available to visualize remained unexplored in this project, purely due to time constraints.
+
+Each visualization also has a set of individual improvements that can be made to improve them.
+
+\subsection*{Thresholding}
+Currently the overlay is binary: it's either in the range or not. The possibility of extending this so that, within the threshold, higher uncertainty values standout more could be investigated. This could be done either by making values with higher uncertainty more opaque, or by investigating an alternate scheme, such as HSV (Hue, Saturation, Value). The hue and saturation (essentially the colour and how 'deep' it is) could be determined by the reconstructed scan and then the uncertainty could be mapped to the value (essentially how light it is). There are some issues that would need to be worked out with this approach as darker areas in the scan would likely appear more uncertain than light areas, even if they weren't.
+
+\subsection*{Sphere}
+The sphere was intended to be an abstract representation of the object, but in a sense it may be more abstract than is necessary. Many organs are roughly elliptical in shape and so it was suggested that if the user could stretch the sphere in different directions it would be able to provide an abstract, but slightly better fitting shape.
+
+\subsection*{Surface}
+One of the factors holding this visualization back is the quality of the surface used to map the uncertainty to. The next step for this visualization should be to investigate registering a general model of the organ to the volume. Landmarks provided in the reconstruction step should prove useful for this.
+
+In particular, when reconstructing the fetal brain, because it changes so much over the course of the pregnancy a different model will be needed for each milestone. Research has been done to build atlases of the developing brain\cite{fetalatlas} and incorporating these volumes into the surface visualization would be a good starting point.
+
+Limitations of the projection algorithm should also be considered. It is primarily designed for visualizing large, convex objects. This is true for a large number of organs but when it comes to visualizing something small, like blood vessels, modifications may be required. For example the viewer is unlikely to want to have to trace along every vein, rotating around to see the uncertainty. Instead the uncertainty in an entire cross section should be mapped to the surface to give an overview.
+
+\subsection*{Next Scan Plane}
+The main hurdle to implementing this visualization is that the reconstruction process is not optimized enough to run in real time. This means that the uncertainty is not currently known at the time of scanning and further work needs to be done before this can be achieved.
+
+This isn't the only hurdle that needs to be overcome; the radiographers are already under massive time pressures in the scan as it is without them having to guide a reconstruction. The time available to complete the scanning is usually no more than 45-60 minutes which includes the time to set up and familiarize the patient. Taking this into account either an extra person will be required to guide the reconstruction (masks, landmarking etc.) or much more needs to be automated.
