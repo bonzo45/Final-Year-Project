@@ -476,7 +476,13 @@ Once all of the points have been computed some scaling can be implemented to imp
 
 \subsection*{Surface}
 
-To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation.
+To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation. Figure \ref{fig:surfaceraw} shows this volume.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\textwidth]{images/surface/surface_raw.png}
+  \caption{Raw Surface}\label{fig:surfaceraw}
+\end{figure}
 
 The registration step for each point is then trivial as the mask uses the same coordinate system as the uncertainty volume. The normal at the surface is used, as before, to perform the sampling, and scaling can similarly be applied.
 
