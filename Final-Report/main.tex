@@ -28,12 +28,11 @@
 
 % Styling Contents Page
 \usepackage{tocstyle} 
-%\usetocstyle{classic}
 \newtocstyle[classic][]{newstyle}{%
   \settocfeature[0]{entryhook}{\bfseries}%
+  \settocfeature[0]{entryvskip}{0.8em plus 20pt}%
 }
 \usetocstyle{newstyle}
-
 
 % Style Headings
 \usepackage{titlesec}
