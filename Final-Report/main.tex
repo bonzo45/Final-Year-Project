@@ -114,6 +114,7 @@
 % Section References
 \newcommand\sectionreference[1]{\begin{flushleft}\small\textit{#1}\end{flushleft}}
 
+\include{ragged2e}
 
 \begin{document}
 
@@ -139,7 +140,11 @@
 
 \input{conclusion}
 
+\begingroup
+\sloppy
+\raggedright
 \bibliography{bibliography}
 \bibliographystyle{plain}
+\endgroup
     
 \end{document}
