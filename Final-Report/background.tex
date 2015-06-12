@@ -54,7 +54,7 @@ One of the challenges with using MRI for fetal imaging is the resolution that is
 
 Super resolution is a technique that is designed to address this issue. The idea behind super resolution is to construct a higher resolution image by combining information from multiple lower resolution images. A similar approach is used in stereoscopic 3D where the information from two images taken from different perspectives are combined to create one 3D image.
 
-In the case of super resolution two (or more) images are taken such that the translation between them known to subpixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed by interpolation of these images.
+In the case of super resolution two (or more) images are taken such that the translation between them known to sub-pixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed by interpolation of these images.
 
 \begin{figure}[h]
     \centering
@@ -72,7 +72,7 @@ The most simple form of super resolution follows three steps:
 	\item Post-processing
 \end{enumerate}
 
-The registration step is where the translation between each image is established. Crucially this must be known to subpixel accuracy and must not be a whole number of pixels. If, for example, we had two images and one was taken exactly 1 pixels width to the right of the other then we see that both images will contain the same information, in effect we can generate one using the other. However, if the second image is known to be taken half a pixels width to the right then there is the potential to extract more information.
+The registration step is where the translation between each image is established. Crucially this must be known to sub-pixel accuracy and must not be a whole number of pixels. If, for example, we had two images and one was taken exactly 1 pixels width to the right of the other then we see that both images will contain the same information, in effect we can generate one using the other. However, if the second image is known to be taken half a pixels width to the right then there is the potential to extract more information.
 
 Once we have registered our images we then interpolate points at a higher resolution, using a combination of the pixel values from each image at each point. There are a number of different interpolation algorithms that we can use; for example nearest neighbour or linear interpolation.
 

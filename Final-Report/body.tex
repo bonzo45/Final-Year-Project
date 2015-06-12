@@ -320,7 +320,7 @@ An issue found with variation 1 was that the renderer still draws the edge of th
   \caption{Edge artefacts.}\label{fig:thresholdingvariation1problem}
 \end{figure}
 
-A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. The cutoff can be adjusted to remove the entire edge but there is a tradeoff as some genuine regions of uncertainty can also be filteredout. Figure \ref{fig:thresholdingvariationfix} shows the transfer function and the effect of tweaking the threshold.
+A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. The cutoff can be adjusted to remove the entire edge but there is a tradeoff as some genuine regions of uncertainty can also be filtered out. Figure \ref{fig:thresholdingvariationfix} shows the transfer function and the effect of tweaking the threshold.
 
 \begin{figure}[H]
   \centering
@@ -427,7 +427,7 @@ Below are the results achieved with the test uncertainties (see section \ref{sec
 The idea behind the uncertainty surface is to project the uncertainty (a 3D volume) onto a surface (effectively 2D) to give an overview of the uncertainty hotspots. Two versions have been implemented; the first maps the uncertainty to a sphere and the second maps the uncertainty to a surface representation of the organ being scanned. The uncertainty sphere is a generic visualization that can be applied to any scan, whereas the second requires a surface representation of the organ in question.
 
 \subsection*{Sphere}
-Two ways of mapping the uncertainty to the surfaces have been trialled. OThe first maps the uncertainty to a texture which can then be applied to a surface. 
+Two ways of mapping the uncertainty to the surfaces have been trialled. The first maps the uncertainty to a texture which can then be applied to a surface. 
 
 Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
 
@@ -690,7 +690,7 @@ Figure \ref{fig:nextscanplane} illustrates the process the user goes through.
   \caption{Next scan plane process.}\label{fig:nextscanplane}
 \end{figure}
 
-Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symettry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
+Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symmetry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
 
 \begin{figure}[H]
   \centering
