@@ -47,7 +47,7 @@ The question about the realism required of the simulation prompted the largest r
 
   \item \textbf{Translation + Enhanced Rotation}. Translations can be added alongside the rotations but there are also more fundamental changes that can be made to model the movement more realistically. Currently a uniform random variable decides the random rotation and this is unlikely to match the genuine movement of a fetus. For example a fetus is far more likely to nod than shake it's head. Data on fetal movement has been collected at different stages of development previously to establish behavioural patterns\cite{fetalmovement} and so this data could be repurposed to sample movements from a more representative distribution.
 
-  \item \textbf{Interleaved acquisition.} Currently neighbouring slices in the simulated scan are acquired sequentially however in reality the order the slices are acquired is often interleaved (e.g. 1, 5, 10, ..., 2, 6, 11, ...). This is because the frequency of radio wave used to acquire a single slice isn't perfect and so when one slice is excited, slices adjacent to it are often excited as well, albeit to a lesser extent\cite{basicsofmri}. Scanning in an interleaved manner allows these adjacent slices time to relax before they are acquired. The upshot of this is that neighbouring slices are likely to be acquired further apart in time than those in the interleaved set. When simulating movement this sequence can be taken into account to match this.
+  \item \textbf{Interleaved acquisition.} Currently neighbouring slices in the simulated scan are acquired sequentially however in reality the order the slices are acquired is often interleaved (e.g. 1, 5, 10, ..., 2, 6, 11, ...). This is because the frequency of radio wave used to acquire a single slice isn't perfect and so when one slice is excited, slices adjacent to it are often excited as well, albeit to a lesser extent\cite{basicsofmri}. Scanning in an interleaved manner allows these adjacent slices time to relax before they are acquired. The upshot of this is that neighbouring slices are likely to be acquired further apart in time than those in the interleaved set. When simulating movement this sequence can be taken into account.
 
   \item \textbf{Bias/Inhomogeneity.} The proximity of the fetus from the receiver coil can also have an effect on the scan. This can often create what is known as a bias or inhomogeneity which effectively results in areas of the scan being darker than they should be.
 
@@ -60,7 +60,7 @@ The question about the realism required of the simulation prompted the largest r
 \section{Reconstruction}
 The purpose of this part of the plugin was to get an idea of how researchers feel about manually labelling slice stacks to improve the quality of the reconstruction. 
 
-When asked 'How important is it for you to manually guide the reconstruction process?' the majority preferred to have some degree of control over it. See figure \ref{fig:reconstructionguiding}. Those who were less concerned about this either weren't involved in the reconstruction process (and put 1) or felt that they do like the ability to guide it but would greatly prefer if it were automated.
+When asked 'How important is it for you to manually guide the reconstruction process?' the majority preferred to have some degree of control over it. See figure \ref{fig:graph_reconstruction_1}. Those who were less concerned about this either weren't involved in the reconstruction process (and put 1) or felt that they do like the ability to guide it but would greatly prefer if it were automated.
 
 \begin{figure}[h]
     \centering
@@ -95,7 +95,7 @@ When asked 'How long would you be willing to spend labelling landmarks for a rec
 
 The plugin includes a simple tool that allows 13 landmarks to be specified on each slice stack before reconstruction. This was implemented with the view of trying to estimate how long the landmarking stage takes to perform. Constraints on how long I had to spend with each user on the evaluation, and also the level of familiarity of each user with the developing brain mean that the estimations here are quite rough, but do set the scene.
 
-5 users were familiar enough with the brain to take part in the time trial (others specialise in other parts of the body). The stack being annotated had been simulated with up to 5 degrees of motion corruption but other than that was very clean and so there is little ambiguity finding the points. The times are shown in figure \ref{fig:landmarktimes}.
+5 users were familiar enough with the brain to take part in the time trial. The stacks being annotated had been simulated with up to 5 degrees of motion corruption but other than that was very clean and so there is little ambiguity finding the points. The times are shown in figure \ref{fig:landmarktimes}.
 
 \begin{figure}[h]
     \centering
@@ -103,39 +103,39 @@ The plugin includes a simple tool that allows 13 landmarks to be specified on ea
     \caption{There is large variance, but around 2 minutes seems reasonable.}\label{fig:landmarktimes}
 \end{figure}
 
-Taking these results with a pinch of salt it seems that around 10 seconds per landmark is a reasonable estimate for labelling of images, once the user is up to speed. With a large number of stacks per reconstruction and a large number of reconstructions in a study this soon adds up.
+Taking these results with a pinch of salt it seems that around 10 seconds per landmark is a reasonable estimate, once the user is up to speed. With a large number of stacks per reconstruction and a large number of reconstructions in a study this soon adds up.
 
-Another source of inefficiency comes from the use of a number of different pieces of software in the reconstruction process, which causes time to be wasted exporting and importing between them all. Integrating the entire process into one application should help reduce this penalty significantly.
+Another source of inefficiency comes from the use of a number of different pieces of software in the reconstruction process. Integrating the process into one application should remove the time wasted importing and exporting between different tools.
 
 One problem that had not been anticipated were ambiguities determining which direction is left and which is right when placing landmarks. This is one of the limitations of DICOM, one of the most common medical image formats in use, and so some way of letting the user mark this, before a mask is created, would be useful.
 
 The researchers still want a way to manually inspect the slice stacks to check their quality, either to establish why a reconstruction failed, or as a preliminary check. One feature that could be implemented to help with this is the ability to view stacks side by side and scroll through them simultaneously.
 
-Another point raised was that there is sometimes ambiguity when deciding what part of a landmark to mark. Having an example image of each landmark would clarify both what the user is looking for, and also where to mark it.
+Another issue raised was that there was ambiguity deciding which part of a landmark to mark. Having an example image for each would clarify both what the user is looking for and also where to mark it.
 
 \newpage
 \section{Visualizations - Uncertainty}
-There are three things that make a good visualization. Firstly you must be able to understand what it is showing. A visualization can have all the bells and whistles, look fantastic, but if you can't understand what you're looking at then it's useless. Secondly it must be clear. An uncertainty visualization should communicate the uncertainty without over-complicating or distracting the viewer from what is important. Thirdly it must be configurable. Being able to tweak the visualization to highlight different areas and bring out different information makes a visualization more flexible and useful in a wider range of scenarios.
+There are three things that make a good visualization. Firstly you must be able to understand what it is showing; a visualization can look fantastic but if you can't understand what you're looking at then it is useless. Secondly it must be clear; an uncertainty visualization should communicate the uncertainty without unnecessary complication which will distract the viewer from what is important. Thirdly it must be configurable; being able to tweak a visualization to highlight different areas of interest makes it more flexible and useful in a wider range of scenarios.
 
-With these three principles in mind the users were asked three questions for each visualization. The first they were asked was 'How easy was it to understand what the visualization was showing?'. The results for each visualization is shown in figure \ref{fig:eval_visualization_q1}.
+With these three principles in mind the users were asked three questions for each visualization. The first they were asked was 'How easy was it to understand what the visualization was showing?'. The results for each visualization are shown in figure \ref{fig:eval_visualization_q1}.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_thresholding_1.png}
     \caption*{Thresholding}
     \label{fig:eval_visualization_q1_thresholding}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_sphere_1.png}
     \caption*{Sphere}
     \label{fig:eval_visualization_q1_sphere}
-  \end{subfigure}%
+  \end{subfigure}
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_surface_1.png}
     \caption*{Surface}
     \label{fig:eval_visualization_q1_surface}  
@@ -143,33 +143,33 @@ With these three principles in mind the users were asked three questions for eac
   \caption{1 is very difficult. 10 is very easy.}\label{fig:eval_visualization_q1}
 \end{figure}
 
-The results show that the easiest visualization to understand overall was thresholding. From speaking to the researchers this was likely to be the case because this kind of view is what they are used to dealing with. A lot of their work involves them looking closely at individual slice stacks and scrolling through lots of data and so the 2D overlay of uncertainty was a logical extension of this.
+The easiest visualization to understand overall was thresholding. From speaking to the researchers this was because they are very familiar with this kind of view, especially the 2D version; a lot of their work involves them examining slice stacks and scrolling through data sets.
 
 Conceptually it is also the easiest visualization to grasp, the uncertainty is simply overlayed on the scan in 2D and you can see it floating around in 3D. For them to use the surface view there needs to be a compelling, unique feature that can't be done with thresholding.
 
-The sphere visualization seems to be the hardest to understand with some users ranking it as low as 2 or 3 out of 10. The biggest problem people had with the sphere was the lack of a grounding and this sense of disjointness with the raw data put many people off.
+The sphere was the hardest to understand with some users ranking it as low as 2 or 3 out of 10. The biggest problem people had with the sphere was the lack of a grounding and this sense of disjointness with the raw data put many people off.
 
-Whilst not as easy to understand as thresholding the surface (built from the reconstruction mask) was better received than the sphere. The surface fixes the main issue that the sphere has by giving a sense of where in the scan you are looking at, which the users seemed to like. However currently the surface used to represent the brain is still fairly rough, and whilst it does resemble a brain it isn't as clear as perhaps it could be.
+Whilst not as easy to understand as thresholding, the surface (built from the reconstruction mask) was better received than the sphere. The surface fixes the main issue that the sphere has by giving a sense of where in the scan you are looking at, which the users seemed to like. However currently the surface used to represent the brain is still fairly rough, and whilst it does resemble a brain it isn't as clear as perhaps it could be.
 
 The second question they were asked was 'How clearly did the visualization highlight the most uncertain region?'. The results are shown in figure \ref{fig:eval_visualization_q2}.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_thresholding_2.png}
     \caption*{Thresholding}
     \label{fig:eval_visualization_q2_thresholding}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_sphere_2.png}
     \caption*{Sphere}
     \label{fig:eval_visualization_q2_sphere}
-  \end{subfigure}%
+  \end{subfigure}
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_surface_2.png}
     \caption*{Surface}
     \label{fig:eval_visualization_q2_surface}  
@@ -181,37 +181,25 @@ The results show a similar story to the first question. Thresholding was deemed 
 
 The surface visualization was the next best, followed by the sphere. Feedback suggests that it was easier to understand where the uncertainty was in the surface because there was a point of reference which simply was not present in the sphere.
 
-The effectiveness of the surface visualization is highly dependant on the surface that is used. For the demonstration the surface was generated using the reconstruction mask which has a few rough edges impacting the clarity and appeal. The mask was primarily used as it foregoes the need for a complex registration step, which mapping a general model of the organ would require. However, having a general model allows two reconstructions to be compared side by side much more easily.
-
-There were a number of suggestions of ways to improve mitigate this issue with the sphere. The most simple was to mark the top, bottom, left and right of the sphere. This was something that I had planned to do but didn't quite manage to implement with the time available.
-
-Other ways of doing this would also be to project common landmarks onto the sphere. For example, the position of both eyes could be shown.
-
-A more interactive approach could also be taken to solve this problem; a splitscreen visualization where the user could select a point in the reconstruction and the corresponding point on the sphere could be highlighted. Similarly if a point on the sphere was selected then the corresponding line could be marked in the volume.
-
-Some users pointed out that better use of the colour range could be made by using different transfer functions. Currently the visualizations have a very simple 'colour' toggle that effectively changes the mapping from 'white to black' to 'black to red'. This is an area that I didn't focus too much on as I was trying to get the functionality of the visualizations solid before doing the fine-tuning.
-
-The problem essentially boils down to the fact that there are 256 * 256 * 256 colours available and currently only 256 of them are being used. Changing this would be an easy fix and would instantly increase the contrast in all of the visualizations.
-
 The users were then asked 'How easy was the visualization to configure to target different areas of interest?'. The results are shown in figure \ref{fig:eval_visualization_q3}.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_thresholding_3.png}
     \caption*{Thresholding}
     \label{fig:eval_visualization_q3_thresholding}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_sphere_3.png}
     \caption*{Sphere}
     \label{fig:eval_visualization_q3_sphere}
-  \end{subfigure}%
+  \end{subfigure}
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.32\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/evaluation/graph_surface_3.png}
     \caption*{Surface}
     \label{fig:eval_visualization_q3_surface}  
@@ -227,7 +215,7 @@ A common insight for each of the visualizations was that it would be useful to h
 
 \newpage
 \section{Visualizations - Next Scan Plane}
-The same three principles used to evaluate the uncertainty visualizations apply to visualizing the next scan plane. The only difference is that the information being communicated is focused on a scan, not the uncertainty itself.
+The same three principles used to evaluate the uncertainty visualizations apply to visualizing the next scan plane. The only difference is that the information being communicated is focused on a scan, not the uncertainty.
 
 The researchers were initially asked 'How easy was it to understand what the visualization was showing?'. The responses are shown in figure \ref{fig:eval_next_scan_plane_q1}.
 
@@ -237,7 +225,7 @@ The researchers were initially asked 'How easy was it to understand what the vis
     \caption{1 is very difficult. 10 is very easy.}\label{fig:eval_next_scan_plane_q1}
 \end{figure}
 
-Generally it seems the visualization is easy to understand. It was mentioned that using a cylinder to represent the scanning direction is slightly ambiguous as it was unclear which direction it was intended to represent. In fact the direction could be either way and so the ambiguity is intended but to make it clear that it is representing a direction then an arrow would be more explicit.
+Generally it seems the visualization is easy to understand. It was mentioned that using a cylinder to represent the scanning direction is slightly ambiguous as it was unclear which direction it was intended to represent. In fact the direction could be either way and so the ambiguity is intended but to make it clear that it is representing a direction an arrow would be more explicit.
 
 The next question asked was 'How clearly did the visualization illustrate the next best scan plane?'. The responses are shown in figure \ref{fig:eval_next_scan_plane_q2}.
 
