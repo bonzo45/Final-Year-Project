@@ -128,59 +128,43 @@ The uncertainty is linearly scaled so each value is between 0 and 1.
 \subsection*{Erosion}
 The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume.
 
-The edges are removed in five steps:
+The edges are removed in three steps:
 
 \begin{enumerate}
-  \item An erosion filter is applied to the image. This removes the edges but has the unwanted effect of also eroding uncertainty in the center of the volume.
-  \item The absolute difference is taken between the original and the eroded image.
-  \item The difference is then thresholded to create a mask of the areas that changed the most. The idea here is that the edges change significantly more than the small pockets of uncertainty inside.
-  \item A growing filter is applied to the mask, to ensure the entire edge is covered.
-  \item Finally all the points in the mask are set to 0 to remove the edge.
+  \item The image is thresholded to create a mask of the background.
+  \item The mask is then expanded with a growing filter provided by ITK.
+  \item Then all the points in the mask are set to 0 (background) to remove the edge.
 \end{enumerate}
 
 Figure \ref{fig:erosionoverview} shows how the soft fade out of uncertainty due to the mask is removed to create a hard edge.
 
 \begin{figure}[h]
   \centering
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{images/erosion/erosion_0.png}
     \caption{Original}
     \label{fig:erosion0}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{images/erosion/erosion_1.png}
     \caption{Step 1}
     \label{fig:erosion1}
   \end{subfigure}  
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{images/erosion/erosion_2.png}
     \caption{Step 2}
     \label{fig:erosion2}
-  \end{subfigure}
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{images/erosion/erosion_3.png}
-    \caption{Step 3}
-    \label{fig:erosion3}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{images/erosion/erosion_4.png}
-    \caption{Step 4}
-    \label{fig:erosion4}
-  \end{subfigure}  
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{images/erosion/erosion_5.png}
-    \caption{Step 5}
-    \label{fig:erosion5}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/erosion_3.png}
+    \caption{Step 3}
+    \label{fig:erosion3}
   \end{subfigure}  
   \caption{Steps involved in removing the edge.}\label{fig:erosionoverview}
 \end{figure}
