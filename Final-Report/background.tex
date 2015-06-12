@@ -56,7 +56,7 @@ Super-resolution is a technique that is designed to address this issue. The idea
 
 In the case of super-resolution two (or more) images are taken such that the translation between them known to sub-pixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed by interpolation of these images.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=0.8\textwidth]{images/background/super_resolution.png}
     \caption{Low resolution images aligned to sub-pixel accuracy. Adapted from \cite{superresolution2}}
@@ -192,7 +192,7 @@ RANSAC (Random Sample Consensus) is a technique for estimating model parameters 
 
 Consider the task of trying to fit a line to some data which contains both correct points (inliers) and noisy data (outliers). The problem with simply minimizing the sum of squared errors to all of the points is that the outliers will distort the result such that the inliers are not perfectly described by the data. Figure~\ref{fig:ransac} illustrates this task.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=0.4\textwidth]{images/background/ransac.png}
     \caption{Inliers are shown in blue, outliers shown in red. From \cite{ransac:image}}
@@ -254,7 +254,7 @@ A common surface extraction algorithm is marching cubes. This algorithm works by
 
 The process is easier to visualize in 2D (marching squares), see Figure~\ref{fig:marching_squares}, but it can be simply extended to 3D.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=0.8\textwidth]{images/background/marching_squares.jpg}
     \caption{Using marching squares to extract a shape. From \cite{marching_squares:image}}
@@ -284,7 +284,7 @@ The issue when it comes to uncertainty visualization is that most of these dimen
 
 To get an idea of what is possible with visualization techniques here are some examples that have been applied successfully in the past.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=0.8\textwidth]{images/background/error_bars.png}
     \caption{Left: Error Bar, Right: Box and Whisker Plot. From \cite{uncertaintyoverview}}
@@ -293,7 +293,7 @@ To get an idea of what is possible with visualization techniques here are some e
 
 Error bars are possibly the simplest form of uncertainty visualization possible and are commonly found on graphs. They make use of one spatial dimension. An extension of this technique is the box and whisker plot which adds some idea of variance and range. An example of both is shown in Figure~\ref{fig:error_bars}.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=0.4\textwidth]{images/background/heatmap.png}
     \caption{An example heatmap. From \cite{heatmap}}
@@ -306,7 +306,7 @@ Time is a useful dimension to exploit but is more suited to some visualizations 
 
 In particular a team at the Vienna University of Technology have written a paper on 'attractive flicker' which is designed to draw the viewers attention to a particular point in a cluttered scene\cite{attractiveflicker}. Figure~\ref{fig:flicker} illustrates this idea.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=0.8\textwidth]{images/background/flicker.png}
     \caption{Three frames show a molecule being highlighted as it flickers. From \cite{attractiveflicker}}
@@ -324,7 +324,7 @@ One part of the project that there wasn't time to explore but would come in usef
 
 For future work it will almost certainly be worth researching these techniques. See Figure~\ref{fig:labels} for examples.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
 	\includegraphics[width=1.0\textwidth]{images/background/labels.png}
     \caption{Different labelling techniques. Adapted from \cite{labelling}}

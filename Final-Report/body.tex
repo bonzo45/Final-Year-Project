@@ -3,7 +3,7 @@ This project has been implemented as an MITK plugin. MITK, the Medical Imaging I
 
 \begin{figure}[H]
   \includegraphics[width=\textwidth]{images/tool/mitk.png}
-  \caption{MITK Workbench + Plugin}\label{fig:scansettings}
+  \caption{MITK Workbench + Plugin}\label{fig:mitkoverview}
 \end{figure}
 
 The plugin developed in this project is a research prototype designed primarily to visualize the uncertainty in MRI reconstructions. However, it also begins to integrate all parts of the reconstruction pipeline together into one application. Broadly speaking the pipeline can be split into three steps: scan -> reconstruct -> visualize. Components from each stage have been incorporated into the plugin.
@@ -104,9 +104,7 @@ Figure \ref{fig:reconstructionlandmarks} shows the process with some example lan
 
 \newpage
 \chapter{Implementation - Visualizations}\label{sectiontoolvisualization}
-This is where the visualizations live. The demo ones are available.
 
-Show screenshot (annotated).
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{images/reconstruction_overview.png}
@@ -327,7 +325,7 @@ A solution to this problem is to use a gradient transfer function which allows t
   \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1fix.jpg}
     \caption{Gradient Transfer Function}
-    \label{fig:thresholdingvariation1example}
+    \label{fig:thresholdvariation1fix}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
@@ -540,35 +538,35 @@ The surface representation difficult to interpret by looking at a single image o
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_1.png}
     \caption*{Left}
-    \label{fig:erosion0}
+    \label{fig:surface_left}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_2.png}
     \caption*{Front Left}
-    \label{fig:erosion1}
+    \label{fig:surface_front_left}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_3.png}
     \caption*{Front}
-    \label{fig:erosion2}
+    \label{fig:surface_front}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_4.png}
     \caption*{Front Right}
-    \label{fig:erosion3}
+    \label{fig:surface_front_right}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.20\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_180_5.png}
     \caption*{Right}
-    \label{fig:erosion3}
+    \label{fig:surface_right}
   \end{subfigure}
   \caption{Brain surface viewed from different directions.}\label{fig:surface180}
 \end{figure}
