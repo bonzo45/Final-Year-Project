@@ -2,10 +2,16 @@
 Overall the visualizations and prototypes represent a solid step towards a useful research tool for reconstructing MRI images. The work also provides a foothold for a number of potential future projects.
 
 \section{Scan Simulation}
-TODO: Pull stuff out of evaluation and into here that talks about future work. There is a lot of it.
+The scan simulation feature was received well on the whole however there is a long list of additional artefacts that could be added. With enough time they could all be included.
+
+It does however raise the question of exactly how much realism is needed to effectively test a reconstruction algorithm? Highly realistic MRI simulation has been done before and tools, such as MRiLab\cite{mrilab}, allow the user to experiment with different scan sequences, coils and more. However, how far along this path we need to go to test reconstruction algorithm remains an area where more research is needed.
 
 \section{Reconstruction}
-TODO: Pull stuff out of evaluation and into here that talks about future work. There is a lot of it.
+My time spent with researchers indicated that overall they are willing to spend time labelling slice stacks, but only if they really need to, and only the minimum number required. Four landmarks is sufficient to define a rigid transformation (translation and rotation only) and this may prove sufficient for some scans, however the more deformable the organ, the more landmarks are required. The position of the landmarks is also important, having four  along the same axis is of no use, and how likely the landmark is to be obscured is also a consideration.
+
+There are many efficiency savings that can be investigated to improve this step. One interesting approach would be to introduce the concept of iterated reconstruction: an initial reconstruction is first performed and then, based on the uncertainty that results the user can be prompted to provide landmarks in uncertain regions. This procedure can then be repeated, with only small parts of the volume requiring reconstruction at each step, until the uncertainty is at an acceptable level.
+
+If the iteration could also output the current best guess for the user to tweak this would also save time. Moving the landmarking process from a completely manual "find all these landmarks" to a supervised "here are some landmarks - are they correct" approach will not only speed up the landmarking, but be less tedious for the user.
 
 \section{Visualization}
 The visualizations implemented provide a way of communicating the uncertainty in a manner far easier than looking at the raw data.

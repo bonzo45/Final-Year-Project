@@ -56,8 +56,6 @@ The question about the realism required of the simulation prompted the largest r
   \item \textbf{Extend to Moving/Periodic Scans.} The way that a cine (moving MRI image) is acquired differs from the imaging of a static object. For periodic motion, like the beating of the heart, a number of scans are acquired and then those that happen to be at the same point in the cycle are used to reconstruct one frame in the animation. This is another area that could potentially be simulated.
 \end{itemize}
 
-These potential extensions raise the question of how much realism is required to effectively test reconstruction algorithms? Highly realistic MRI simulation has been done before and tools, such as MRiLab\cite{mrilab}, allow the user to experiment with different scan sequences, coils and more. However, how far along this path we need to go to test reconstruction algorithm remains an area where more research is needed.
-
 \newpage
 \section{Reconstruction}
 The purpose of this part of the plugin was to get an idea of how researchers feel about manually labelling slice stacks to improve the quality of the reconstruction. 
@@ -97,7 +95,7 @@ When asked 'How long would you be willing to spend labelling landmarks for a rec
 
 The plugin includes a simple tool that allows 13 landmarks to be specified on each slice stack before reconstruction. This was implemented with the view of trying to estimate how long the landmarking stage takes to perform. Constraints on how long I had to spend with each user on the evaluation, and also the level of familiarity of each user with the developing brain mean that the estimations here are quite rough, but do set the scene.
 
-5 users were familiar enough with the brain to take part in the time trial (others specialise in other parts of the body). The stack being annotated had been simulated with up to 5 degrees of motion corruption but other than that was very clean and so there is little ambiguity finding the points. The times are shown in figure \ref{fig:landmarktimes}. 
+5 users were familiar enough with the brain to take part in the time trial (others specialise in other parts of the body). The stack being annotated had been simulated with up to 5 degrees of motion corruption but other than that was very clean and so there is little ambiguity finding the points. The times are shown in figure \ref{fig:landmarktimes}.
 
 \begin{figure}[h]
     \centering
@@ -109,17 +107,9 @@ Taking these results with a pinch of salt it seems that around 10 seconds per la
 
 Another source of inefficiency comes from the use of a number of different pieces of software in the reconstruction process, which causes time to be wasted exporting and importing between them all. Integrating the entire process into one application should help reduce this penalty significantly.
 
-My time spent with researchers indicated that overall they are willing to spend time labelling slice stacks, but only if they really need to, and only the minimum number required. Four landmarks is sufficient to define a rigid transformation (translation and rotation only) and this may prove sufficient for some scans. The more deformable the organ, however, the greater the number of landmarks required. The position of the landmarks is also important, having four landmarks along the same axis is of no use, and how likely the landmark is to be obscured is also a consideration.
-
-One way to improve the efficiency of the landmarking step is to introduce the idea of iterated reconstruction. An initial reconstruction can be performed and then the user can be prompted to provide landmarks in areas of high uncertainty.
-
-This procedure can then be iterated, with only small parts of the volume requiring reconstruction at each step, until the uncertainty is at an acceptable level.
-
-If the iteration could also output the algorithm's current best guess for the user to tweak this would also save time. Moving the landmarking process from a completely manual "find all these landmarks" to more of a supervised "here are some landmarks - are they correct" approach will not only speed up the landmarking, but be less tedious for the user.
-
 One problem that had not been anticipated were ambiguities determining which direction is left and which is right when placing landmarks. This is one of the limitations of DICOM, one of the most common medical image formats in use, and so some way of letting the user mark this, before a mask is created, would be useful.
 
-The researchers still want a way to manually inspect the slices stacks to check their quality, either to establish why a reconstruction failed, or as a preliminary check. One feature that would help with this is the ability to view stacks side by side and scroll through them simultaneously.
+The researchers still want a way to manually inspect the slice stacks to check their quality, either to establish why a reconstruction failed, or as a preliminary check. One feature that could be implemented to help with this is the ability to view stacks side by side and scroll through them simultaneously.
 
 Another point raised was that there is sometimes ambiguity when deciding what part of a landmark to mark. Having an example image of each landmark would clarify both what the user is looking for, and also where to mark it.
 
