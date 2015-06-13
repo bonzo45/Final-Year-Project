@@ -1364,7 +1364,8 @@ void Sams_View::ConfirmSelection() {
     // If it's supposed to be a cube.
     else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
       name << CUBE_NAME.toStdString(); // "Cube of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
-      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, 10);
+      float half = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 2;
+      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, half);
     }
     // If it's supposed to be a sphere in a quadrant.
     else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {

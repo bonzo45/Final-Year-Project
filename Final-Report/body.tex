@@ -413,7 +413,6 @@ Two ways of mapping the uncertainty to the surfaces have been trialled. The firs
 
 Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
 
-
 \savebox{\mybox}{\includegraphics[width=0.5\textwidth]{images/surface/texture_sphere.png}}
 \begin{figure}[H]
   \centering
@@ -684,58 +683,76 @@ Figure \ref{fig:nextscanplane} illustrates the process the user goes through.
   \caption{Next scan plane process.}\label{fig:nextscanplane}
 \end{figure}
 
-Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symmetry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
+Figure \ref{fig:nextscanplanespheres} shows the next scan planes for both the sphere uncertainties. Since they both have infinitely many lines of symmetry they can be scanned from any direction.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.5\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sphere.png}
     \caption{Sphere}
     \label{fig:nextscanplanesphere}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sphere_in_corner.png}
     \caption{Sphere in Corner}
     \label{fig:nextscanplanespherecorner}
   \end{subfigure}
-  ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/next_scan_plane/cube.png}
+  \caption{Next scan planes for the spheres.}\label{fig:nextscanplanespheres}
+\end{figure}
+
+Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan here is slightly counter intuitive but the scan does in fact split the uncertainty in half.
+
+\savebox{\mybox}{\includegraphics[width=0.4\textwidth]{images/next_scan_plane/cube.png}}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \usebox{\mybox}
     \caption{Cube}
     \label{fig:nextscanplanecube}  
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/next_scan_plane/random.png}
-    \caption{Random}
-    \label{fig:nextscanplanerandom}  
+  \begin{subfigure}[b]{0.4\textwidth}
+    \vbox to \ht\mybox{%
+      \vfill
+      \includegraphics[width=\textwidth]{images/next_scan_plane/cubecut.png}
+      \vfill
+    }
+    \caption{Two halves.}
+    \label{fig:nextscanplanecubecut}  
   \end{subfigure}  
-  \caption{Next scan planes for the test uncertainties.}\label{fig:nextscanplanetests}
+  \caption{Next scan plane for the cube.}\label{fig:nextscanplanecube}
+\end{figure}
+
+Figure \ref{fig:nextscanplanerandom} shows the random uncertainty. The random volume is effectively a cube but with some points missing. The next best scan plane is therefore very similar to the cube, but slightly slanted as the volume is longer than it is wide.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{images/next_scan_plane/random.png}
+  \caption{Random}\label{fig:nextscanplanerandom}
 \end{figure}
 
 The next scan plane can also be displayed in the 2D view (figure \ref{fig:nextscanplane2d}).
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/axial.png}
     \caption*{Axial}
     \label{fig:nextscanplaneaxial}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/coronal.png}
     \caption*{Coronal}
     \label{fig:nextscanplanecoronal}
-  \end{subfigure}%
+  \end{subfigure}
   ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sagittal.png}
     \caption*{Sagittal}
     \label{fig:nextscanplanesagittal}
