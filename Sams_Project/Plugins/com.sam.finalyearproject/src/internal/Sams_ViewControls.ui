@@ -3884,6 +3884,9 @@ QPushButton:pressed {
                   <property name="tracking">
                    <bool>true</bool>
                   </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
                  </widget>
                 </item>
                 <item>
