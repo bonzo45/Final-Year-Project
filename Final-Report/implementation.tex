@@ -56,7 +56,37 @@ A preview to illustrate the area that the scan configured is overlayed on the vo
 
 \clearpage
 \section{Reconstruction}\label{implementation:reconstruction}
-Screenshot. Explain controls.
+This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. This code was previously only accessible via the command line. Currently the reconstruction code has to be compiled separately but once the plugin knows where it has been compiled to it can be used within the application.
+
+<screenshot of linking executable>
+
+The user can then optionally add landmarks to the slices stacks being used in the reconstruction. This involves identifying 13 landmarks in each stack. These landmarks can then be used by the reconstruction algorithm to help align each of the stacks.
+
+Figure \ref{fig:reconstructionlandmarks} illustrates this process. The landmarks are placed in the order listed and the purple indicator shows the next landmark to be found. Once a landmark is placed it can be moved by dragging it, or deleted by pressing the black button next to the landmark name. When a landmark has been placed the indicator goes green and pressing this indicator will select and jump to the landmarks location. The currently selected landmark is shown in red in the 2D view and marked by an arrow in the indicator.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.358\textwidth}
+    \includegraphics[width=\textwidth]{images/reconstruction/axial.png}
+    \caption*{Axial}
+    \label{fig:reconstructionaxial}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.358\textwidth}
+    \includegraphics[width=\textwidth]{images/reconstruction/sagittal.png}
+    \caption*{Sagittal}
+    \label{fig:reconstructionsagittal}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.283\textwidth}
+    \includegraphics[width=\textwidth]{images/reconstruction/controls.png}
+    \caption*{Controls}
+    \label{fig:reconstructioncontrols}
+  \end{subfigure}
+  \caption{Placing Landmarks on Slice Stacks.}\label{fig:reconstructionlandmarks}
+\end{figure}
 
 \clearpage
 \section{Visualizations}\label{implementation:visualizations}

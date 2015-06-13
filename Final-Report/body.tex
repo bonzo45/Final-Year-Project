@@ -10,40 +10,12 @@ The implementation of this feature is relatively simple; the 'perfect scan' is s
 
 \newpage
 \section{Reconstruction}\label{section:reconstruction}
-This part of the tool uses the fast GPU reconstruction code developed in \cite{uncertaintysvd}. The Common Toolkit (CTK) includes functionality that allows you to run external binaries from within MITK\cite{ctkcmd}. A wrapper executable has been written, which conforms to the Command Line Module XML Schema, and essentially allows the MITK plugin to make calls to the GPU reconstruction code and automatically import the result.
 
-One of the ways that the quality of the reconstruction can be improved is by manually labelling landmarks in the scans, such as the eyes and extreme points of the skull. This helps the registration step of the reconstruction align each of the initial scans. A prototype to allow each stack to be marked up in this way has been developed with the view of getting the opinion of researchers on whether this is a process they are willing to do, or even if they have the time to do it.
-
-Figure \ref{fig:reconstructionlandmarks} shows the process with some example landmarks. Each landmark can be placed, moved, deleted and you can also jump quickly to a previously marked point.
-
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.358\textwidth}
-    \includegraphics[width=\textwidth]{images/reconstruction/axial.png}
-    \caption*{Axial}
-    \label{fig:reconstructionaxial}
-  \end{subfigure}%
-    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.358\textwidth}
-    \includegraphics[width=\textwidth]{images/reconstruction/sagittal.png}
-    \caption*{Sagittal}
-    \label{fig:reconstructionsagittal}
-  \end{subfigure}%
-    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.283\textwidth}
-    \includegraphics[width=\textwidth]{images/reconstruction/controls.png}
-    \caption*{Controls}
-    \label{fig:reconstructioncontrols}
-  \end{subfigure}
-  \caption{Placing Landmarks on Slice Stacks.}\label{fig:reconstructionlandmarks}
-\end{figure}
+METHOD
+The Common Toolkit (CTK) includes functionality that allows you to run external binaries from within MITK\cite{ctkcmd}. A wrapper executable has been written, which conforms to the Command Line Module XML Schema, and essentially allows the MITK plugin to make calls to the GPU reconstruction code and automatically import the result.
 
 \newpage
 \chapter{The Visualizations}\label{sectiontoolvisualization}
-
-
 
 \begin{figure}[h]
   \centering
