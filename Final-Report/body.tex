@@ -105,6 +105,8 @@ Figure \ref{fig:reconstructionlandmarks} shows the process with some example lan
 \newpage
 \chapter{The Visualizations}\label{sectiontoolvisualization}
 
+
+
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.8\textwidth]{images/reconstruction_overview.png}
@@ -642,6 +644,13 @@ Where this parameter may be more useful however is when dealing with smaller, mo
 
 \newpage
 \section{Next Scan Plane}\label{section:nextscanplane}
+
+\begin{wrapfigure}[17]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/tool/5_next_scan_plane.png}
+  \caption{Controls}\label{fig:next_scan_plane_controls}
+\end{wrapfigure}
+
 The idea behind this visualization is based on research\cite{uncertaintysvd} which uses SVD to find the optimum position and direction to scan next given the current uncertainty. With this knowledge the scanning process can continually target areas of uncertainty to optimize the quality of the reconstruction.
 
 This visualization is designed to communicate the next best scan to the radiographer in a way that also provides some context as to why this is optimal.
