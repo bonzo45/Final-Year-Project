@@ -413,17 +413,23 @@ Two ways of mapping the uncertainty to the surfaces have been trialled. The firs
 
 Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
 
+
+\savebox{\mybox}{\includegraphics[width=0.5\textwidth]{images/surface/texture_sphere.png}}
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/surface/texture_texture.png}
+    \vbox to \ht\mybox{%
+      \vfill
+      \includegraphics[width=\textwidth]{images/surface/spherical_1.png}
+      \vfill
+    }
     \caption{Uncertainty Texture}
     \label{fig:texturetexture}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/surface/texture_sphere.png}
+    \usebox{\mybox}
     \caption{Mapped to Sphere}
     \label{fig:texturesphere}
   \end{subfigure}
