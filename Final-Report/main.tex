@@ -7,7 +7,8 @@
   11pt, a4paper,
   footinclude=true,
   headinclude=true,
-  cleardoublepage=empty
+  cleardoublepage=empty,
+  hidelinks
 ]{scrbook}
 
 \usepackage[linedheaders,parts,pdfspacing]{classicthesis}
@@ -97,10 +98,6 @@
 % Font
 \usepackage{fontspec}
 \setmainfont{Quicksand}
-%\usepackage{unicode-math}
-%\setmathfont{Quicksand}
-%\setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]
-%\setmonofont{Inconsolata}[Scale=MatchLowercase]
 
 % Date
 \usepackage{babel}
@@ -113,7 +110,7 @@
 
 % Frame
 \include{xcolor}
-
+	
 % Section References
 \newcommand\sectionreference[1]{\begin{flushleft}\small\textit{#1}\end{flushleft}}
 
