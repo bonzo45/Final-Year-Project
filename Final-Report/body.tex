@@ -1,73 +1,11 @@
 \chapter{Implementation - Tool}
-This project has been implemented as an MITK plugin. MITK, the Medical Imaging Interaction Toolkit, is a free open-source software system for the development of interactive medical image processing software. It combines ITK (for image processing) and VTK (for visualization) together with a basic application, the MITK Workbench, that can be extended with plugins.
-
-\begin{figure}[H]
-  \includegraphics[width=\textwidth]{images/tool/mitk.png}
-  \caption{MITK Workbench + Plugin}\label{fig:mitkoverview}
-\end{figure}
-
-The plugin developed in this project is a research prototype designed primarily to visualize the uncertainty in MRI reconstructions. However, it also begins to integrate all parts of the reconstruction pipeline together into one application. Broadly speaking the pipeline can be split into three steps: scan -> reconstruct -> visualize. Components from each stage have been incorporated into the plugin.
-
-\subsection*{Scan (Simulate)}
-Given a previous reconstruction, that is assumed to be a perfect, ground truth, representation, we can simulate a scan by re-sampling it.
-
-\subsection*{Reconstruct}
-Using slice stacks (simulated or otherwise) we can reconstruct a super-resolution image. Optionally landmarks can be provided to guide the registration process.
-
-\subsection*{Visualize}
-When the reconstruction has finished we can visualize how well it went with a number of different techniques:
-
-\begin{itemize}
-  \item Thresholding
-  \item Uncertainty Sphere
-  \item Uncertainty Surface
-  \item Next Scan Plane
-\end{itemize}
 
 \newpage
 \section{Scan Simulation}\label{section:simulatescan}
-The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. This idea was used in the same paper concerned with finding the optimum scan plane\cite{uncertaintysvd}. The focus of this part of the tool is not to evaluate the effectiveness of this approach, that is a project in it's own right, but to make this simulation easier to perform and customize for future research.
 
-\begin{wrapfigure}[23]{r}{0.4\textwidth}
-  \vspace{-20pt}
-  \includegraphics[width=0.4\textwidth]{images/scan_simulation/scan_settings.png}
-  \caption{Controls}\label{fig:scansettings}
-\end{wrapfigure}
-
-The user has a number of controls (see figure \ref{fig:scansettings}) available to tweak:
-
-\subsection*{Scan Dimensions}
-Number of pixels in the scan (x, y, z).
-
-\subsection*{Scan Resolution}
-Size of each pixel, relative to the reconstructed scan (x, y, z).
-
-\subsection*{Scan Center}
-The center point of the scan (x, y, z). This can be set to the center of the volume or adjusted manually.
-
-\subsection*{Scan Direction}
-The direction to scan in. You may expect this to be just one vector (the z-direction) but since the scan is rectangular in shape the x and y-direction also need to be specified. The standard axial, coronal and sagittal directions are available and the direction can be rotated about each axis using the dials.
-
-\subsection*{Motion Corruption}
-Some simple motion corruption can be enabled. Currently the implementation is quite simple; the motion only happens in between slices being scanned. Before each slice gets scanned a random rotation (up to a maximum specified) is applied about a random axis to the original image.
-
-Figure \ref{fig:scansimulationexample} shows an example of an axial scan (y-axis) where the preview is overlayed on a volume rendering of the ground truth volume. The preview box shows the boundary of the scan, which is updated to show any changes to the configuration. The effects of the motion corruption are apparent when viewed from the side: successive stacks don't line up.
-
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/scan_simulation/scan_axial_preview.png}
-    \caption{Axial Scan Preview}\label{fig:scansimulationpreview}
-  \end{subfigure}%
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/scan_simulation/scan_axial_result.png}
-    \caption{Side (Sagittal) View of Simulation}\label{fig:scansimulationresult}
-  \end{subfigure}
-  \caption{Example Scan Simulation.}\label{fig:scansimulationexample}
-\end{figure}
-
+METHOD
+  - Explain how it works.
+  - Show effects of each parameter.
 The implementation of this feature is relatively simple; the 'perfect scan' is simply resampled using the parameters given and each point is linearly interpolated. The motion corruption is a case of applying a transformation matrix before sampling to move elsewhere in the volume.
 
 \newpage
