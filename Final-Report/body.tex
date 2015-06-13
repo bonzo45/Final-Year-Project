@@ -41,7 +41,9 @@ Figure \ref{fig:reconstructionlandmarks} shows the process with some example lan
 \end{figure}
 
 \newpage
-\chapter{Implementation - Visualizations}\label{sectiontoolvisualization}
+\chapter{The Visualizations}\label{sectiontoolvisualization}
+
+
 
 \begin{figure}[h]
   \centering
@@ -66,59 +68,43 @@ The uncertainty is linearly scaled so each value is between 0 and 1.
 \subsection*{Erosion}
 The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume.
 
-The edges are removed in five steps:
+The edges are removed in three steps:
 
 \begin{enumerate}
-  \item An erosion filter is applied to the image. This removes the edges but has the unwanted effect of also eroding uncertainty in the center of the volume.
-  \item The absolute difference is taken between the original and the eroded image.
-  \item The difference is then thresholded to create a mask of the areas that changed the most. The idea here is that the edges change significantly more than the small pockets of uncertainty inside.
-  \item A growing filter is applied to the mask, to ensure the entire edge is covered.
-  \item Finally all the points in the mask are set to 0 to remove the edge.
+  \item The image is thresholded to create a mask of the background.
+  \item The mask is then expanded with a growing filter provided by ITK.
+  \item Then all the points in the mask are set to 0 (background) to remove the edge.
 \end{enumerate}
 
 Figure \ref{fig:erosionoverview} shows how the soft fade out of uncertainty due to the mask is removed to create a hard edge.
 
 \begin{figure}[h]
   \centering
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{images/erosion/erosion_0.png}
     \caption{Original}
     \label{fig:erosion0}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{images/erosion/erosion_1.png}
     \caption{Step 1}
     \label{fig:erosion1}
   \end{subfigure}  
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{images/erosion/erosion_2.png}
     \caption{Step 2}
     \label{fig:erosion2}
-  \end{subfigure}
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{images/erosion/erosion_3.png}
-    \caption{Step 3}
-    \label{fig:erosion3}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{images/erosion/erosion_4.png}
-    \caption{Step 4}
-    \label{fig:erosion4}
-  \end{subfigure}  
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{images/erosion/erosion_5.png}
-    \caption{Step 5}
-    \label{fig:erosion5}
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/erosion_3.png}
+    \caption{Step 3}
+    \label{fig:erosion3}
   \end{subfigure}  
   \caption{Steps involved in removing the edge.}\label{fig:erosionoverview}
 \end{figure}
@@ -367,17 +353,22 @@ Two ways of mapping the uncertainty to the surfaces have been trialled. The firs
 
 Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
 
+\savebox{\mybox}{\includegraphics[width=0.5\textwidth]{images/surface/texture_sphere.png}}
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/surface/texture_texture.png}
+    \vbox to \ht\mybox{%
+      \vfill
+      \includegraphics[width=\textwidth]{images/surface/spherical_1.png}
+      \vfill
+    }
     \caption{Uncertainty Texture}
     \label{fig:texturetexture}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
   \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/surface/texture_sphere.png}
+    \usebox{\mybox}
     \caption{Mapped to Sphere}
     \label{fig:texturesphere}
   \end{subfigure}
@@ -430,7 +421,13 @@ Once all of the points have been computed some scaling can be implemented to imp
 
 \subsection*{Surface}
 
-To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation.
+To map to a different surface model the procedure is largely the same. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation. Figure \ref{fig:surfaceraw} shows this volume.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\textwidth]{images/surface/surface_raw.png}
+  \caption{Raw Surface}\label{fig:surfaceraw}
+\end{figure}
 
 The registration step for each point is then trivial as the mask uses the same coordinate system as the uncertainty volume. The normal at the surface is used, as before, to perform the sampling, and scaling can similarly be applied.
 
@@ -585,6 +582,13 @@ Where this parameter may be more useful however is when dealing with smaller, mo
 
 \newpage
 \section{Next Scan Plane}\label{section:nextscanplane}
+
+\begin{wrapfigure}[17]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/tool/5_next_scan_plane.png}
+  \caption{Controls}\label{fig:next_scan_plane_controls}
+\end{wrapfigure}
+
 The idea behind this visualization is based on research\cite{uncertaintysvd} which uses SVD to find the optimum position and direction to scan next given the current uncertainty. With this knowledge the scanning process can continually target areas of uncertainty to optimize the quality of the reconstruction.
 
 This visualization is designed to communicate the next best scan to the radiographer in a way that also provides some context as to why this is optimal.
@@ -626,58 +630,76 @@ Figure \ref{fig:nextscanplane} illustrates the process the user goes through.
   \caption{Next scan plane process.}\label{fig:nextscanplane}
 \end{figure}
 
-Figure \ref{fig:nextscanplanetests} shows the next scan planes for the test uncertainties. The sphere and sphere in corner can be scanned from any direction as they have infinitely many lines of symmetry. The cube is scanned such that the maximum number of slices hits it. The random volume, similar to the sphere, is also best scanned from one of the three main axes.
+Figure \ref{fig:nextscanplanespheres} shows the next scan planes for both the sphere uncertainties. Since they both have infinitely many lines of symmetry they can be scanned from any direction.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.5\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sphere.png}
     \caption{Sphere}
     \label{fig:nextscanplanesphere}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sphere_in_corner.png}
     \caption{Sphere in Corner}
     \label{fig:nextscanplanespherecorner}
   \end{subfigure}
-  ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/next_scan_plane/cube.png}
+  \caption{Next scan planes for the spheres.}\label{fig:nextscanplanespheres}
+\end{figure}
+
+Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan here is slightly counter intuitive but the scan does in fact split the uncertainty in half.
+
+\savebox{\mybox}{\includegraphics[width=0.4\textwidth]{images/next_scan_plane/cube.png}}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \usebox{\mybox}
     \caption{Cube}
     \label{fig:nextscanplanecube}  
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/next_scan_plane/random.png}
-    \caption{Random}
-    \label{fig:nextscanplanerandom}  
+  \begin{subfigure}[b]{0.4\textwidth}
+    \vbox to \ht\mybox{%
+      \vfill
+      \includegraphics[width=\textwidth]{images/next_scan_plane/cubecut.png}
+      \vfill
+    }
+    \caption{Two halves.}
+    \label{fig:nextscanplanecubecut}  
   \end{subfigure}  
-  \caption{Next scan planes for the test uncertainties.}\label{fig:nextscanplanetests}
+  \caption{Next scan plane for the cube.}\label{fig:nextscanplanecube}
+\end{figure}
+
+Figure \ref{fig:nextscanplanerandom} shows the random uncertainty. The random volume is effectively a cube but with some points missing. The next best scan plane is therefore very similar to the cube, but slightly slanted as the volume is longer than it is wide.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{images/next_scan_plane/random.png}
+  \caption{Random}\label{fig:nextscanplanerandom}
 \end{figure}
 
 The next scan plane can also be displayed in the 2D view (figure \ref{fig:nextscanplane2d}).
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/axial.png}
     \caption*{Axial}
     \label{fig:nextscanplaneaxial}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/coronal.png}
     \caption*{Coronal}
     \label{fig:nextscanplanecoronal}
-  \end{subfigure}%
+  \end{subfigure}
   ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.3\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sagittal.png}
     \caption*{Sagittal}
     \label{fig:nextscanplanesagittal}

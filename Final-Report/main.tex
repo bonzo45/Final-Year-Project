@@ -7,7 +7,8 @@
   11pt, a4paper,
   footinclude=true,
   headinclude=true,
-  cleardoublepage=empty
+  cleardoublepage=empty,
+  hidelinks
 ]{scrbook}
 
 % Classic Thesis
@@ -34,6 +35,7 @@
 \usepackage{tocstyle} 
 \newtocstyle[classic][]{newstyle}{%
   \settocfeature[0]{entryhook}{\bfseries}%
+  \settocfeature[0]{entryvskip}{0.8em plus 20pt}%
 }
 \usetocstyle{newstyle}
 
@@ -109,11 +111,16 @@
 \usepackage[]{datetime}
 \usepackage{textcase}
 
+% Vertically aligning figures.
+\newsavebox\mybox
+
 % Frame around images.
 \include{xcolor}
 
 % Section References
 \newcommand\sectionreference[1]{\begin{flushleft}\small\textit{#1}\end{flushleft}}
+
+\include{ragged2e}
 
 \begin{document}
 
@@ -143,7 +150,11 @@
 
 \input{future}
 
+\begingroup
+\sloppy
+\raggedright
 \bibliography{bibliography}
 \bibliographystyle{plain}
+\endgroup
     
 \end{document}

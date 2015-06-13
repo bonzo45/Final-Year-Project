@@ -1364,7 +1364,8 @@ void Sams_View::ConfirmSelection() {
     // If it's supposed to be a cube.
     else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
       name << CUBE_NAME.toStdString(); // "Cube of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
-      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, 10);
+      float half = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 2;
+      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, half);
     }
     // If it's supposed to be a sphere in a quadrant.
     else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {
@@ -1426,8 +1427,6 @@ void Sams_View::ResetPreprocessingSettings() {
   UI.checkBoxInversionEnabled->setChecked(false);
   UI.checkBoxErosionEnabled->setChecked(false);
   UI.spinBoxErodeThickness->setValue(2);
-  UI.spinBoxErodeThreshold->setValue(0.2);
-  UI.spinBoxDilateThickness->setValue(2);
 }
 
 /**
@@ -1450,9 +1449,7 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     NORMALIZED_MAX
   );
   preprocessor->setErodeParams(
-    UI.spinBoxErodeThickness->value(),
-    UI.spinBoxErodeThreshold->value(),
-    UI.spinBoxDilateThickness->value()
+    UI.spinBoxErodeThickness->value()
   );
   mitk::Image::Pointer fullyProcessedMitkImage = preprocessor->preprocessUncertainty(
     UI.checkBoxInversionEnabled->isChecked(),
