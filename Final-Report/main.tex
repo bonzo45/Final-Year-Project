@@ -82,7 +82,7 @@
 % ---- Subsection ---- %
 \titleformat{\subsection}[display]
    	% Format
-   	{\small\bfseries}
+   	{\large\bfseries}
    	% Label
    	{}
    	%Separation
@@ -94,6 +94,22 @@
     % After
     []
 \titlespacing\subsection{0pt}{0pt}{0pt}
+
+% ---- Subsubsection ---- %
+\titleformat{\subsubsection}[display]
+   	% Format
+   	{\small\bfseries}
+   	% Label
+   	{}
+   	%Separation
+   	{-2em}
+   	% Before
+    {
+    	\hspace*{1em} \spacedallcaps
+    }
+    % After
+    []
+\titlespacing\subsubsection{0pt}{0pt}{0pt}
 
 % Shiny Pictures
 \usepackage{float}

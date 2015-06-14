@@ -22,19 +22,19 @@ The idea behind simulating a scan is that we can evaluate the performance of rec
 
 The user has a number of controls (see figure \ref{fig:scansettings}) available to tweak:
 
-\subsection*{Scan Dimensions}
+\subsubsection*{Scan Dimensions}
 Number of pixels in the scan (x, y, z).
 
-\subsection*{Scan Resolution}
+\subsubsection*{Scan Resolution}
 Size of each pixel, relative to the reconstructed scan (x, y, z).
 
-\subsection*{Scan Center}
+\subsubsection*{Scan Center}
 The center point of the scan (x, y, z). This can be set to the center of the volume or adjusted manually.
 
-\subsection*{Scan Direction}
+\subsubsection*{Scan Direction}
 The direction to scan in. You may expect this to be just one vector (the z-direction) but since the scan is rectangular in shape the x and y-direction also need to be specified. The standard axial, coronal and sagittal directions are available and the direction can be rotated about each axis using the dials.
 
-\subsection*{Motion Corruption}
+\subsubsection*{Motion Corruption}
 Some simple motion corruption can be enabled. Currently the implementation is quite simple; the motion only happens in between slices being scanned. Before each slice gets scanned a random rotation (up to a maximum specified) is applied about a random axis to the original image.
 
 A preview to illustrate the area that the scan configured is overlayed on the volume. Whenever any control changes this preview updates. Figure \ref{fig:scansimulationexample} shows an example of an axial scan (y-axis) simulated with 5 degrees of motion corruption. Note that when viewed from the side adjacent stacks don't line up.
@@ -56,31 +56,29 @@ A preview to illustrate the area that the scan configured is overlayed on the vo
 
 \clearpage
 \section{Reconstruction}\label{implementation:reconstruction}
-This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. This code was previously only accessible via the command line. Currently the reconstruction code has to be compiled separately but once the plugin knows where it has been compiled to it can be used within the application.
+This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. This code was previously only accessible via the command line. Currently the reconstruction code has to be compiled separately but once the plugin knows where it has been compiled to it can be used within the application. Figure \ref{fig:reconstruction_overview} shows an outline of the reconstruction procedure.
 
-<screenshot of linking executable>
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/reconstruction_overview.png}
+  \caption{Reconstruction Overview}
+  \label{fig:reconstruction_overview}
+\end{figure}
 
-The user can then optionally add landmarks to the slices stacks being used in the reconstruction. This involves identifying 13 landmarks in each stack. These landmarks can then be used by the reconstruction algorithm to help align each of the stacks.
+The super-resolution reconstruction process takes in a set of slice stacks (scans), an optional mask and outputs the reconstructed MRI volume and the uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid. The user can also optionally provide landmarks for each slice stack being used in the reconstruction, which are used by the reconstruction algorithm to help align each of the stacks.
 
-Figure \ref{fig:reconstructionlandmarks} illustrates this process. The landmarks are placed in the order listed and the purple indicator shows the next landmark to be found. Once a landmark is placed it can be moved by dragging it, or deleted by pressing the black button next to the landmark name. When a landmark has been placed the indicator goes green and pressing this indicator will select and jump to the landmarks location. The currently selected landmark is shown in red in the 2D view and marked by an arrow in the indicator.
+Figure \ref{fig:reconstructionlandmarks} illustrates the optional landmarking stage. The landmarks are placed in the order listed and the purple indicator shows the landmark that next needs to be found. Once a landmark is placed it can be moved by dragging it, or deleted by pressing the black button next to the landmark name. When a landmark has been placed the indicator goes green and pressing this indicator will select and jump to the landmarks location. The currently selected landmark is shown in red in the 2D view and marked by an arrow in the indicator.
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.358\textwidth}
+  \begin{subfigure}[b]{0.559\textwidth}
     \includegraphics[width=\textwidth]{images/reconstruction/axial.png}
     \caption*{Axial}
     \label{fig:reconstructionaxial}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.358\textwidth}
-    \includegraphics[width=\textwidth]{images/reconstruction/sagittal.png}
-    \caption*{Sagittal}
-    \label{fig:reconstructionsagittal}
-  \end{subfigure}%
-    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.283\textwidth}
+  \begin{subfigure}[b]{0.441\textwidth}
     \includegraphics[width=\textwidth]{images/reconstruction/controls.png}
     \caption*{Controls}
     \label{fig:reconstructioncontrols}
@@ -90,15 +88,166 @@ Figure \ref{fig:reconstructionlandmarks} illustrates this process. The landmarks
 
 \clearpage
 \section{Visualizations}\label{implementation:visualizations}
+To visualize the uncertainty the scan volume and uncertainty volume first have to be chosen. Then the uncertainty is pre-processed; in all cases the uncertainty is normalized to be within the range [0-1] and then optionally the uncertainty can be aligned to the scan, inverted and eroded.
 
+\subsubsection*{Normalize}
+The uncertainty is linearly scaled so each value is between 0 and 1.
+
+\begin{verbatim}
+  0 - no information (high uncertainty - worst)
+  1 - maximum information (low uncertainty - best)
+\end{verbatim}
+
+\subsubsection*{Align to Scan}
+\begin{wrapfigure}[14]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/pre-processing.png}
+  \caption{Pre-processing}\label{fig:scansettings}
+\end{wrapfigure}
+
+If the uncertainty has no location information (image to world matrix) then it can be aligned with the reconstructed scan. This feature was mainly used to align the artificial test uncertainties to the scan for testing.
+
+\subsubsection*{Invert}
+If the uncertainty volume has been saved the other way round (i.e. low is good and high is bad) then this will invert it to be compatible with the plugin.
+
+\subsubsection*{Erosion}
+The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume. The amount of erosion is specified as a number of pixels.
+
+\clearpage
 \subsection{Thresholding}\label{implementation:thresholding}
-Screenshot. Explain controls.
+The idea behind thresholding is to isolate areas in the reconstructed image that are within a particular range of uncertainty. 
 
+\begin{wrapfigure}[18]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/tool/2_thresholding.png}
+  \caption{Controls}\label{fig:threshold_settings}
+\end{wrapfigure}
+
+For example the viewer can highlight values in a particular range, like [0.2-0.5], or alternately isolate the worst values in the volume, like the worst 1$\%$.
+
+Figure \ref{fig:threshold_settings} shows the controls available to the user. The top two sliders set the minimum and maximum values to show and the slider below allows the worst x$\%$ of uncertainty to be displayed. In the image the top 5$\%$ has been selected, which updates the top two sliders; in this uncertainty volume the worst 5$\%$ of uncertainty lies in the range [0.0-0.22].
+
+'Ignore Zeros' is ticked which means the background, which has value 0, is not displayed even if it is within the range selected. The auto-update toggle box decides whether changes to the controls immediately update the visualization.
+
+Figure \ref{fig:threshold_settings_result} shows the 2D and 3D result of this configuration.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholding_2d.png}
+    \caption{2D Thresholding}\label{fig:threshold_2d}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholding_3d.png}
+    \caption{3D Thresholding}\label{fig:threshold_3d}
+  \end{subfigure}
+  \caption{Worst 5$\%$ of Uncertainty}\label{fig:threshold_settings_result}
+\end{figure}
+
+\clearpage
 \subsection{Sphere}\label{implementation:sphere}
-Screenshot. Explain controls.
+The idea behind both the uncertainty sphere and uncertainty surface visualizations is to project the uncertainty, which is a 3D volume, onto a surface model, which is essentially 2D. This gives the viewer an overview of the uncertainty without having to go through each area, slice by slice.
 
+\begin{wrapfigure}[17]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/tool/3_sphere.png}
+  \caption{Controls}\label{fig:sphere_settings}
+\end{wrapfigure}
+
+The sphere is designed to be a generic visualization that can work with any scan, regardless of the target. Figure \ref{fig:sphere_settings} shows the control the user has over the visualization and figure \ref{fig:sphere_settings_result} shows the resulting visualization.
+
+\subsubsection{Resolution}
+This changes how many points are used to represent the sphere. The more points used the sharper the image, but the longer the processing takes.
+
+\subsubsection{Distance}
+This alters how far into the volume to sample. Half means that the uncertainty is sampled until the center and full means it is sampled until the edge of the image. This option is more useful in the next visualization as with the sphere full sampling generally means that opposite points have identical values.
+
+\subsubsection{Colour}
+This swaps between a black and white and a black and red visualization.
+
+\subsubsection{Scaling}
+This scales the resulting uncertainty values to make better use of the colours available. With no scaling the uncertainty values are often roughly the same everywhere and end up looking largely indistinguishable; to fix this the outputted uncertainty range can be linearly mapped to make better use of the available colours.
+
+\subsubsection{Sample}
+By default the value shown on the surface is the average of all the points along the ray. This can be altered to show the worst or best value.
+
+\clearpage
 \subsection{Surface}\label{implementation:surface}
-Screenshot. Explain controls.
+The uncertainty surface uses a similar approach to the uncertainty sphere however uncertainty is mapped to a surface representation of the organ being scanned.
 
+\begin{wrapfigure}[18]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/tool/4_surface.png}
+  \caption{Controls}\label{fig:surface_settings}
+\end{wrapfigure}
+
+Figure \ref{fig:surface_settings} shows the controls, which are largely the same as the sphere with three exceptions. Figure \ref{fig:surface_settings_result} shows the result.
+
+\subsubsection{Surface}
+This allows the user to pick the surface to map the uncertainty to.
+
+\subsubsection{Registration}
+This decides how the surface is aligned to the uncertainty volume. None assumes that they are already aligned. Simple finds the bounding box of the surface and maps it to the bounding box of the volume. *bodge* is just used in development. Debug marks the points that each surface point registers to on the uncertainty so the registration can be visually inspected.
+
+\subsubsection{Invert Normals}
+Inverts the normals stored at each point on the surface. Use when normals point outwards.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_average.png}
+    \caption{Sphere}\label{fig:sphere_settings_result}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_average.png}
+    \caption{Surface}\label{fig:surface_settings_result}
+  \end{subfigure}
+  \caption{Surface Visualizations}\label{fig:threshold_settings_result}
+\end{figure}
+
+\clearpage
 \subsection{Next Scan Plane}\label{implementation:nextscanplane}
-Screenshot. Explain controls.
+The idea behind this visualization is based on research\cite{uncertaintysvd} which uses SVD to find the optimum position and direction to scan next given the current uncertainty. With this knowledge the scanning process can continually target areas of uncertainty to optimize the quality of the reconstruction.
+
+\begin{wrapfigure}[18]{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.4\textwidth]{images/tool/5_next_scan_plane.png}
+  \caption{Controls}\label{fig:next_scan_plane_settings}
+\end{wrapfigure}
+
+This visualization is designed to communicate the next best scan to the radiographer in a way that also provides some context as to why this is optimal. Figure \ref{fig:next_scan_plane_settings} shows the controls available.
+
+\subsubsection{Target Uncertainty}
+The user chooses the uncertainty to target by specifying an upper threshold. This threshold can then be previewed using thresholding before the next scan is computed. The resulting scan is then visualized as a circle, which shows the central slice of the scan, and a cylinder which indicates the direction of the scan. The scan volume can also be volume rendered to illustrate where on the target the scan is.
+
+As well as being shown visually the center and normal of the next best scan is also shown underneath the 'Go' button.
+
+Figure \ref{fig:nextscanplane} illustrates this process.\\
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/next_scan_plane_threshold.png}
+    \caption*{Uncertainty to target.}
+    \label{fig:nextscanplanethreshold}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/next_scan_plane_1.png}
+    \caption*{Next scan plane.}
+    \label{fig:nextscanplane1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/next_scan_plane_2.png}
+    \caption*{With scan volume.}
+    \label{fig:nextscanplane2}  
+  \end{subfigure}
+  \caption{Next scan plane process.}\label{fig:nextscanplane}
+\end{figure}

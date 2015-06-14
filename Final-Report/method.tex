@@ -3,15 +3,682 @@
 This section covers the principles behind each feature and different designs considered.
 
 \section{Scan Simulation}
+The scan simulation works by resampling the perfect scan supplied. Each point on the simulated scan is a result of linearly interpolating a point in the original.
 
+The point that is sampled is determined by the dimensions, resolution, center and direction of the scan. Firstly the $origin$ (location of pixel (0, 0, 0)) is computed from the $center$.
+
+\begin{align*}
+origin = center \text{ }-\text{ }& xDir * \frac{(scanWidth * xResolution)}{2} \nonumber \\
+ 	  			\text{ }-\text{ }& yDir * \frac{(scanHeight * yResolution)}{2} \nonumber \\
+ 	  			\text{ }-\text{ }& zDir * \frac{(numSlices * zResolution)}{2} \nonumber \\
+ 	  			\\
+	\text{where}& \\
+	& scanWidth \text{ - number of pixels/slices in simulated scan slice} \nonumber \\
+	& scanHeight \nonumber \\
+	& numSlices \nonumber \\
+	& xResolution \text{ - the size of each simulated pixel} \nonumber \\
+	& yResolution \text{\hspace*{1.5em} (in pixels - relative to reconstruction)} \nonumber \\
+	& zResolution \nonumber \\
+	& xDir \text{ - the direction vectors of the simulated scan} \nonumber \\
+	& yDir \nonumber \\
+	& zDir \nonumber
+\end{align*}
+
+Then point $p$ in the simulated scan can be mapped to sample point $s$:
+
+\begin{align*}
+	 s = origin \text{ }+\text{ }& xDir * (scanWidth * p[x] * xResolution) \nonumber \\
+ 	  			\text{ }+\text{ }& yDir * (scanHeight * p[y] * yResolution) \nonumber \\
+ 	  			\text{ }+\text{ }& zDir * (numSlices * p[z] * zResolution) \nonumber \\ 	  			
+\end{align*}
+
+The simulation is acquired slice by slice and each slice can optionally be given a random rotation to simulate movement about a point. If enabled this takes the point ($s$ above) rotates it a random amount about a random axis. Figure \ref{fig:scan_simulation_movement_comparison} shows the effect of this parameter.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/scan_simulation/scan_simulation_no_movement.png}
+    \caption{No Movement}\label{fig:scan_simulation_no_movement}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/scan_simulation/scan_simulation_5.png}
+    \caption{5 Degrees}\label{fig:scan_simulation_5_degrees}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/scan_simulation/scan_simulation_10.png}
+    \caption{10 Degrees}\label{fig:scan_simulation_10_degrees}
+  \end{subfigure}
+  \caption{Effects Motion Corruption}\label{fig:threshold_settings_result}
+\end{figure}
+
+\clearpage
 \section{Reconstruction}
+This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. The implementation makes use of the CTK (Common Toolkit) Command Line Module\cite{ctkcmd}, which allows calls to the GPU code to be made from within the plugin. A wrapper for the code has been written, which comforms to the Command Line Module XML Schema, and this provides the module with all the information it requires to parse the parameters and automatically import the results.
 
+The optional landmarking functionality allows the registration of each of the slices stacks to be guided.
+
+<insert 4 points rigid translation diagram>
+
+\clearpage
 \section{Visualizations}
 
+\subsection{Pre-processing}
+
+\subsubsection*{Normalize}
+The uncertainty is linearly scaled, using a filter provided by ITK (RescaleIntensityImageFilter).
+
+\subsubsection*{Align to Scan}
+The image to world matrix of the scan is copied to the uncertainty volume. This results in pixel (x, y, z) in both the scan and uncertainty being mapped to the same point in space, allowing the overlay.
+
+\subsubsection*{Invert}
+The uncertainty is inverted, using a filter provided by ITK (InvertIntensityImageFilter).
+
+\subsubsection*{Erosion}
+The edges of the uncertainty are removed in three steps:
+
+\begin{enumerate}
+  \item The image is thresholded to create a mask of the background.
+  \item The mask is then expanded with a growing filter provided by ITK (GrayscaleDilateImageFilter).
+  \item Then all the points in the mask are set to 0 (background) to remove the edge.
+\end{enumerate}
+
+Figure \ref{fig:erosionoverview} shows how the soft fade out of uncertainty due to the mask is removed to create a hard edge.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/erosion_0.png}
+    \caption{Original}
+    \label{fig:erosion0}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/erosion_1.png}
+    \caption{Step 1}
+    \label{fig:erosion1}
+  \end{subfigure}  
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/erosion_2.png}
+    \caption{Step 2}
+    \label{fig:erosion2}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/erosion_3.png}
+    \caption{Result}
+    \label{fig:erosion3}
+  \end{subfigure}  
+  \caption{Steps involved in removing the edge.}\label{fig:erosionoverview}
+\end{figure}
+
+The growing filter used in step 2 uses binary morphology to expand the mask. Figure \ref{fig:growing} illustrates how it works. Each value in the image is either in the mask or out of the mask; when the growing filter is applied a neighbourhood around each point is examined and if any point is in the mask then the point is added to the mask.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/growing_1.png}
+    \caption{An example neighbourhood.}\label{fig:growing_1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/erosion/growing_2.png}
+    \caption{The mask grows.}\label{fig:growing_2}
+  \end{subfigure}
+  \caption{Example of binary morphology.}\label{fig:growing}
+\end{figure}
+
+\clearpage
+\subsection{Test Uncertainties}\label{section:testuncertainties}
+To test and debug the visualizations during development a number of artificial uncertainty volumes were used, as well as uncertainty from a genuine fetal brain reconstruction.
+
+Results of each visualization with these test uncertainties are shown in the relevant sections.
+
+\subsection*{Sphere of Uncertainty}
+An uncertainty volume where the uncertainty is proportional to the distance from the center. The uncertainty at the center is 0 (very uncertain) which then goes to 1 (very certain) at the edges.
+
+\subsection*{Sphere in Corner}
+Similar to the sphere, but instead of being placed in the middle it is placed in one corner of the volume.
+
+\subsection*{Cube of Uncertainty}
+An uncertainty volume that is 1 (very good) everywhere except for fixed size cube of uncertainty 0 (very bad) in the center.
+
+\subsection*{Random Uncertainty}
+The uncertainty at every point is a random uniformly distributed value.
+
+\subsection*{Reconstruction Uncertainty}
+Uncertainty generated from an example super-resolution reconstruction of a fetal brain.\\
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.18\textwidth}
+    \fcolorbox{gray}{white}{\includegraphics[width=\textwidth]{images/test/test_sphere.png}}
+    \caption{Sphere}
+    \label{fig:test_sphere}
+  \end{subfigure}%
+  ~~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.18\textwidth}
+    \fcolorbox{gray}{white}{\includegraphics[width=\textwidth]{images/test/test_quadsphere.png}}
+    \caption{Corner}
+    \label{fig:test_corner}
+  \end{subfigure}%
+  ~~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.18\textwidth}
+    \fcolorbox{gray}{white}{\includegraphics[width=\textwidth]{images/test/test_cube.png}}
+    \caption{Cube}
+    \label{fig:test_cube}
+  \end{subfigure}%
+  ~~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.18\textwidth}
+    \fcolorbox{gray}{white}{\includegraphics[width=\textwidth]{images/test/test_random.png}}
+    \caption{Random}
+    \label{fig:test_random}
+  \end{subfigure}%
+  ~~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.18\textwidth}
+    \fcolorbox{gray}{white}{\includegraphics[width=\textwidth]{images/test/test_scan.png}}
+    \caption{Fetal Brain}
+    \label{fig:test_example}
+  \end{subfigure}
+  \caption{Test Uncertainty Volumes.}\label{fig:test_uncertainties}
+\end{figure}
+
+\clearpage
 \subsection{Thresholding}
+The implementation uses a filter provided by ITK to create a binary mask set to 1 where the uncertainty is in the range and 0 where it is not. This mask is then overlayed on the reconstructed scan in 2D and made transparent so both the uncertain area and underlying scan can be seen simultaneously. See figure \ref{fig:thresholding2d}.
 
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholding_2d_axial.png}
+    \caption{Axial}
+    \label{fig:thresholding2daxial}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholding_2d_coronal.png}
+    \caption{Coronal}
+    \label{fig:thresholding2dcoronal}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholding_2d_sagittal.png}
+    \caption{Sagittal}
+    \label{fig:thresholding2dsagittal}  
+  \end{subfigure}
+  \caption{Thresholding in 2D}\label{fig:thresholding2d}
+\end{figure}
+
+To view the uncertainty in 3D, two variations have been implemented, both using volume rendering (see section \ref{background:volumerendering}). Variation 1 applies volume rendering directly to the uncertainty and variation 2 applies volume rendering to the binary mask.
+
+The transfer functions used in each variation can be seen in figure \ref{fig:thresholdingoverview}. The first works by making values within the thresholded range opaque and those outside it transparent. The second works in a similar way; 0 in the mask is out of the range and 1 in the mask is in the range. In the second transfer function there is a slow fade out, rather than a sharp change, to give individual points of uncertainty some presence.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1.jpg}
+    \caption{Variation 1}
+    \label{fig:thresholdingvariation1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation2.jpg}
+    \caption{Variation 2}
+    \label{fig:thresholdingvariation2}
+  \end{subfigure}
+  \caption{Opacity Transfer Functions. Opacity of 0 is transparent, 1 is opaque.}\label{fig:thresholdingoverview}
+\end{figure}
+
+An issue found with variation 1 was that the renderer still draws the edge of the uncertainty, even though it had previously been removed by erosion. This is due to the renderer using linear interpolation to take samples along each ray fired into the volume. Figure \ref{fig:thresholdingvariation1problem} illustrates the problem - the background has uncertainty 0.0, and the object has uncertainty $\sim$0.6. Points interpolated between the two will lie in the range [0.0-0.6] and so we find values of uncertainty that don't actually exist in the object.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1example.png}
+    \caption{Simplified View}
+    \label{fig:thresholdingvariation1example}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1problem.png}
+    \caption{Edge Artefacts}
+    \label{fig:thresholdingvariation1artefacts}
+  \end{subfigure}
+  \caption{Edge artefacts.}\label{fig:thresholdingvariation1problem}
+\end{figure}
+
+A solution to this problem is to use a gradient transfer function which allows the change in uncertainty to influence the transparency. Rapid changes in uncertainty can therefore be treated as noise and ignored. The cutoff can be adjusted to remove the entire edge but there is a tradeoff as some genuine regions of uncertainty can also be filtered out. Figure \ref{fig:thresholdingvariationfix} shows the transfer function and the effect of tweaking the threshold.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1fix.jpg}
+    \caption{Gradient Transfer Function}
+    \label{fig:thresholdvariation1fix}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1threshold1.png}
+    \caption{Threshold 0.05}
+    \label{fig:thresholdingvariation1threshold1}
+  \end{subfigure}
+  ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1threshold2.png}
+    \caption{Threshold 0.02}
+    \label{fig:thresholdingvariation1threshold2}  
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/thresholdvariation1threshold3.png}
+    \caption{Threshold 0.01}
+    \label{fig:thresholdingvariation1threshold3}  
+  \end{subfigure}  
+  \caption{Reducing the threshold removes the edge but removes some uncertainty.}\label{fig:thresholdingvariationfix}
+\end{figure}
+
+Although tweaking the threshold can remove edge artefact variation 2 was found not to exhibit these problems and so this implementation was used in the evaluation of the prototype.
+
+\newpage
+\subsection*{Results}
+Below are the results achieved with the test uncertainties (see section \ref{section:testuncertainties}). Each uncertainty is overlayed on an example reconstruction and the settings used in each case are shown.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/sphere_2d.png}
+    \caption{Sphere in 2D (Worst 5$\%$)}
+    \label{fig:thresholdingresultssphere2d}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/sphere_3d.png}
+    \caption{Sphere in 3D (Worst 5$\%$)}
+    \label{fig:thresholdingresultssphere3d}
+  \end{subfigure}
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/sphere_corner_2d.png}
+    \caption{Sphere in Corner in 2D (Worst 1$\%$)}
+    \label{fig:thresholdingresultsspherecorner2d}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/sphere_corner_3d.png}
+    \caption{Sphere in Corner in 3D (Worst 1$\%$)}
+    \label{fig:thresholdingresultsspherecorner3d}
+  \end{subfigure}
+  % \caption{Opacity Transfer Functions. Opacity of 0 is transparent, 1 is opaque.}\label{fig:thresholdingvariation1problem}
+\end{figure}
+
+\begin{figure}[H]
+  \ContinuedFloat 
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/cube_2d.png}
+    \caption{Cube in 2D (< 1.0)}
+    \label{fig:thresholdingresultscube2d}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/cube_3d.png}
+    \caption{Cube in 3D (< 1.0)}
+    \label{fig:thresholdingresultscube3d}
+  \end{subfigure}
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/scan_2d.png}
+    \caption{Scan in 2D (Worst 5$\%$)}
+    \label{fig:thresholdingresultsscan2d}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/thresholding/results/scan_3d.png}
+    \caption{Scan in 3D (Worst 5$\%$)}
+    \label{fig:thresholdingresultsscan3d}
+  \end{subfigure}
+  % \caption{Opacity Transfer Functions. Opacity of 0 is transparent, 1 is opaque.}\label{fig:thresholdingvariation1problem}
+\end{figure}
+
+\clearpage
 \subsection{Sphere}
+Two ways of mapping the uncertainty to the surfaces have been trialled. The first maps the uncertainty to a texture which can then be applied to a surface. 
 
+Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
+
+\savebox{\mybox}{\includegraphics[width=0.5\textwidth]{images/surface/texture_sphere.png}}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \vbox to \ht\mybox{%
+      \vfill
+      \includegraphics[width=\textwidth]{images/surface/spherical_1.png}
+      \vfill
+    }
+    \caption{Uncertainty Texture}
+    \label{fig:texturetexture}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \usebox{\mybox}
+    \caption{Mapped to Sphere}
+    \label{fig:texturesphere}
+  \end{subfigure}
+  \caption{Mapping a texture to a sphere.}\label{fig:uncertaintytexture}
+\end{figure}
+
+This technique has a number of issues. Firstly, it looks quite blocky unless the resolution is set very high. Secondly, due to the conversion to spherical coordinates parts of the sphere are less well represented; in particular all pixels in the top row correspond to the very top of the sphere. Finally this technique does not translate very well when trying to map to arbitrary surfaces that are not as regular as a sphere.
+
+Another approach was then trialled. In MITK it is possible to store a colour at each point on a surface and use the colours at each point to interpolate values all over the surface. This effectively removes the need for the texture, as each point on the surface can be set directly in turn.
+
+This process begins by generating a surface representation of a sphere. In the same way that the resolution of the texture could be increased, more points can be used to model the sphere. Modelling in this way removes the issue that the top of the sphere is overrepresented; there is only ever one point there.
+
+Then each point on the sphere is registered to a start point to begin sampling in the volume (labelled volume intersection in figure). The normal of the point on the sphere is then used as a direction to sample in. The start of the genuine uncertainty is then found by following the sampling direction until the value is not background (labelled uncertainty intersection in figure). Figure \ref{fig:surface_sampling_example} illustrates this process.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/surface/sampling_example.png}
+  \caption{Sampling Overview}\label{fig:surface_sampling_example}
+\end{figure}
+
+A tortoise and hare algorithm is then used to be able to vary how far into the volume the sampling goes. The tortoise moves through the uncertainty accumulating samples whilst the hare shoots off trying to find the edge. When the hare does find the edge the sampling stops. If the hare travels at the same speed as the tortoise then the entire object is sampled, if it travels at twice the speed of the tortoise then the sampling stops half the way through and so on. This is illustrated in figure \ref{fig:tortoiseandhareexample}.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/tortoise_and_hare_1.png}
+    \caption*{Start}
+    \label{fig:tortoiseandhare1}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/tortoise_and_hare_2.png}
+    \caption*{...}
+    \label{fig:tortoiseandhare2}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/tortoise_and_hare_3.png}
+    \caption*{End}
+    \label{fig:tortoiseandhare3}  
+  \end{subfigure}
+  \caption{Illustration of Tortoise and Hare Algorithm}\label{fig:tortoiseandhareexample}
+\end{figure}
+
+The accumulation that the tortoise does can also be customized. By default it will take the average of all of the samples it takes, but the best value and also the worst value along the ray can be extracted.
+
+Once all of the points have been computed some scaling can be implemented to improve the contrast of the visualization. In many cases the average uncertainty will be roughly the same everywhere and if the range [0-1] is mapped to the entire colour range the values end up looking largely indistinguishable; to fix this the outputted uncertainty range can be linearly mapped to make better use of the available colours.
+
+\clearpage
 \subsection{Surface}
+To map to a different surface model the procedure is largely the same as the sphere. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation. Figure \ref{fig:surfaceraw} shows this volume.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\textwidth]{images/surface/surface_raw.png}
+  \caption{Raw Surface}\label{fig:surfaceraw}
+\end{figure}
+
+The registration step for each point is then trivial as the mask uses the same coordinate system as the uncertainty volume. The normal at the surface is used, as before, to perform the sampling, and scaling can similarly be applied.
+
+\newpage
+\subsection*{Results}
+Scaling was found to significantly increase the contrast of the visualization, see figure \ref{fig:surfacescaling}. The legend overlayed shows the scaling applied in each case.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_no_scaling.png}
+    \caption*{Sphere\\(No Scaling)}
+    \label{fig:surfacespherenoscaling}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_scaling.png}
+    \caption*{Sphere\\(Linear)}
+    \label{fig:surfacespherescaling}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_no_scaling.png}
+    \caption*{Surface\\(No Scaling)}
+    \label{fig:surfacesurfacenoscaling}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.25\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_scaling.png}
+    \caption*{Sphere\\(Linear)}
+    \label{fig:surfacesurfacescaling}
+  \end{subfigure}
+  \caption{The effect of linear mapping.}\label{fig:surfacescaling}
+\end{figure}
+
+The surface representation difficult to interpret by looking at a single image on paper. Figure \ref{fig:surface180} shows the surface from various angles. In practice all of these visualizations can be rotated and zoomed.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_1.png}
+    \caption*{Left}
+    \label{fig:surface_left}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_2.png}
+    \caption*{Front Left}
+    \label{fig:surface_front_left}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_3.png}
+    \caption*{Front}
+    \label{fig:surface_front}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_4.png}
+    \caption*{Front Right}
+    \label{fig:surface_front_right}
+  \end{subfigure}%
+    %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.20\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_180_5.png}
+    \caption*{Right}
+    \label{fig:surface_right}
+  \end{subfigure}
+  \caption{Brain surface viewed from different directions.}\label{fig:surface180}
+\end{figure}
+
+Figure 25 illustrates the effect of changing the accumulator. The default behaviour of taking the average uncertainty along the ray does a reasonable job of bringing the uncertainty to the surface. Changing it to extract the worst value gives the viewer a better idea of the size of the uncertain region as values that would otherwise be outweighed by largely good values are brought to the surface.
+
+There results when finding the best value are poor. It doesn't really work at all when applied to the sphere as in the vast majority of cases there is a good value somewhere along the ray which results in a largely uniform appearance. 
+
+The same logic largely applies to the brain surface as well, however areas on the volume where the normal does not send the ray far into the volume are visible.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_average.png}
+    \caption*{Sphere - Average}
+    \label{fig:sphereaverage}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_worst.png}
+    \caption*{Sphere - Worst}
+    \label{fig:sphereworst}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/sphere_best.png}
+    \caption*{Sphere - Best}
+    \label{fig:spherebest}  
+  \end{subfigure}
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)  
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_average.png}
+    \caption*{Surface - Average}
+    \label{fig:surfaceaverage}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_worst.png}
+    \caption*{Surface - Worst}
+    \label{fig:surfaceworst}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_best.png}
+    \caption*{Surface - Best}
+    \label{fig:surfacebest}  
+  \end{subfigure}  
+  \caption{Comparison of Average/Best/Worst sampling.}\label{fig:surfaceaccumulator}
+\end{figure}
+
+The sample distance determines how far into the volume samples go. Currently there are two options available - half and full. These options are less applicable to the sphere as if it is set to full then opposite sides of the sphere give identical values.
+
+When applied to the surface the use of this option very much depends on the area of the body that is being scanned. The brain is a large, and for the most part (ignoring folds particularly) convex; in this respect it is similar to the sphere and the effect of sampling all the way through is much the same (see figure \ref{fig:surfacesampledistance}). You can notice that the average uncertainty gets better with full sampling as there are more good points to outweigh the bad ones in that region.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_half.png}
+    \caption{Half}
+    \label{fig:surfacehalf}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{images/surface/surface_full.png}
+    \caption{Full}
+    \label{fig:surfacefull}
+  \end{subfigure}
+  \caption{Comparing half and full distance sampling.}\label{fig:surfacesampledistance}
+\end{figure}
+
+Where this parameter may be more useful however is when dealing with smaller, more intricate objects, such as arteries. It would allow the uncertainty in the entire cross section to be mapped to the surface, giving an overview of that section at a glance, rather than having to rotate around it to get the full picture.
+
+\clearpage
 \subsection{Next Scan Plane}
+
+The SVD implementation from the VNL numerics library is then used to produce the scan direction and center point. 
+
+Currently the scan is shown as a circle/cylinder as only the z-direction (slice direction) is extracted.
+
+\subsection*{Results}
+Figure \ref{fig:nextscanplanespheres} shows the next scan planes for both the sphere uncertainties. Since they both have infinitely many lines of symmetry they can be scanned from any direction.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/sphere.png}
+    \caption{Sphere}
+    \label{fig:nextscanplanesphere}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/sphere_in_corner.png}
+    \caption{Sphere in Corner}
+    \label{fig:nextscanplanespherecorner}
+  \end{subfigure}
+  \caption{Next scan planes for the spheres.}\label{fig:nextscanplanespheres}
+\end{figure}
+
+Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan here is slightly counter intuitive but the scan does in fact split the uncertainty in half.
+
+\savebox{\mybox}{\includegraphics[width=0.4\textwidth]{images/next_scan_plane/cube.png}}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \usebox{\mybox}
+    \caption{Cube}
+    \label{fig:nextscanplanecube}  
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.4\textwidth}
+    \vbox to \ht\mybox{%
+      \vfill
+      \includegraphics[width=\textwidth]{images/next_scan_plane/cubecut.png}
+      \vfill
+    }
+    \caption{Two halves. Image from \cite{cuttingupcubes}}
+    \label{fig:nextscanplanecubecut}  
+  \end{subfigure}  
+  \caption{Next scan plane for the cube.}\label{fig:nextscanplanecube}
+\end{figure}
+
+Figure \ref{fig:nextscanplanerandom} shows the random uncertainty. The random volume is effectively a cube but with some points missing. The next best scan plane is therefore very similar to the cube, but slightly slanted as the volume is longer than it is wide.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{images/next_scan_plane/random.png}
+  \caption{Random}\label{fig:nextscanplanerandom}
+\end{figure}
+
+The next scan plane can also be displayed in the 2D view (figure \ref{fig:nextscanplane2d}).
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/axial.png}
+    \caption*{Axial}
+    \label{fig:nextscanplaneaxial}
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/coronal.png}
+    \caption*{Coronal}
+    \label{fig:nextscanplanecoronal}
+  \end{subfigure}
+  ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{images/next_scan_plane/sagittal.png}
+    \caption*{Sagittal}
+    \label{fig:nextscanplanesagittal}
+  \end{subfigure}
+  \caption{Next Scan Plane in 2D}\label{fig:nextscanplane2d}
+\end{figure}
