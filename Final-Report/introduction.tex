@@ -1,31 +1,31 @@
 \chapter{Introduction}\label{chapter:introduction}
 
-% Provide necessary background.
-% Why is the project important?
-
 Magnetic Resonance Imaging (MRI) has found itself being used in an ever increasing number of applications. Uses range from imaging the spinal cord and heart to detecting brain activity (fMRI) and refinements to the technique have resulted in its use in fetal imaging increasing.
 
-In many ways MRI is highly suited to fetal imaging; it has impressive contrast in soft tissue and no known harmful side effects. However, limitations in resolution make imaging what can often be a very small target difficult. Super-resolution reconstruction is a technique designed to mitigate this problem by constructing a high resolution volume from a number of lower resolution scans.
+In many ways MRI is highly suited to fetal imaging; it has impressive contrast in soft tissue and no known harmful side effects. However, limitations in acquisition time causes movement to significantly impact the quality of the scan. A solution to this problem is to take a number of thickly sliced scans in a shorter time and use SVR (Slice-to-Volume Reconstruction) techniques to combine them together.
 
-Of course the quality of the reconstruction depends on the quality of these scans. If, for example, the fetus moves during the scanning process, then some areas will be less well sampled than others. This results in less data to use in some areas of the reconstruction than others and gives rise to areas of high uncertainty.
- 
-From just looking at the reconstructed image it is not necessarily obvious where these areas are. Crucially when using these images for diagnostic purposes it very is important to be aware of this. If a diagnosis needs to be made based on a region of the reconstruction with high uncertainty then this may indicate that further scanning.
+These techniques work by registering (aligning) all of the slice stacks, compensating for movement that occurs between slices and scans, and then finally using super-resolution methods to produce a high resolution reconstruction.
 
-% Specify main objectives.
-% Specify main contributions - provide section numbers.
+The quality of the reconstruction depends on the amount of motion in the input data. Areas with greater movement will be less well sampled which result in less data to use in the reconstruction, thus creating areas of high uncertainty.
 
-The main aim of the project was to prototype visualizations to communicate this uncertainty to researchers and radiographers. This will allow them to both gauge how well a reconstruction went and highlight any particular problem areas.
+From just looking at the reconstructed image it is not necessarily obvious where these high uncertainty areas are. Crucially when using these images for diagnostic purposes it very is important to be aware of this as if a diagnosis needs to be made based on a region of high uncertainty then this may indicate that further scanning is required.
 
-Two distinctive approaches have been prototyped and their effectiveness has been evaluated with a group of expert users. The first technique (section \ref{section:thresholding}) uses thresholding to find areas of the scan within a specific range of uncertainty; these areas can then be overlayed on the scan in 2D or displayed as a volume in 3D. The second technique (section \ref{section:uncertaintysurface}) projects the uncertainty to a surface representation of the object that has been scanned.
+The main aim of the project was to prototype visualizations to communicate this uncertainty to researchers and radiographers. This will allow them to both gauge the overall quality of the reconstruction and highlight any problem areas.
+
+Two distinctive approaches have been prototyped and their effectiveness has been evaluated with a group of expert users. The first technique (section \ref{implementation:thresholding}) uses thresholding to find areas of the scan within a specific range of uncertainty; these areas can then be overlayed on the scan in 2D or displayed as a volume in 3D. The second technique projects the uncertainty to a surface. Two variations have been implemented, the first projects to a sphere (section \ref{implementation:sphere}) and the second projects to a representation of the object that has been scanned (section \ref{implementation:surface}).
 
 The trade-offs between the two approaches have been studied to establish what works well and where future development should be focused. See chapter \ref{chapter:evaluation}.
 
-As well as being able to visualize the uncertainty, recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is if we know, at the time of scanning, the areas of high uncertainty then we can then tailor the next scan position and direction to target these problem areas. A visualization designed to communicate this information has also been created (see section \ref{section:nextscanplane}) and evaluated.
+As well as being able to visualize the uncertainty, recent research\cite{uncertaintysvd} has shown that it is possible to use the uncertainty to guide the scanning process. The idea is that if we know, at the time of scanning, the areas of high uncertainty then we can then tailor the next scan position and direction to target these problem areas. A visualization designed to communicate this information has also been created. See section \ref{implementation:next_scan_plane}.
 
-Finally these visualizations have been wrapped up in a research tool that combines every stage in the reconstruction pipeline together. It allows the user to simulate a scan (section \ref{section:simulatescan}), reconstruct the image (section \ref{section:reconstruction}) and then visualize the results.
+One problem with the current GPU (Graphics Processing Unit) reconstruction implementation\cite{gpureconstruction} is that it is a command line only tool and the performance is heavily dependant on parameters being tweaked. To make it easier to use a tool has been developed which begins to combine every stage of the reconstruction pipeline (see figure \ref{fig:tool_overview}) into one application. It allows the user to simulate a scan (section \ref{section:simulatescan}), reconstruct the image (section \ref{section:reconstruction}) and then visualize the results.
 
-The scan simulation feature allows an existing, well reconstructed image to be used as the basis for creating new, lower resolution scans. The idea is that we can assume that the initial image is the 'perfect' reconstruction, create lower resolution scans from it, run our reconstruction algorithm and then compare the result to the original. This will allow different reconstruction algorithms to be thoroughly tested without having to scan thousands of patients. Currently a simple motion corruption simulation can be enabled which will allow the tolerance of a reconstruction algorithm to motion to be tested. Similarly this feature has been evaluated with expert users. See chapter \ref{chapter:evaluation}.
+\begin{figure}[h]
+    \centering
+  \includegraphics[width=0.8\textwidth]{images/tool_overview.png}
+    \caption{Tool Overview}\label{fig:tool_overview}
+\end{figure}
 
-The reconstruction feature provides an easy interface to the fast GPU (Graphics Processing Unit) reconstruction implementation from a previous research paper\cite{gpureconstruction}. This code takes a set of motion corrupted slice stacks (scans) and creates a single reconstructed volume by using SVR (slice-to-volume reconstruction) techniques. 
+Scan simulation has been used previously to evaluate the performance of a reconstruction algorithm\cite{uncertaintysvd}. The idea is that we  assume that a previous reconstruction is 'perfect', create lower resolution scans from it, and run our reconstruction algorithm then compare the result to the original. Again there is no tool that allows these simulated scans to be easily created so this has been created. See chapter \ref{implementation:scan_simulation}.
 
-Additionally one way to guide the reconstruction is by marking each slice stack with a set of landmarks (e.g. Left Eye, Right Eye, ...); this helps the registration step align each of the stacks. A prototype to allow these landmarks to be marked on each slice stack before reconstruction has been created.
+Additionally an enhancement to the reconstruction process has been trialled. One way to guide the reconstruction is by marking each slice stack with a set of landmarks (e.g. Left Eye, Right Eye, ...); this helps the registration step align each of the stacks. A prototype to allow these landmarks to be marked on each slice stack before reconstruction has been created. See section \ref{implementation:reconstruction}.
