@@ -1,4 +1,5 @@
 \chapter{Background}
+\sectionreference{If you are familiar with medical imaging and MRI feel free to skip to section \ref{background:svr}. These first few sections are intended to give a brief introduction to the field.}
 
 % ------------------------- %
 % ---- MEDICAL IMAGING ---- %
@@ -46,29 +47,27 @@ There are no known side effects associated with using MRI, however it is current
 % ---- Super-Resolution ---- %
 % -------------------------- %
 \newpage
-\section{Slice-to-Volume Reconstruction}\label{background:superresolution}
-The main challenge with using MRI for fetal imaging is dealing with movement. One of the ways that this effect can be minimized is to acquire the scan in the shortest time possible and typically this is achieved by using a large slice thickness. A typical slice thickness when performing a scan on a fetal brain is 3mm, which when compared to the size of the brain, which may only be 50mm, limits the diagnostic potential.
+\section{Slice-to-Volume Reconstruction}\label{background:svr}
+The main challenge with using MRI for fetal imaging is dealing with movement. One of the ways that this effect can be minimized is to reduce the time spent acquiring the image, which is typically achieved by using a large slice thickness. A typical slice thickness used when scanning a fetal brain is 3mm; considering that the size of the brain may only be 50mm this resolution limits the diagnostic potential.
 
-One solution to this problem is to take many scans and use SVR (Slice-to-Volume Reconstruction) techniques to combine them. SVR (Slice-to-Volume Reconstruction) is a technique used to align a number of motion corrupted slice stacks. Individual slices are assumed to have been acquired fast enough so that the amount of movement within it is negligible, however the target may well move in between slices as they are being acquired over the course of a few minutes.
+SVR (Slice-to-Volume Reconstruction) is a technique that solves these problems by taking in a number of these motion corrupted stacks, aligns them and then builds a high resolution reconstruction. Individual slices are assumed to have been acquired fast enough that the movement within then is negligible, however the target may move in between slices as each stack takes a few minutes to acquire.
 
-Figure \ref{fig:svroverview} shows the outline of the procedure used in \cite{gpureconstruction} and the key steps are outlined below.
+Figure \ref{fig:svroverview} outlines the SVR procedure.
 
 \begin{figure}[H]
     \centering
 	\includegraphics[width=1.0\textwidth]{images/background/svr_overview.png}
-    \caption{SVR Overview. From \cite{gpureconstruction}}
+    \caption{SVR Overview. Adapted from \cite{gpureconstruction}}
     \label{fig:svroverview}
 \end{figure}
 
-The first step in the reconstruction is to find the stack with the least movement; this is then used as a target to register the other slices to. Continuous point spread functions (PSFs) are used to model each of the input stacks which allows an initial reconstructed volume to be sampled from the registered slice stacks.
+The first step is to find the stack with the least movement; this is then used as a target to register all the other slices to. Continuous point spread functions (PSFs) are used to model the intensity of each input stack at continuous points in space. This essentially allows an initial reconstruction to be performed by sampling the PSFs of each of the input stacks.
 
-An outlier detection phase is then performed; this involves the inverse transform for every slice stack to the volume being used to simulate what the slice should have looked like, based on the reconstruction. These simulated slices can then be compared to the originals to classify each point into inliers or outliers and EM (Expectation Maximization) is used to give weightings to each voxel.
+An outlier detection phase is then performed; this involves the inverse of the transform used to align every slice to the volume being used to determine what the slice should have looked like, based on the reconstruction. These simulated slices can then be compared to the originals and applying EM (Expectation Maximization), an iterative procedure, determines how likely each point is to be an outlier.
 
-An update step is then applied to minimize the sum of squared errors between the slice pixels and the simulated slice values; gradient descent is applied to minimize the effect of noise and an edge preserving component is added to aid continuity in the resulting image.
+A noise removal and edge preserving step is then implemented before a super-resolution image of the current best reconstruction is produced, based on the probabilities that each point is an outlier. As the diagram illustrates this process is iterated until the registration process converges.
 
-The overall aim of this process is to align each of the slice stacks in a way that minimizes the error due to movement and to build a higher resolution image by combining each of the stacks. This process of combining many lower resolution stacks to create one high resolution image is known as super-resolution.
-
-With super-resolution the images must be taken such that the translation between them is known to sub-pixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed using interpolation. See figure \ref{fig:superresolution}.
+This process of combining many lower resolution stacks to create one high resolution image is known as super-resolution. With super-resolution the images must be taken such that the translation between them is known to sub-pixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed using interpolation. See figure \ref{fig:superresolution}.
 
 \begin{figure}[H]
     \centering

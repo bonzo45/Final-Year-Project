@@ -5,5 +5,14 @@
 % A common mistake is to provide only introductory elements in the abstract without saying what has been achieved.
 
 \chapter*{Abstract}
+This project aims to combine all stages of the fetal MRI motion-correction and reconstruction pipeline into an easy-to-use tool. The tool has three main parts: scan simulation, reconstruction and visualization.
 
-Some abstract thoughts... do this last.
+Scans are simulated by resampling a previous, 'perfect', reconstruction. These simulations, which include optional motion corruption, are then used to test the performance of a reconstruction algorithm.
+
+Reconstruction using fast GPU reconstruction code, previously only accessible via the command line, is included. In addition landmarks can be provided by the user to guide the reconstruction.
+
+Two visualization techniques for examining the uncertainty in the reconstructed volume are compared. The first uses volume rendering and the second maps uncertainty to a surface. A third visualization to show where to scan next to target uncertain regions is also presented.
+
+Comments from an expert user trial are promising. Including all the functionality in one tool is a step forward and makes the pipeline easier to manage. Scan simulation has a solid foundation however the simulation of additional artefacts will need to be implemented in future work. Providing landmarks received a mixed response with most willing to use it but the time required needs to be reduced.
+
+Using volume rendering for uncertainty visualization is the most popular as it provides finer control and detail. However, the surface mapping approach is found to provide a good overview of the uncertainty. Feedback for the next scan visualization is positive, however further optimization of the reconstruction algorithm is required before it can be used in practice.
