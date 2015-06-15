@@ -11,7 +11,7 @@ The plugin developed incorporates features from all three stages of the reconstr
 
 \clearpage
 \section{Scan Simulation}\label{implementation:scan_simulation}
-The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. The focus of this part of the tool is not to evaluate the effectiveness of this approach, that is a project in it's own right, but to make this simulation easier to perform and customize for future research.
+The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. The focus of this part of the tool is not to evaluate the effectiveness of this approach, which is a project in its own right, but to make this simulation easier to perform and customize for future research.
 
 \begin{wrapfigure}[23]{r}{0.4\textwidth}
   \vspace{-20pt}
@@ -25,18 +25,19 @@ The user has a number of controls available to tweak (figure \ref{fig:scansettin
 Number of pixels in the scan (x, y, z).
 
 \subsubsection*{Scan Resolution}
-Size of each pixel, relative to the reconstructed scan (x, y, z).
+Size of each pixel (x, y, z). Measured in pixels, relative to the reconstructed scan.
 
 \subsubsection*{Scan Center}
 The center point of the scan (x, y, z). This can be set to the center of the volume or adjusted manually.
 
 \subsubsection*{Scan Direction}
-The direction to scan in. You may expect this to be just one vector (the z-direction) but since the scan is rectangular in shape the x and y-direction also need to be specified. The standard axial, coronal and sagittal directions are available and the direction can be rotated about each axis using the dials.
+The direction of the scan. The x and y directions specify the in-plane vectors and the z direction specifies the through plane or slice vector. The standard axial, coronal and sagittal scans are available and the direction can also be rotated about each axis using the dials.
 
 \subsubsection*{Motion Corruption}
-Some simple motion corruption can be enabled. Currently the implementation is quite simple; the motion only happens in between slices being scanned. Before each slice gets scanned a random rotation (up to a maximum specified) is applied about a random axis to the original image.
+Simple motion corruption can be enabled. Motion occurs in between slices. The slice is rotated a random amount of degrees (up to the maximum specified) about a random axis.
 
-A preview to illustrate the area that the scan configured is overlayed on the volume. Whenever any control changes this preview updates. Figure \ref{fig:scansimulationexample} shows an example of an axial scan (y-axis) simulated with 5 degrees of motion corruption. Note that when viewed from the side adjacent stacks don't line up.
+\clearpage
+A preview to illustrate the scan area is overlayed on a volume rendering of the 'perfect' reconstruction. Whenever any control changes this preview updates. Figure \ref{fig:scansimulationexample} shows an example preview and corresponding scan. The scan being simulated is axial (y-axis) and has been simulated with up to 5 degrees of motion corruption. Individual slices are perfectly scanned, however when viewed from the side successive slices don't line up due to movement.
 
 \begin{figure}[H]
   \centering
@@ -55,7 +56,7 @@ A preview to illustrate the area that the scan configured is overlayed on the vo
 
 \clearpage
 \section{Reconstruction}\label{implementation:reconstruction}
-This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. This code was previously only accessible via the command line. Currently the reconstruction code has to be compiled separately but once the plugin knows where it has been compiled to it can be used within the application. Figure \ref{fig:reconstruction_overview} shows an outline of the reconstruction procedure.
+This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. Currently the reconstruction code has to be compiled separately but once the plugin knows where the binary is it can make calls to it. Figure \ref{fig:reconstruction_overview} shows the inputs and outputs of the reconstruction algorithm. A dotted line indicates that the input is optional.
 
 \begin{figure}[h]
   \centering
@@ -64,9 +65,11 @@ This part of the tool provides an interface to the fast GPU reconstruction code 
   \label{fig:reconstruction_overview}
 \end{figure}
 
-The super-resolution reconstruction process takes in a set of slice stacks (scans), an optional mask and outputs the reconstructed MRI volume and the uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid. The user can also optionally provide landmarks for each slice stack being used in the reconstruction, which are used by the reconstruction algorithm to help align each of the stacks.
+The SVR process takes in a set of slice stacks (scans), a set of landmarks (optional) and mask (optional) and outputs the reconstructed MRI volume and uncertainty. The mask is used to ignore areas that are not of interest; for example when doing a fetal scan a mask can be created to ignore surrounding areas like the womb and amniotic fluid. A set of landmarks can be provided for each slice stack which are used by the reconstruction algorithm to help with registration.
 
-Figure \ref{fig:reconstructionlandmarks} illustrates the optional landmarking stage. The landmarks are placed in the order listed and the purple indicator shows the landmark that next needs to be found. Once a landmark is placed it can be moved by dragging it, or deleted by pressing the black button next to the landmark name. When a landmark has been placed the indicator goes green and pressing this indicator will select and jump to the landmarks location. The currently selected landmark is shown in red in the 2D view and marked by an arrow in the indicator.
+Figure \ref{fig:reconstructionlandmarks} shows the optional landmarking stage. The landmarks are placed in the order listed and the status of each is shown by the indicator to the left of the landmark name. Grey indicates that the landmark has yet to be placed, purple shows the next landmark to be found and green indicates it has already been placed. 
+
+Landmarks are placed by pressing "shift + left click" in the 2D view and can be dragged around once down, or deleted by pressing the black button next to the landmark name. Clicking the indicator of landmark that has been placed will jump to and select it in the 2D view. The currently selected landmark is shown in red in the 2D view and marked by an arrow in the indicator.
 
 \begin{figure}[H]
   \centering
@@ -90,7 +93,7 @@ Figure \ref{fig:reconstructionlandmarks} illustrates the optional landmarking st
 To visualize the uncertainty the scan volume and uncertainty volume first have to be chosen. Then the uncertainty is pre-processed; in all cases the uncertainty is normalized to be within the range [0-1] and then optionally the uncertainty can be aligned to the scan, inverted and eroded.
 
 \subsubsection*{Normalize}
-The uncertainty is linearly scaled so each value is between 0 and 1.
+The uncertainty is linearly scaled so each value is between 0 and 1.\\(Uses $RescaleIntensityImageFilter$ from ITK)
 
 \begin{verbatim}
   0 - no information (high uncertainty - worst)
@@ -104,13 +107,13 @@ The uncertainty is linearly scaled so each value is between 0 and 1.
   \caption{Pre-processing}\label{fig:pre-processing_settings}
 \end{wrapfigure}
 
-If the uncertainty has no location information (image to world matrix) then it can be aligned with the reconstructed scan. This feature was mainly used to align the artificial test uncertainties to the scan for testing.
+This ensures that the scan and uncertainty occupy the same point in space. If the uncertainty has no location information (image to world matrix) then the image to world matrix of the scan is applied to it. This feature was mainly useful for aligning artificial uncertainties to a scan for testing.
 
 \subsubsection*{Invert}
-If the uncertainty volume has been saved the other way round (i.e. low is good and high is bad) then this will invert it to be compatible with the plugin.
+If the uncertainty volume has been saved the other way round (i.e. low is good and high is bad) then this will invert it to be compatible with the plugin.\\(Uses $InvertIntensityImageFilter$ from ITK)
 
 \subsubsection*{Erosion}
-The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume. The amount of erosion is specified as a number of pixels.
+The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume. The amount of erosion is specified as a number of pixels.\\(Uses the following ITK filters: $BinaryThresholdImageFilter$ (to threshold background), $GrayscaleDilateImageFilter$ (to grow) and $MaskImageFilter$ (to remove edge). See \ref{method:pre-processing} for details.)
 
 \clearpage
 \subsection{Thresholding}\label{implementation:thresholding}
@@ -122,28 +125,28 @@ The idea behind thresholding is to isolate areas in the reconstructed image that
   \caption{Controls}\label{fig:threshold_settings}
 \end{wrapfigure}
 
-For example the viewer can highlight values in a particular range, like [0.2-0.5], or alternately isolate the worst values in the volume, like the worst 1$\%$.
+Figure \ref{fig:threshold_settings} shows the controls available to the user. The top two sliders allow the user to explicitly specify a range, like [0.2-0.5] and the bottom slider computes the bounds to isolate the worst x$\%$. The worst 5$\%$ has been selected, which has been computed to lie within the range [0.0-0.22].
 
-Figure \ref{fig:threshold_settings} shows the controls available to the user. The top two sliders set the minimum and maximum values to show and the slider below allows the worst x$\%$ of uncertainty to be displayed. In the image the top 5$\%$ has been selected, which updates the top two sliders; in this uncertainty volume the worst 5$\%$ of uncertainty lies in the range [0.0-0.22].
+'Ignore Zeros' is ticked which means the background, which has value 0.0, is not displayed even if it is within the range selected. The auto-update toggle box decides whether changes to the controls immediately update the visualization.
 
-'Ignore Zeros' is ticked which means the background, which has value 0, is not displayed even if it is within the range selected. The auto-update toggle box decides whether changes to the controls immediately update the visualization.
-
-Figure \ref{fig:threshold_settings_result} shows the 2D and 3D result of this configuration.
+Figure \ref{fig:threshold_settings_result} illustrates the result.\\\\\\
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.5\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/thresholding/thresholding_2d.png}
     \caption{2D Thresholding}\label{fig:threshold_2d}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
+  \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{images/thresholding/thresholding_3d.png}
     \caption{3D Thresholding}\label{fig:threshold_3d}
   \end{subfigure}
   \caption{Worst 5$\%$ of Uncertainty}\label{fig:threshold_settings_result}
 \end{figure}
+
+(Uses the following ITK filters: $BinaryThresholdImageFilter$ (to threshold) and $ImageToHistogramFilter$ (to build a histogram). See \ref{method:thresholding} for details.)
 
 \clearpage
 \subsection{Sphere}\label{implementation:sphere}
@@ -205,7 +208,7 @@ Inverts the normals stored at each point on the surface. Use when normals point 
     \includegraphics[width=\textwidth]{images/surface/surface_average.png}
     \caption{Surface}\label{fig:surface_settings_result}
   \end{subfigure}
-  \caption{Surface Visualizations}\label{fig:threshold_settings_result}
+  \caption{Surface Visualizations}\label{fig:surface_settings_result}
 \end{figure}
 
 \clearpage

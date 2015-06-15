@@ -82,8 +82,8 @@ Having three separate 'channels' of uncertainty makes visualizing it more diffic
 
 An aggregation of all three will be able to give a useful overview of the situation, however being able to isolate a single type of uncertainty is important as it gives the viewer an idea of what caused the reconstruction issues.
 
-\subsection{Pre-processing}
-Before the uncertainty is visualized it is first pre-processed. Figure \ref{fig:preprocesspipeline} illustrates the order in which the operations are applied.
+\subsection{Pre-processing}\label{method:pre-processing}
+Before the uncertainty is visualized it is first pre-processed. Figure \ref{fig:preprocesspipeline} illustrates the order in which the operations are applied. Operations with a dotted border are optional.
 
 \begin{figure}[H]
   \centering
@@ -93,17 +93,17 @@ Before the uncertainty is visualized it is first pre-processed. Figure \ref{fig:
 \end{figure}
 
 \subsubsection*{Normalize}
-The uncertainty is linearly scaled, using a filter provided by ITK (RescaleIntensityImageFilter).
+The uncertainty is linearly scaled so each value lies between 0 (bad) and 1 (good).
 
 \subsubsection*{Invert}
-The uncertainty is inverted, using a filter provided by ITK (InvertIntensityImageFilter).
+The uncertainty is inverted. $Uncertainty = 1 - Uncertainty$.
 
 \subsubsection*{Erosion}
 The edges of the uncertainty are removed in three steps:
 
 \begin{enumerate}
   \item The image is thresholded to create a mask of the background.
-  \item The mask is then expanded with a growing filter provided by ITK (GrayscaleDilateImageFilter).
+  \item The mask is then expanded using binary morphology.
   \item Then all the points in the mask are set to 0 (background) to remove the edge.
 \end{enumerate}
 
@@ -140,7 +140,7 @@ Figure \ref{fig:erosionoverview} shows how the soft fade out of uncertainty due 
   \caption{Steps involved in removing the edge.}\label{fig:erosionoverview}
 \end{figure}
 
-The growing filter used in step 2 uses binary morphology to expand the mask. Figure \ref{fig:growing} illustrates how it works. Each value in the image is either in the mask or out of the mask; when the growing filter is applied a neighbourhood around each point is examined and if any point is in the mask then the point is added to the mask.
+Figure \ref{fig:growing} explains how the binary morphology in step 2 works. Each value in the image is either in the mask or out of the mask; when the growing filter is applied a neighbourhood around each point is examined and if any point is in the mask then the point is added to the mask.
 
 \begin{figure}[H]
   \centering
@@ -161,7 +161,7 @@ The growing filter used in step 2 uses binary morphology to expand the mask. Fig
 The image to world matrix of the scan is copied to the uncertainty volume. This results in pixel (x, y, z) in both the scan and uncertainty being mapped to the same point in space, allowing the overlay.
 
 \clearpage
-\subsection{Test Uncertainties}\label{section:testuncertainties}
+\subsection{Test Uncertainties}\label{method:test_uncertainties}
 To test and debug the visualizations during development a number of artificial uncertainty volumes were used, as well as uncertainty from a genuine fetal brain reconstruction.
 
 Results of each visualization with these test uncertainties are shown in the relevant sections.
@@ -220,7 +220,7 @@ Uncertainty generated from an example super-resolution reconstruction of a fetal
 \end{figure}
 
 \clearpage
-\subsection{Thresholding}
+\subsection{Thresholding}\label{method:thresholding}
 The implementation uses a filter provided by ITK to create a binary mask set to 1 where the uncertainty is in the range and 0 where it is not. This mask is then overlayed on the reconstructed scan in 2D and made transparent so both the uncertain area and underlying scan can be seen simultaneously. See figure \ref{fig:thresholding2d}.
 
 \begin{figure}[H]
@@ -390,7 +390,7 @@ Below are the results achieved with the test uncertainties (see section \ref{sec
 \end{figure}
 
 \clearpage
-\subsection{Sphere}
+\subsection{Sphere}\label{method:sphere}
 Two ways of mapping the uncertainty to the surfaces have been trialled. The first maps the uncertainty to a texture which can then be applied to a surface. 
 
 Figure \ref{fig:uncertaintytexture} shows such a texture and the result when viewed on a sphere. To generate the uncertainty at each pixel the position (x, y) is first converted to spherical coordinates ($\theta$, $\phi$). These are then converted to a point (x', y', z') on a sphere of unit radius. The uncertainty at pixel (x, y) is then calculated by firing a ray from the center of the volume outwards, in direction (x', y', z') and accumulating uncertainty as it goes (see volume rendering section \ref{background:volumerendering}).
@@ -462,7 +462,7 @@ The accumulation that the tortoise does can also be customized. By default it wi
 Once all of the points have been computed some scaling can be implemented to improve the contrast of the visualization. In many cases the average uncertainty will be roughly the same everywhere and if the range [0-1] is mapped to the entire colour range the values end up looking largely indistinguishable; to fix this the outputted uncertainty range can be linearly mapped to make better use of the available colours.
 
 \clearpage
-\subsection{Surface}
+\subsection{Surface}\label{method:surface}
 To map to a different surface model the procedure is largely the same as the sphere. Again the first step is to generate the surface representation. Currently this is done using the mask supplied in the reconstruction step - applying surface extraction and mesh decimation (see section \ref{background:surfaceextraction}) to create a rough surface representation. Figure \ref{fig:surfaceraw} shows this volume.
 
 \begin{figure}[H]
@@ -623,8 +623,7 @@ When applied to the surface the use of this option very much depends on the area
 Where this parameter may be more useful however is when dealing with smaller, more intricate objects, such as arteries. It would allow the uncertainty in the entire cross section to be mapped to the surface, giving an overview of that section at a glance, rather than having to rotate around it to get the full picture.
 
 \clearpage
-\subsection{Next Scan Plane}
-
+\subsection{Next Scan Plane}\label{method:next_scan_plane}
 The SVD implementation from the VNL numerics library is then used to produce the scan direction and center point. 
 
 Currently the scan is shown as a circle/cylinder as only the z-direction (slice direction) is extracted.
