@@ -9,6 +9,10 @@ This project has been implemented as an MITK plugin. MITK, the Medical Imaging I
 
 The plugin developed incorporates features from all three stages of the reconstruction pipeline: scan, reconstruct, visualize. Each stage has a separate page that can be selected from the top of the plugin window. The rest of this chapter explains the features available in each.
 
+% ----------------------------- %
+% ------ SCAN SIMULATION ------ %
+% ----------------------------- %
+
 \clearpage
 \section{Scan Simulation}\label{implementation:scan_simulation}
 The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. The focus of this part of the tool is not to evaluate the effectiveness of this approach, which is a project in its own right, but to make this simulation easier to perform and customize for future research.
@@ -54,6 +58,10 @@ A preview to illustrate the scan area is overlayed on a volume rendering of the 
   \caption{Example Scan Simulation}\label{fig:scansimulationexample}
 \end{figure}
 
+% ----------------------------- %
+% ------- RECONSTRUCTION ------ %
+% ----------------------------- %
+
 \clearpage
 \section{Reconstruction}\label{implementation:reconstruction}
 This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. Currently the reconstruction code has to be compiled separately but once the plugin knows where the binary is it can make calls to it. Figure \ref{fig:reconstruction_overview} shows the inputs and outputs of the reconstruction algorithm. A dotted line indicates that the input is optional.
@@ -88,6 +96,10 @@ Landmarks are placed by pressing "shift + left click" in the 2D view and can be 
   \caption{Placing Landmarks on Slice Stacks.}\label{fig:reconstructionlandmarks}
 \end{figure}
 
+% ----------------------------- %
+% ------- VISUALIZATIONS ------ %
+% ----------------------------- %
+
 \clearpage
 \section{Visualizations}\label{implementation:visualizations}
 To visualize the uncertainty the scan volume and uncertainty volume first have to be chosen. Then the uncertainty is pre-processed; in all cases the uncertainty is normalized to be within the range [0-1] and then optionally the uncertainty can be aligned to the scan, inverted and eroded.
@@ -116,6 +128,10 @@ If the uncertainty volume has been saved the other way round (i.e. low is good a
 The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume. The amount of erosion is specified as a number of pixels.
 
 Uses the following ITK filters: \texttt{BinaryThresholdImageFilter} (to threshold background), \texttt{GrayscaleDilateImageFilter} (to grow) and \texttt{MaskImageFilter} (to remove edge). See \ref{method:pre-processing} for details.
+
+% ----------------------------- %
+% -------- THRESHOLDING ------- %
+% ----------------------------- %
 
 \clearpage
 \subsection{Thresholding}\label{implementation:thresholding}
@@ -150,6 +166,10 @@ Figure \ref{fig:threshold_settings_result} illustrates the result.\\\\\\
 
 Uses the following ITK filters: \texttt{BinaryThresholdImageFilter} (to threshold) and \\\texttt{ImageToHistogramFilter} (to build histogram). See \ref{method:thresholding} for details.
 
+% ----------------------------- %
+% ---------- SPHERE  ---------- %
+% ----------------------------- %
+
 \clearpage
 \subsection{Sphere}\label{implementation:sphere}
 The idea behind both the uncertainty sphere and uncertainty surface visualizations is to project the uncertainty, which is a 3D volume, onto a surface model, which is essentially 2D. This gives the viewer an overview of the uncertainty.
@@ -176,6 +196,10 @@ This scales the resulting uncertainty values to make better use of the colours a
 
 \subsubsection{Sample}
 By default the value shown on the surface is the average of all the points along the ray. This can be altered to show the worst or best value.
+
+% ----------------------------- %
+% ---------- SURFACE ---------- %
+% ----------------------------- %
 
 \clearpage
 \subsection{Surface}\label{implementation:surface}
@@ -212,6 +236,10 @@ Inverts the normals stored at each point on the surface. Use when normals point 
   \end{subfigure}
   \caption{Surface Visualizations}\label{fig:surfaces_settings_result}
 \end{figure}
+
+% ----------------------------- %
+% ------ NEXT SCAN PLANE ------ %
+% ----------------------------- %
 
 \clearpage
 \subsection{Next Scan Plane}\label{implementation:next_scan_plane}
