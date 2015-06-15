@@ -93,7 +93,7 @@ Landmarks are placed by pressing "shift + left click" in the 2D view and can be 
 To visualize the uncertainty the scan volume and uncertainty volume first have to be chosen. Then the uncertainty is pre-processed; in all cases the uncertainty is normalized to be within the range [0-1] and then optionally the uncertainty can be aligned to the scan, inverted and eroded.
 
 \subsubsection*{Normalize}
-The uncertainty is linearly scaled so each value is between 0 and 1.\\(Uses $RescaleIntensityImageFilter$ from ITK)
+The uncertainty is linearly scaled so each value is between 0 and 1.\\(Uses \texttt{RescaleIntensityImageFilter} from ITK)
 
 \begin{verbatim}
   0 - no information (high uncertainty - worst)
@@ -110,16 +110,18 @@ The uncertainty is linearly scaled so each value is between 0 and 1.\\(Uses $Res
 This ensures that the scan and uncertainty occupy the same point in space. If the uncertainty has no location information (image to world matrix) then the image to world matrix of the scan is applied to it. This feature was mainly useful for aligning artificial uncertainties to a scan for testing.
 
 \subsubsection*{Invert}
-If the uncertainty volume has been saved the other way round (i.e. low is good and high is bad) then this will invert it to be compatible with the plugin.\\(Uses $InvertIntensityImageFilter$ from ITK)
+If the uncertainty volume has been saved the other way round (i.e. low is good and high is bad) then this will invert it to be compatible with the plugin.\\(Uses \texttt{InvertIntensityImageFilter} from ITK)
 
 \subsubsection*{Erosion}
-The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume. The amount of erosion is specified as a number of pixels.\\(Uses the following ITK filters: $BinaryThresholdImageFilter$ (to threshold background), $GrayscaleDilateImageFilter$ (to grow) and $MaskImageFilter$ (to remove edge). See \ref{method:pre-processing} for details.)
+The optional erosion step removes the uncertainty values at the edge of the reconstruction. The edges often have a much higher uncertainty either because there are fewer slices to use or the mask cuts off the data required. Removing this edge helps the visualization to focus on the core of the volume. The amount of erosion is specified as a number of pixels.
+
+Uses the following ITK filters: \texttt{BinaryThresholdImageFilter} (to threshold background), \texttt{GrayscaleDilateImageFilter} (to grow) and \texttt{MaskImageFilter} (to remove edge). See \ref{method:pre-processing} for details.
 
 \clearpage
 \subsection{Thresholding}\label{implementation:thresholding}
 The idea behind thresholding is to isolate areas in the reconstructed image that are within a particular range of uncertainty. 
 
-\begin{wrapfigure}[18]{r}{0.4\textwidth}
+\begin{wrapfigure}[14]{r}{0.4\textwidth}
   \vspace{-20pt}
   \includegraphics[width=0.4\textwidth]{images/tool/2_thresholding.png}
   \caption{Controls}\label{fig:threshold_settings}
@@ -146,11 +148,11 @@ Figure \ref{fig:threshold_settings_result} illustrates the result.\\\\\\
   \caption{Worst 5$\%$ of Uncertainty}\label{fig:threshold_settings_result}
 \end{figure}
 
-(Uses the following ITK filters: $BinaryThresholdImageFilter$ (to threshold) and $ImageToHistogramFilter$ (to build a histogram). See \ref{method:thresholding} for details.)
+Uses the following ITK filters: \texttt{BinaryThresholdImageFilter} (to threshold) and \\\texttt{ImageToHistogramFilter} (to build histogram). See \ref{method:thresholding} for details.
 
 \clearpage
 \subsection{Sphere}\label{implementation:sphere}
-The idea behind both the uncertainty sphere and uncertainty surface visualizations is to project the uncertainty, which is a 3D volume, onto a surface model, which is essentially 2D. This gives the viewer an overview of the uncertainty without having to go through each area, slice by slice.
+The idea behind both the uncertainty sphere and uncertainty surface visualizations is to project the uncertainty, which is a 3D volume, onto a surface model, which is essentially 2D. This gives the viewer an overview of the uncertainty.
 
 \begin{wrapfigure}[17]{r}{0.4\textwidth}
   \vspace{-20pt}
@@ -161,23 +163,23 @@ The idea behind both the uncertainty sphere and uncertainty surface visualizatio
 The sphere is designed to be a generic visualization that can work with any scan, regardless of the target. Figure \ref{fig:sphere_settings} shows the control the user has over the visualization and figure \ref{fig:sphere_settings_result} shows the resulting visualization.
 
 \subsubsection{Resolution}
-This changes how many points are used to represent the sphere. The more points used the sharper the image, but the longer the processing takes.
+The number of points used represent the sphere. More points gives a sharper image but takes longer to process.\\(Uses \texttt{vtkSphereSource})
 
 \subsubsection{Distance}
-This alters how far into the volume to sample. Half means that the uncertainty is sampled until the center and full means it is sampled until the edge of the image. This option is more useful in the next visualization as with the sphere full sampling generally means that opposite points have identical values.
+Alters how far into the volume to sample. With 'half' each ray is fired into the center of the uncertainty and with 'full' the ray passes through the center to the opposite edge. Selecting full for the sphere results in opposite points having identical values. This option is more useful for the surface model visualization.
 
 \subsubsection{Colour}
-This swaps between a black and white and a black and red visualization.
+Selects either a black and white or red and black visualization.
 
 \subsubsection{Scaling}
-This scales the resulting uncertainty values to make better use of the colours available. With no scaling the uncertainty values are often roughly the same everywhere and end up looking largely indistinguishable; to fix this the outputted uncertainty range can be linearly mapped to make better use of the available colours.
+This scales the resulting uncertainty values to make better use of the colours available. With no scaling the uncertainty values are often roughly the same everywhere and end up looking largely indistinguishable; to fix this the outputted uncertainty range can be linearly mapped to fill the colour range.\\(Uses \texttt{RescaleIntensityImageFilter} from ITK)
 
 \subsubsection{Sample}
 By default the value shown on the surface is the average of all the points along the ray. This can be altered to show the worst or best value.
 
 \clearpage
 \subsection{Surface}\label{implementation:surface}
-The uncertainty surface uses a similar approach to the uncertainty sphere however uncertainty is mapped to a surface representation of the organ being scanned.
+The uncertainty surface uses the same principle as the sphere however the uncertainty is mapped to a surface model of the organ being scanned.
 
 \begin{wrapfigure}[18]{r}{0.4\textwidth}
   \vspace{-20pt}
@@ -191,7 +193,7 @@ Figure \ref{fig:surface_settings} shows the controls, which are largely the same
 This allows the user to pick the surface to map the uncertainty to.
 
 \subsubsection{Registration}
-This decides how the surface is aligned to the uncertainty volume. None assumes that they are already aligned. Simple finds the bounding box of the surface and maps it to the bounding box of the volume. *bodge* is just used in development. Debug marks the points that each surface point registers to on the uncertainty so the registration can be visually inspected.
+This decides how the surface is aligned to the uncertainty volume. None assumes that they are already aligned. Simple finds the bounding box of the surface and maps it to the bounding box of the volume. *bodge* is just used in development. Debug allows the registration to be inspected by marking on the uncertainty the registered position of every surface point.
 
 \subsubsection{Invert Normals}
 Inverts the normals stored at each point on the surface. Use when normals point outwards.
@@ -208,7 +210,7 @@ Inverts the normals stored at each point on the surface. Use when normals point 
     \includegraphics[width=\textwidth]{images/surface/surface_average.png}
     \caption{Surface}\label{fig:surface_settings_result}
   \end{subfigure}
-  \caption{Surface Visualizations}\label{fig:surface_settings_result}
+  \caption{Surface Visualizations}\label{fig:surfaces_settings_result}
 \end{figure}
 
 \clearpage
