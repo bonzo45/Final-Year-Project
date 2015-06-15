@@ -6,7 +6,7 @@
 \section{Medical Imaging}\label{background:medicalimaging}
 The field of medical imaging came into existence with the discovery of x-rays in 1895 by Wilhelm R\"{o}ntgen\cite{rontgen}. This meant that for the first time it was possible to peek into the human anatomy without having to physically open it up. This revolution came at a cost however as at the time the dangers of high doses of radiation were not understood and many of the pioneers died as a result of exposure\cite{xraydeath}.
 
-Radiology, the use of ionizing radiation to image objects, was greatly refined over the years; contrast agents were developed which made fields like angiography (imaging of blood vessels) possible\cite{infinityhistory} and the doses used were refined to dramatically decrease the associated risks. X-rays have been used successfully in medical imaging ever since and in the 70s the invention of the CT scanner allowed them to be used to produce 3D images of the body.
+Radiology, the use of ionizing radiation to image objects, was greatly refined over the years; contrast agents were developed which made fields like angiography (imaging of blood vessels) possible\cite{infinityhistory} and the doses used were refined to dramatically decrease the associated risks. X-rays have been used successfully in medical imaging ever since and in the 70s the invention of the CT (X-Ray Computed Tomography) scanner allowed them to be used to produce 3D images of the body.
 
 It was not until the 1980s that magnetic resonance imaging (MRI) was first used for medical diagnosis. MRI is based on the principles of nuclear magnetic resonance (NMR), which had been used in chemical analysis since the 40s\cite{bshr:mallard}.
 
@@ -19,7 +19,7 @@ As with all medical imaging techniques the benefits and risks need to be weighed
 % ------------------------- %
 \newpage
 \section{MRI}\label{background:mri}
-\sectionreference{Adapted from \cite{howmriworks}}
+\sectionreference{\cite{howmriworks} gives a very good overview of how MRI works. A brief summary is given below.}
 
 MRI uses a strong magnetic field and radio waves to produce images of the body. MRI can be used to produce 2D, 3D and even 4D images and has the advantage that it doesn’t use any ionizing radiation during the scanning process.
 
@@ -37,24 +37,38 @@ There are also a number of different ways of acquiring the scan. SSFSE (Single S
 If the contrast that can be achieved with MRI is insufficient for the imaging then a contrast agent, such as gadolinium, can be administered to enhance it.
 
 \section{Fetal MRI}\label{background:fetalmri}
-\sectionreference{Adapted from \cite{fetalmri}}
 
-Since MRI, like US, is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains the cheaper of the two and is unlikely to be replaced as the main fetal imaging tool in the near future.
+Since MRI, like US, is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging\cite{fetalmri}. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains more widely available, easier to apply, easier to staff and the cheaper and so is unlikely to be replaced as the main fetal imaging tool in the near future.
 
-There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partly a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan.
+There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partly a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan\cite{fetalmri}.
 
 % -------------------------- %
 % ---- Super-Resolution ---- %
 % -------------------------- %
 \newpage
-\section{Super-Resolution}\label{background:superresolution}
-\sectionreference{Adapted from \cite{superresolution2} and \cite{superresolution1}}
+\section{Slice-to-Volume Reconstruction}\label{background:superresolution}
+The main challenge with using MRI for fetal imaging is dealing with movement. One of the ways that this effect can be minimized is to acquire the scan in the shortest time possible and typically this is achieved by using a large slice thickness. A typical slice thickness when performing a scan on a fetal brain is 3mm, which when compared to the size of the brain, which may only be 50mm, limits the diagnostic potential.
 
-One of the challenges with using MRI for fetal imaging is the resolution that is achievable with current scanners. A typical slice thickness when performing a scan on a fetal brain for example is 3mm, which is set to provide a good balance between resolution and noise. Comparing this to the brain, which may only be 50mm, limits the diagnostic potential.
+One solution to this problem is to take many scans and use SVR (Slice-to-Volume Reconstruction) techniques to combine them. SVR (Slice-to-Volume Reconstruction) is a technique used to align a number of motion corrupted slice stacks. Individual slices are assumed to have been acquired fast enough so that the amount of movement within it is negligible, however the target may well move in between slices as they are being acquired over the course of a few minutes.
 
-Super-resolution is a technique that is designed to address this issue. The idea behind super-resolution is to construct a higher resolution image by combining information from multiple lower resolution images. A similar approach is used in stereoscopic 3D where the information from two images taken from different perspectives are combined to create one 3D image.
+Figure \ref{fig:svroverview} shows the outline of the procedure used in \cite{gpureconstruction} and the key steps are outlined below.
 
-In the case of super-resolution two (or more) images are taken such that the translation between them known to sub-pixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed by interpolation of these images.
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=1.0\textwidth]{images/background/svr_overview.png}
+    \caption{SVR Overview. From \cite{gpureconstruction}}
+    \label{fig:svroverview}
+\end{figure}
+
+The first step in the reconstruction is to find the stack with the least movement; this is then used as a target to register the other slices to. Continuous point spread functions (PSFs) are used to model each of the input stacks which allows an initial reconstructed volume to be sampled from the registered slice stacks.
+
+An outlier detection phase is then performed; this involves the inverse transform for every slice stack to the volume being used to simulate what the slice should have looked like, based on the reconstruction. These simulated slices can then be compared to the originals to classify each point into inliers or outliers and EM (Expectation Maximization) is used to give weightings to each voxel.
+
+An update step is then applied to minimize the sum of squared errors between the slice pixels and the simulated slice values; gradient descent is applied to minimize the effect of noise and an edge preserving component is added to aid continuity in the resulting image.
+
+The overall aim of this process is to align each of the slice stacks in a way that minimizes the error due to movement and to build a higher resolution image by combining each of the stacks. This process of combining many lower resolution stacks to create one high resolution image is known as super-resolution.
+
+With super-resolution the images must be taken such that the translation between them is known to sub-pixel accuracy. Having images where the pixels are interleaved in this way allows a higher resolution image to be constructed using interpolation. See figure \ref{fig:superresolution}.
 
 \begin{figure}[H]
     \centering
@@ -63,8 +77,8 @@ In the case of super-resolution two (or more) images are taken such that the tra
     \label{fig:superresolution}
 \end{figure}
 
-\subsection*{Intuitive Super-Resolution Overview}
-The most simple form of super-resolution follows three steps:
+\subsection*{Super-Resolution Overview}
+The simplest form of super-resolution follows three steps:
 
 \begin{enumerate}
 	\item Registration
@@ -72,70 +86,20 @@ The most simple form of super-resolution follows three steps:
 	\item Post-processing
 \end{enumerate}
 
-The registration step is where the translation between each image is established. Crucially this must be known to sub-pixel accuracy and must not be a whole number of pixels. If, for example, we had two images and one was taken exactly 1 pixels width to the right of the other then we see that both images will contain the same information, in effect we can generate one using the other. However, if the second image is known to be taken half a pixels width to the right then there is the potential to extract more information.
+The registration step is where the transformation between each image is established. Crucially this must be known to sub-pixel accuracy and must not be a whole number of pixels. If, for example, we had two images and one was taken exactly 1 pixels width to the right of the other then we see that both images will contain the same information, in effect we can generate one using the other. However, if the second image is known to be taken half a pixel's width to the right then there is the potential to extract more information.
 
 Once we have registered our images we then interpolate points at a higher resolution, using a combination of the pixel values from each image at each point. There are a number of different interpolation algorithms that we can use; for example nearest neighbour or linear interpolation.
 
-We can then take our final outputted image and apply some post-processing effects to reduce the noise or blur. For example, we could apply a Wiener filter\cite{wienerfilter}.
-
-\subsection*{Details}
-To understand the uncertainty that is introduced we must look more closely at how it works.
-To begin with we model the process that happens when a discrete, low resolution image is taken of a continuous scene in the real world. We can express the low resolution images in terms of a perfect, non-aliased, high resolution version which, in an ideal world, we would like to recover. From the Shannon-Nyquist sampling theorem we need to sample at twice the frequency of the real world signal\cite{shannonnyquist}. In our model we assume that the resolution of our perfect image is $LN * LN$, our camera takes images at the resolution of $N * N$ and the scale factor between the two is $L$.
-
-There are a number of effects that combine to create the final image during acquisition. Each image may be taken from a different position so we will need to account for translations, rotations or other warping. Then various optical effects, such as the limit of diffraction, aberrations or being out of focus, will cause some degree of blurring. Finally the image will be sampled at the resolution of the camera and a certain amount of noise will be present.
-
-These processes can be represented by a series of transformations that can be applied to our ideal image.
-
-\begin{align*} 
-& y = DBMx + n \nonumber \\ 
-& \text{where} \\
-& y \text{ - low resolution image} \nonumber \\
-& D \text{ - scaling (discrete sampling)} \nonumber \\
-& B \text{ - blurring (optical effects, motion blur)} \nonumber \\
-& M \text{ - warping (translation, rotation)} \nonumber \\
-& x \text{ - high resolution (ideal) image} \nonumber \\
-& n \text{ - noise} \nonumber
-\end{align*}
-
-The task of image super-resolution is given a number of these such images $y$, can we reverse the process to find $x$, our high resolution version.
-
-Finding $M$ is a case of estimating the movement between each of the images that we have. Depending on the application finding these translations can be a very difficult task; in the case of MRI we are dealing with a controlled environment and so it is possible to take images with a known relationship to each other. If the target remains stationary, this makes finding the translations straight-forward, however dealing with movement (such as breathing) makes this a significantly harder task.
-
-Finding $B$ requires modelling the optical effects that occur at each pixel. This will vary between devices and is normally modelled by a point spread function (PSF) that is a spatial averaging of the pixel values in the area. The PSF can be assumed to be the same throughout the image, known as linear space invariant (LSI), or can vary across the image, known as linear space variant (LSV). An example where a linear space variant PSF would be suitable is where there is more heavy blurring near the edge of an image.
-
-The matrix $D$ then samples the result to produce a lower resolution, aliased image and then some noise, $n$, is added to model random variation in the sensor.
-
-These matrices can be combined to give us this result, without loss of generality:
-
-\begin{align}
-& y = Wx + n \nonumber
-\end{align}
-
-There are a number of different processes that are used to try and reverse this process, however this detail is sufficient to understand the kind of errors or uncertainties that can arise when reconstructing MRI images.
-
-% ------------------------- %
-% ------ Uncertainty ------ %
-% ------------------------- %
-\newpage
-\section{Uncertainty in Super-Resolution}\label{background:uncertainty}
-Three different types of uncertainty have been considered, though with different reconstruction algorithms there may be other metrics that can be extracted.
-
-\begin{enumerate}
-	\item sampling - How many points in the original scans correspond to the area in the reconstruction? Some parts of reconstruction will have many points in the original stacks to use, but others will not and will have to be interpolated.
-	\item registration - How precisely is the registration known? Depending on the calibration of the scanner and the amount of movement that occurs during the scan our confidence in the registration will change.
-	\item intensity bias - Bias is an artefact that occurs in MRI that means that some areas of the image are darker than others, not due to the tissue itself, but due to the distance from the receiver coil. Some areas have more of this inhomogeneity than others and contrast will be affected.
-\end{enumerate}
-
-Having three separate 'channels' of uncertainty makes visualizing it more difficult. Trying to display all three at one time will likely be too much information to communicate at once. Any visualization that is developed should in theory be applicable to each uncertainty individually or alternately the three types can be aggregated to form one combined uncertainty.
-
-An aggregation of all three will be able to give a useful overview of the situation, however being able to isolate a single type of uncertainty is important as it gives the viewer an idea of what caused the reconstruction issues.
+We can then perform post-processing on the final image to reduce the noise or blur. For example to reduce noise a Wiener filter can be used\cite{wienerfilter}.
 
 % ------------------------- %
 % ------- SVD / PCA ------- %
 % ------------------------- %
 \newpage
 \section{SVD \& PCA}\label{background:svdpca}
-SVD (Singular Value Decomposition) breaks down a matrix, $A$, into three components: $U$, $D$ and $V$.
+The task of finding the next best scan plane given an uncertainty volume is a task that essentially involves fitting a scan plane to a set of uncertain points. SVD (Singular Value Decomposition) is one technique that has been successfully applied to solving this problem\cite{uncertaintysvd}.
+
+SVD  breaks down a matrix, $A$, into three components: $U$, $D$ and $V$.
 
 \begin{align}
 & A = UDV* \nonumber \\
@@ -146,11 +110,11 @@ SVD (Singular Value Decomposition) breaks down a matrix, $A$, into three compone
 & V* \text{ - the conjugate transpose of V, a unitary matrix. (N x N)} \nonumber
 \end{align}
 
-NOTE: Unitary Matrix means that $UU* = I$ or alternately $U^{-1} = U^T$. This is true where the matrix contains unit vectors.
+Note that 'Unitary Matrix' means that $UU* = I$ or alternately $U^{-1} = U^T$. This is true where the matrix contains unit vectors.
 
-NOTE: The conjugate transpose ($*$) of a matrix is where you take the transpose and then take the complex conjugate of each cell. If the matrix contains no complex values $U* = U^T$.
+Note that the 'Conjugate Transpose' ($*$) of a matrix is just the transpose of the matrix and additionally the complex conjugate of each entry is taken. If the matrix contains no complex values $U* = U^T$.
 
-SVD on it’s own isn’t particularly exciting, but it comes in handy when doing PCA (Principal Component Analysis). PCA is used to take a dataset in $n$ dimensions and map it in such a way that you can describe it in less than $n$, whilst minimizing the information lost.
+SVD comes in useful when performing PCA (Principal Component Analysis). PCA is used to take a dataset in $n$ dimensions and map it in such a way that you can describe it in less than $n$, whilst minimizing the information lost.
 
 PCA takes as input a data matrix, X, which is a two dimensional table where each row represents an 'experiment' or 'data point' and each column is a property. Using the covariance of this data, i.e. how much each property varies in relation to every other property, the number of dimensions can be reduced.
 
@@ -188,9 +152,9 @@ We see that the eigenvalues are just the square root of the diagonal we get from
 % ------------------------ %
 \newpage
 \section{RANSAC}\label{background:ransac}
-RANSAC (Random Sample Consensus) is a technique for estimating model parameters given some sample data.
+RANSAC (Random Sample Consensus) is a technique for estimating model parameters given some sample data. Similarly to SVD it can be used for suggesting the next best scan plane.
 
-Consider the task of trying to fit a line to some data which contains both correct points (inliers) and noisy data (outliers). The problem with simply minimizing the sum of squared errors to all of the points is that the outliers will distort the result such that the inliers are not perfectly described by the data. Figure~\ref{fig:ransac} illustrates this task.
+Consider the task of trying to fit a line to some data which contains both correct points (inliers) and noisy data (outliers). The problem with simply minimizing the sum of squared errors to all of the points is that the outliers will distort the result such that the inliers are not perfectly described by the data. See figure \ref{fig:ransac}.
 
 \begin{figure}[H]
     \centering
@@ -217,13 +181,11 @@ A number of iterations are then performed and the winning iteration is the one w
 % -------------------------- %
 \newpage
 \section{Direct Volume Rendering}\label{background:volumerendering}
-\sectionreference{Adapted from \cite{nvidia:volumerendering}}
+MRI is a tomographic imaging technique which means that a 3D image is acquired in slices. The resulting scan is created by combining these slices to build a 3D volume. An MRI scan is often displayed in 2D by taking each slice and displaying it, however it is also possible to take all of the slices and view the scan in 3D. One technique for doing this is direct volume rendering.
 
-MRI is tomographic imaging technique which means that the image is acquired in slices. The resulting scan is created by combining these slices to build a 3D volume. An MRI scan is often displayed in 2D by taking each slice and displaying it, however it is also possible to take all of the slices and view the scan in 3D. One technique for doing this is direct volume rendering.
+Direct volume rendering is a technique for visualizing 3D volumetric data which does not generate any intermediate representation. The process uses ray tracing whereby rays are fired through each pixel in the image and properties of light, such as colour and opacity, are modelled to render the data \cite{nvidia:volumerendering}.
 
-Direct volume rendering is a technique for visualizing 3D volumetric data which does not generate any intermediate representation. The process uses ray tracing whereby rays are fired into the volume and properties of light, such as colour and opacity, are modelled to render the data.
-
-Each ray of light (we have one per pixel) is sent into the volume and samples are taken at a regular interval. Each sample point may not exactly hit a voxel in the volume and so the value will be interpolated from the neighbouring points. Linear interpolation can be used but may introduce some visual artefacts in which case more complex interpolation (such as piecewise cubic polynomials) can be used.
+One ray is sent into the volume per pixel in the resulting visualization and samples are taken at regular intervals. Each sample point may not exactly hit a voxel in the volume and so the value will be interpolated from the neighbouring points. Linear interpolation can be used but may introduce some visual artefacts in which case more complex interpolation (such as piecewise cubic polynomials) can be used.
 
 Each of these samples, which are just intensity values, need to be mapped to something that we can visualize. A transfer function is used to map intensity values to a colour and transparency. This transfer function can then be changed to highlight different features of our volume, for example we could make all values below a certain threshold completely transparent.
 
@@ -239,7 +201,7 @@ All of the samples along the ray are then combined to calculate the value of the
 	O &= \text{ final opacity}
 \end{align*}
 
-NOTE: If $O$ is greater than 0 then the colour is normalized (divided by $1 - O$).
+Note that if $O$ is greater than 0 then the colour is normalized (divided by $1 - O$).
 
 % ---------------------------- %
 % ---- Surface Extraction ---- %
@@ -248,7 +210,7 @@ NOTE: If $O$ is greater than 0 then the colour is normalized (divided by $1 - O$
 \section{Surface Extraction}\label{background:surfaceextraction}
 Surface extraction is another technique that can be used to visualizing volumetric data. Instead of visualizing the data directly, as in direct volume rendering, the volume is processed to build a geometric representation which can then be rendered.
 
-This advantage of using surface extraction is that it is much cheaper to render\cite{surfacevsvolumerendering}. There is an initial penalty where the volume data is processed to extract surfaces but once this has been completed the rendering of geometric primitives is something that can be done incredibly quickly by graphics hardware.
+This advantage of using surface extraction is that it is much cheaper to render\cite{surfacevsvolumerendering}. There is an initial penalty where the volume data is processed to extract surfaces but once this has been completed the rendering of geometric primitives is something that can be done rapidly by graphics hardware.
 
 A common surface extraction algorithm is marching cubes. This algorithm works by examining the intensities of neighbouring voxels to tell whether or not the surface passes between them by comparing the values to a threshold value. 
 
@@ -263,18 +225,14 @@ The process is easier to visualize in 2D (marching squares), see Figure~\ref{fig
 
 The marching cubes algorithm generates as a result a mesh of triangles which can be reduced to the desired resolution by applying some mesh decimation techniques.
 
-There are some constraints associated with using surface extraction for volume visualization. Firstly the number of primitives required to represent certain volumes may be prohibitively high. As an extreme you can imagine trying to extract surfaces from the volumetric representation of a dust cloud; in this case it would not be practical to do so and in other situations an accuracy/efficiency trade off must be found. There is also a certain amount of information loss with this technique: importantly individual intensity values are lost.
+There are some constraints associated with using surface extraction for volume visualization. Firstly the number of primitives required to represent certain volumes may be prohibitively high. As an extreme imagine trying to extract surfaces from the volumetric representation of a dust cloud; in this case due to the shear quantity of particles it would not be practical to do so and in other situations an accuracy/efficiency trade off must be found. There is also a certain amount of information loss with this technique: importantly individual intensity values are lost.
 
 % ----------------------------------- %
 % ---- Uncertainty Visualization ---- %
 % ----------------------------------- %
 \newpage
 \section{Uncertainty Visualization}\label{background:uncertaintyvisualization}
-\sectionreference{Partly adapted from \cite{uncertaintyoverview}}
-
-Generally speaking uncertainty visualization tackles the problem of trying to represent the ambiguity or uncertainty in a data set or model.
-
-Most data visualization techniques implicitly assume that all of the data being used is perfect and because of this create visualizations that misleadingly represents values with greater precision than the underlying data is known to.
+Generally speaking uncertainty visualization tackles the problem of trying to represent the ambiguity or uncertainty in a data set or model. Most data visualization techniques implicitly assume that all of the data being used is perfect and because of this create visualizations that misleadingly represents values with greater precision than the underlying data is known to\cite{uncertaintyoverview}.
 
 One of the reasons that a lot of visualizations neglect this is because it can be quite a difficult task. When creating a visualization there is an inherent restriction on the number of dimensions that you can exploit to represent information.
 
@@ -313,20 +271,4 @@ In particular a team at the Vienna University of Technology have written a paper
     \label{fig:flicker}
 \end{figure}
 
-When visualizing uncertainty in particular you must consider which extreme you would like to draw attention to. A lot of uncertainty visualizations draw larger attention to high uncertainty areas, for example brighter colours on a heatmap or larger error bars, but it may be the case that the viewer is interested in areas of high certainty as this is what they can draw conclusions from.
-
-% ------------------------- %
-% ------- Labelling ------- %
-% ------------------------- %
-\newpage
-\section{Labelling}\label{background:labelling}
-One part of the project that there wasn't time to explore but would come in useful for further developments is labelling. Work on choosing a good labelling system has been done previously and there are a number of different approaches that can be taken\cite{labelling}.
-
-For future work it will almost certainly be worth researching these techniques. See Figure~\ref{fig:labels} for examples.
-
-\begin{figure}[H]
-    \centering
-	\includegraphics[width=1.0\textwidth]{images/background/labels.png}
-    \caption{Different labelling techniques. Adapted from \cite{labelling}}
-    \label{fig:labels}
-\end{figure}
+When visualizing uncertainty the extreme to draw attention to should be considered. A lot of uncertainty visualizations focus on high uncertainty areas, for example brighter colours on a heatmap or larger error bars, but it may be the case that the viewer is interested in areas of low uncertainty as this is what they can draw conclusions from.

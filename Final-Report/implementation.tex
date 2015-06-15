@@ -12,7 +12,7 @@ The plugin developed is a research prototype designed primarily to visualize the
 Components from each stage have been incorporated into the plugin. Firstly a scan can be simulated by taking a previous reconstruction and resampling it. Then scans, simulated or otherwise, can be used to reconstruct a super-resolution image and optionally landmarks can be provided to guide this process. Finally the reconstructed volume, and associated uncertainty, can be visualized and the next best scan plane can be determined. The rest of this chapter shows the implementation of all of these features.
 
 \section{Scan Simulation}\label{implementation:simulatescan}
-The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. This idea was used in the same paper concerned with finding the optimum scan plane\cite{uncertaintysvd}. The focus of this part of the tool is not to evaluate the effectiveness of this approach, that is a project in it's own right, but to make this simulation easier to perform and customize for future research.
+The idea behind simulating a scan is that we can evaluate the performance of reconstruction algorithms if we can compare the result to a known, 'perfect', reconstruction. This idea was used in the paper concerned with finding the optimum scan plane\cite{uncertaintysvd}. The focus of this part of the tool is not to evaluate the effectiveness of this approach, that is a project in it's own right, but to make this simulation easier to perform and customize for future research.
 
 \begin{wrapfigure}[23]{r}{0.4\textwidth}
   \vspace{-20pt}
