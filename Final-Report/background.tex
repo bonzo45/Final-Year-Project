@@ -20,26 +20,21 @@ As with all medical imaging techniques the benefits and risks need to be weighed
 % ------------------------- %
 \newpage
 \section{MRI}\label{background:mri}
-\sectionreference{\cite{howmriworks} gives a very good overview of how MRI works. A brief summary is given below.}
+MRI uses a strong magnetic field and radio waves to produce images of the body. MRI can be used to produce 2D, 3D and even 4D images and has the advantage that it doesn’t use any ionizing radiation during the scanning process\cite{howmriworks}.
 
-MRI uses a strong magnetic field and radio waves to produce images of the body. MRI can be used to produce 2D, 3D and even 4D images and has the advantage that it doesn’t use any ionizing radiation during the scanning process.
-
-MRI is able to detect the amount of water that is contained in different types of tissue in the body by exploiting a property of protons called spin. Each water molecule in the body contains two hydrogen atoms and the nucleus of each is a single proton.
+MRI is able to detect the amount of water that is contained in different types of tissue in the body by exploiting a property of protons called spin. Water is detected because the nuclei of each hydrogen atom in water consists of a single proton.
 
 MRI applies a strong uniform magnetic field to the area being imaged which causes the spins of the protons to line up with the direction of the field. Some of the protons line up in the same direction, with low energy, and some line up opposing the magnetic field, which have high energy.
 
-When a particular radio frequency is then applied some of the lower energy protons flip to become higher energy and oppose the magnetic field, when the radio waves are stopped these protons then flip back, emitting a radio wave that can be detected.
+When a particular radio frequency is then applied some of the lower energy protons flip to become higher energy and oppose the magnetic field, when the radio waves are stopped these protons then flip back, emitting a radio wave that can be detected. The resonant frequency of radio wave that is required to excite the protons depends on the strength of the magnetic field. This property allows an area to be scanned by applying a gradient magnetic field and varying the radio frequency.
 
-The resonant frequency of radio wave that is required to excite the protons depends on the strength of the magnetic field. This property allows an area to be scanned by applying a gradient magnetic field and varying the radio frequency.
-
-There are a number of different variations of MRI. T1-weighted scans are best for visualizing fat, calcification, hemorrhage, thyroid, liver and bone marrow whereas T2-weighted scans accentuate water content.
-There are also a number of different ways of acquiring the scan. SSFSE (Single Shot Fast Spin Echo) works by acquiring each slice of the image in sequence whereas 2DGRE (Gradient Echo) acquires all of the slices simultaneously.
+Different weightings of scan exist: T1-weighted scans are best for visualizing fat, calcification, hemorrhage, thyroid, liver and bone marrow whereas T2-weighted scans accentuate water content. Different sequences can also be acquired: SSFSE (Single Shot Fast Spin Echo) works by acquiring each slice of the image in sequence whereas 2DGRE (Gradient Echo) acquires all of the slices simultaneously.
 
 If the contrast that can be achieved with MRI is insufficient for the imaging then a contrast agent, such as gadolinium, can be administered to enhance it.
 
 \section{Fetal MRI}\label{background:fetalmri}
 
-Since MRI, like US, is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging\cite{fetalmri}. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular it has better contrast in soft tissue which allows individual organs to be better differentiated. US however remains more widely available, easier to apply, easier to staff and the cheaper and so is unlikely to be replaced as the main fetal imaging tool in the near future.
+Since MRI, like US, is a non-invasive procedure that doesn’t use ionizing radiation it is ideal for use in fetal imaging\cite{fetalmri}. While US remains the most common imaging modality used during pregnancy MRI has a number of advantages; in particular better contrast in soft tissue allows organs to be better differentiated. However, US remains more widely available, easier to apply, easier to staff and cheaper and so is unlikely to be replaced as the main fetal imaging tool in the near future.
 
 There are no known side effects associated with using MRI, however it is currently recommended to wait until the 17th or 18th WG (week of gestation) before performing MRI. This is partly a precautionary measure but also before then the size of the fetus and amount of movement limits the usefulness of the scan\cite{fetalmri}.
 
@@ -128,7 +123,7 @@ To find the principal component we would like find the vector that maximizes the
 & XX^{T} = WDW^{-1} \\
 & \\
 & W \text{ - eigenvectors of the covariance matrix} \\
-& D \text{ - eigenvalues of the covariance matrix} \\
+& D \text{ - eigenvalues of the covariance matrix}
 \end{align*}
 
 Applying PCA to $X$ (and using the SVD substitution):
@@ -144,7 +139,7 @@ XX^T &= (UDV^T)(UDV^T)^T \\
 UD^{2}U &= WDW
 \end{align*}
 
-We see that the eigenvalues are just the square root of the diagonal we get from SVD and the eigenvectors are the same. These eigenvectors form our new dimensions and we can reduce our data to $m < n$ dimensions by picking the m with the largest eigenvalues.
+We see that the eigenvalues are just the square root of the diagonal we get from SVD and the eigenvectors are the same. These eigenvectors form our new dimensions and we can reduce our data to $m < n$ dimensions by picking the $m$ with the largest eigenvalues.
 
 % ------------------------ %
 % -------- RANSAC -------- %
@@ -215,16 +210,17 @@ A common surface extraction algorithm is marching cubes. This algorithm works by
 
 The process is easier to visualize in 2D (marching squares), see Figure~\ref{fig:marching_squares}, but it can be simply extended to 3D.
 
-\begin{figure}[H]
-    \centering
-	\includegraphics[width=0.8\textwidth]{images/background/marching_squares.jpg}
-    \caption{Using marching squares. From \cite{marching_squares:image}}
-    \label{fig:marching_squares}
-\end{figure}
+\begin{wrapfigure}[16]{r}{0.6\textwidth}
+  \vspace{-20pt}
+  \includegraphics[width=0.6\textwidth]{images/background/marching_squares.jpg}
+  \caption{Marching squares. From \cite{marching_squares:image}}\label{fig:marching_squares}
+\end{wrapfigure}
 
 The marching cubes algorithm generates as a result a mesh of triangles which can be reduced to the desired resolution by applying some mesh decimation techniques.
 
-There are some constraints associated with using surface extraction for volume visualization. Firstly the number of primitives required to represent certain volumes may be prohibitively high. As an extreme imagine trying to extract surfaces from the volumetric representation of a dust cloud; in this case due to the shear quantity of particles it would not be practical to do so and in other situations an accuracy/efficiency trade off must be found. There is also a certain amount of information loss with this technique: importantly individual intensity values are lost.
+There are some constraints associated with using surface extraction for volume visualization. Firstly the number of primitives required to represent certain volumes may be prohibitively high. As an extreme imagine trying to extract surfaces from the volumetric representation of a dust cloud; in this case due to the shear quantity of particles it would not be practical to do so and in other situations an accuracy/efficiency trade off must be found.
+
+There is also a certain amount of information loss with this technique: importantly individual intensity values are lost.
 
 % ----------------------------------- %
 % ---- Uncertainty Visualization ---- %

@@ -1,11 +1,11 @@
-\chapter{Method}
+\chapter{Method}\label{chapter:method}
 This section covers the principles and design decisions behind each feature.
 
 % ----------------------------- %
 % ------ SCAN SIMULATION ------ %
 % ----------------------------- %
 
-\section{Scan Simulation}
+\section{Scan Simulation}\label{method:scan_simulation}
 The scan simulation works by resampling the perfect scan supplied. Each point in the simulation is a result of linearly interpolating a point in the original.
 
 The point that is sampled is determined by the dimensions, resolution, center and direction of the scan. Firstly the $origin$ (location of pixel (0, 0, 0)) is computed from the $center$.
@@ -83,7 +83,7 @@ The simulation is acquired slice by slice and each slice can optionally be corru
 % ----------------------------- %
 
 \clearpage
-\section{Reconstruction}
+\section{Reconstruction}\label{method:reconstruction}
 This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. The implementation makes use of the CTK (Common Toolkit) Command Line Module\cite{ctkcmd}, which allows calls to the GPU code to be made from within the plugin. A wrapper for the code has been written, which conforms to the Command Line Module XML Schema, and this provides the module with all the information it requires to parse the parameters and automatically import the results.
 
 The optional landmarking functionality allows the registration of each of the slices stacks to be guided.
@@ -107,10 +107,11 @@ Assuming that the transformation between each of the slice stacks is rigid (tran
 
 Given only three points the full transformation is ambiguous. Supposing above we did not know the location of the red point in the second object, then there are two possible positions for it, either going away from the camera (relative to the green point) or towards it.
 
+\newpage
 The transformation between the two objects can be decided as follows\cite{pointregistration}:
 
 \begin{align*}
-          \text{Compute axes.} \nonumber \\
+          \text{1) Compute axes.} \nonumber \\
           \nonumber \\
   A_x & = A[2] - A[1] \nonumber \\
   A_y & = (A[3] - A[1]) - [(A[3] - O[1]) \cdot A_x]A_x \nonumber \\
@@ -119,26 +120,26 @@ The transformation between the two objects can be decided as follows\cite{pointr
           \nonumber \\
           \text{...and the same for B.} \nonumber \\
           \nonumber \\
-          \text{Build rotation matrices.} \nonumber \\
+  \text{where}& \\
+  & X[p] \text{ - point $p$ in object $X$} \nonumber \\
+  & X_x \text{ - x axis of object $X$} \nonumber \\
+  & X_y \text{ - y axis of object $X$} \nonumber \\
+  & X_z \text{ - z axis of object $X$} \nonumber \\
+          \nonumber \\
+          \text{2) Build rotation matrices.} \nonumber \\
           \nonumber \\
   R_A & = [A_x; A_y; A_z] \nonumber \\
   R_B & = [B_x; B_y; B_z] \nonumber \\
           \nonumber \\
-          \text{Rotation, $R$, from $A$ to $B$:} \nonumber \\
+          \text{3) Rotation, $R$, from $A$ to $B$:} \nonumber \\
           \nonumber \\
   R R_A & = R_B \nonumber \\
   R & = R_B R_A^{-1} \nonumber \\
   R & = R_B R_A^T \text{ ($R^{-1} = R^T$ for rotation matrices)} \nonumber \\
           \nonumber \\
-          \text{Translation, $T$, from $A$ to $B$:} \nonumber \\
+          \text{4) Translation, $T$, from $A$ to $B$:} \nonumber \\
           \nonumber \\
-  T & = B[1] - R A[1] \nonumber \\
-          \nonumber \\
-  \text{where}& \\
-  & X[p] \text{ - point $p$ in object $X$} \nonumber \\
-  & X_x \text{ - x axis of object $X$} \nonumber \\
-  & X_y \text{ - y axis of object $X$} \nonumber \\
-  & X_z \text{ - z axis of object $X$} \nonumber        
+  T & = B[1] - R A[1] \nonumber \\     
 \end{align*}
 
 % ----------------------------- %
@@ -252,21 +253,21 @@ The image to world matrix of the scan is copied to the uncertainty volume. This 
 
 \clearpage
 \subsection{Test Uncertainties}\label{method:test_uncertainties}
-To test and debug each visualization a number of artificial uncertainties have been created as well as an example from a genuine fetal brain reconstruction. Results of each visualization with these uncertainties are compared.
+To test and debug each visualization a number of artificial uncertainties have been created as well as an example from a genuine fetal brain reconstruction.
 
-\subsection*{Sphere of Uncertainty}
+\subsubsection*{Sphere of Uncertainty}
 An uncertainty volume where the uncertainty is proportional to the distance from the center. The uncertainty is 0 (very bad) at the center and 1 (very good) at the edges.
 
-\subsection*{Sphere in Corner}
+\subsubsection*{Sphere in Corner}
 Similar to the sphere, but instead of being placed in the middle it is placed in one corner of the volume.
 
-\subsection*{Cube of Uncertainty}
+\subsubsection*{Cube of Uncertainty}
 An uncertainty volume that is 1 (very good) everywhere except for fixed size cube of uncertainty 0 (very bad) in the center.
 
-\subsection*{Random Uncertainty}
+\subsubsection*{Random Uncertainty}
 The uncertainty at every point is a random uniformly distributed value.
 
-\subsection*{Reconstruction Uncertainty}
+\subsubsection*{Reconstruction Uncertainty}
 Uncertainty generated from an example super-resolution reconstruction of a fetal brain.\\
 
 \begin{figure}[h]
@@ -416,7 +417,6 @@ Although tweaking the threshold can remove edge artefact variation 2 was found n
 
 As well as allowing the user to explicitly specify a range [min, max], it is possible to find the worst $x\%$ of uncertainty. To do this a histogram is built which splits the uncertainty into $n$ buckets. The histogram is then traversed, starting from the first (least certain) bucket, and the occurrences are accumulated until the total is greater than $uncertaintyWidth \times uncertaintyHeight \times uncertaintyDepth \times \frac{x}{100}$. When the total exceeds this value the index of the bucket, $i$, is used to compute the range: [0.0, $i \times \frac{1}{n}$]. Then the thresholding is completed as before.
 
-\newpage
 \subsection*{Results}
 Examples of this visualization with the test uncertainties (see section \ref{method:test_uncertainties}) are shown below for illustration. The scan used in each case is a reconstructed fetal brain.
 
@@ -588,28 +588,28 @@ Scaling was found to significantly increase the contrast of the visualization, s
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.25\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/surface/sphere_no_scaling.png}
     \caption*{Sphere\\(No Scaling)}
     \label{fig:surfacespherenoscaling}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.25\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/surface/sphere_scaling.png}
     \caption*{Sphere\\(Linear)}
     \label{fig:surfacespherescaling}
-  \end{subfigure}%
+  \end{subfigure}\\[11pt]
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.25\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_no_scaling.png}
     \caption*{Surface\\(No Scaling)}
     \label{fig:surfacesurfacenoscaling}
   \end{subfigure}%
     %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.25\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/surface/surface_scaling.png}
     \caption*{Sphere\\(Linear)}
     \label{fig:surfacesurfacescaling}
@@ -657,7 +657,7 @@ The surface representation difficult to interpret by looking at a single image o
   \caption{Brain surface viewed from different directions.}\label{fig:surface180}
 \end{figure}
 
-Figure 25 illustrates the effect of changing the accumulator. The default behaviour of taking the average uncertainty along the ray does a reasonable job of bringing the uncertainty to the surface. Changing it to extract the worst value gives the viewer a better idea of the size of the uncertain region as values that would otherwise be outweighed by largely good values are brought to the surface.
+Figure \ref{fig:surfaceaccumulator} illustrates the effect of changing the accumulator. The default behaviour of taking the average uncertainty along the ray does a reasonable job of bringing the uncertainty to the surface. Changing it to extract the worst value gives the viewer a better idea of the size of the uncertain region as values that would otherwise be outweighed by largely good values are brought to the surface.
 
 There results when finding the best value are poor. It doesn't really work at all when applied to the sphere as in the vast majority of cases there is a good value somewhere along the ray which results in a largely uniform appearance. 
 
@@ -710,7 +710,7 @@ The same logic largely applies to the brain surface as well, however areas on th
 
 The sample distance determines how far into the volume samples go. Currently there are two options available - half and full. These options are less applicable to the sphere as if it is set to full then opposite sides of the sphere give identical values.
 
-When applied to the surface the use of this option very much depends on the area of the body that is being scanned. The brain is a large, and for the most part (ignoring folds particularly) convex; in this respect it is similar to the sphere and the effect of sampling all the way through is much the same (see figure \ref{fig:surfacesampledistance}). Note that the average uncertainty gets better with full sampling as there are more good points to outweigh the bad ones in that region.
+When applied to the surface the use of this option very much depends on the area of the body that is being scanned. The brain is a large, and for the most part (ignoring folds particularly) convex; in this respect it is similar to the sphere and the effect of sampling all the way through is much the same (see figure \ref{fig:surfacesampledistance}). Note that the average uncertainty gets better with full sampling as there are more good points to outweigh the bad ones in that region.\\\\
 
 \begin{figure}[H]
   \centering
@@ -766,19 +766,19 @@ Figure \ref{fig:nextscanplanespheres} shows the next scan planes for both the sp
 \end{figure}
 
 \newpage
-Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan is slightly counter intuitive but the scan does in fact split the uncertainty in half. See figure \ref{fig:nextscanplanecubecut}.
+Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan is slightly counter intuitive but the scan does in fact split the uncertainty in half. See figure \ref{fig:nextscanplanecubecut}.\\\\
 
-\savebox{\mybox}{\includegraphics[width=0.4\textwidth]{images/next_scan_plane/cube.png}}
+\savebox{\mybox}{\includegraphics[width=0.5\textwidth]{images/next_scan_plane/cube.png}}
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \usebox{\mybox}
     \caption{Cube}
     \label{fig:nextscanplanecube}  
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \vbox to \ht\mybox{%
       \vfill
       \includegraphics[width=\textwidth]{images/next_scan_plane/cubecut.png}
@@ -790,11 +790,11 @@ Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal sc
   \caption{Next scan plane for the cube.}\label{fig:nextscanplanecube}
 \end{figure}
 
-Figure \ref{fig:nextscanplanerandom} shows the random uncertainty. The random volume is effectively a cube but with some points missing. The next best scan plane is therefore very similar to the cube, but slightly slanted as the volume is longer than it is wide.
+Figure \ref{fig:nextscanplanerandom} shows the random uncertainty. The random volume is effectively a cube but with some points missing. The next best scan plane is therefore very similar to the cube, but slightly slanted as the volume is longer than it is wide.\\\\
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.4\textwidth]{images/next_scan_plane/random.png}
+  \includegraphics[width=0.6\textwidth]{images/next_scan_plane/random.png}
   \caption{Random}\label{fig:nextscanplanerandom}
 \end{figure}
 
@@ -803,21 +803,21 @@ The next scan plane can also be displayed in 2D. See figure \ref{fig:nextscanpla
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/axial.png}
     \caption*{Axial}
     \label{fig:nextscanplaneaxial}
   \end{subfigure}%
   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.5\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/coronal.png}
     \caption*{Coronal}
     \label{fig:nextscanplanecoronal}
-  \end{subfigure}
+  \end{subfigure}\\[11pt]
   ~%add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
     %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.8\textwidth}
     \includegraphics[width=\textwidth]{images/next_scan_plane/sagittal.png}
     \caption*{Sagittal}
     \label{fig:nextscanplanesagittal}
