@@ -710,7 +710,7 @@ The same logic largely applies to the brain surface as well, however areas on th
 
 The sample distance determines how far into the volume samples go. Currently there are two options available - half and full. These options are less applicable to the sphere as if it is set to full then opposite sides of the sphere give identical values.
 
-When applied to the surface the use of this option very much depends on the area of the body that is being scanned. The brain is a large, and for the most part (ignoring folds particularly) convex; in this respect it is similar to the sphere and the effect of sampling all the way through is much the same (see figure \ref{fig:surfacesampledistance}). You can notice that the average uncertainty gets better with full sampling as there are more good points to outweigh the bad ones in that region.
+When applied to the surface the use of this option very much depends on the area of the body that is being scanned. The brain is a large, and for the most part (ignoring folds particularly) convex; in this respect it is similar to the sphere and the effect of sampling all the way through is much the same (see figure \ref{fig:surfacesampledistance}). Note that the average uncertainty gets better with full sampling as there are more good points to outweigh the bad ones in that region.
 
 \begin{figure}[H]
   \centering
@@ -737,9 +737,13 @@ Where this parameter may be more useful however is when dealing with smaller, mo
 
 \clearpage
 \subsection{Next Scan Plane}\label{method:next_scan_plane}
-The SVD implementation from the VNL numerics library is then used to produce the scan direction and center point. 
+The idea behind this visualization is based on research\cite{uncertaintysvd} which uses SVD to find the optimum position and direction to scan next given the current uncertainty. With this knowledge the scanning process can continually target areas of uncertainty to optimize the quality of the reconstruction.
 
-Currently the scan is shown as a circle/cylinder as only the z-direction (slice direction) is extracted.
+The first step in this technique is to build a list of points to target. This is done by finding all points in the uncertainty volume that are worse than a user specified threshold, in a very similar manner to the thresholding visualization. The center, $c$, of these points is then computed by taking the mean; $c$ is the position of the center of the scan.
+
+Then a matrix of de-meaned points is created, $M = [p_1; p_2; ... ; p_n]$. SVD is then applied to $M$ (see SVD section \ref{background:svdpca}) and the direction, $d$, can be extracted. 
+
+The center point, $c$, and direction, $d$, are then used to create a circle which represents the central slice in the scan and a cylinder to show the direction of the scan.
 
 \subsection*{Results}
 Figure \ref{fig:nextscanplanespheres} shows the next scan planes for both the sphere uncertainties. Since they both have infinitely many lines of symmetry they can be scanned from any direction.
@@ -761,7 +765,8 @@ Figure \ref{fig:nextscanplanespheres} shows the next scan planes for both the sp
   \caption{Next scan planes for the spheres.}\label{fig:nextscanplanespheres}
 \end{figure}
 
-Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan here is slightly counter intuitive but the scan does in fact split the uncertainty in half.
+\newpage
+Figure \ref{fig:nextscanplanecube} shows the cube of uncertainty. The optimal scan is slightly counter intuitive but the scan does in fact split the uncertainty in half. See figure \ref{fig:nextscanplanecubecut}.
 
 \savebox{\mybox}{\includegraphics[width=0.4\textwidth]{images/next_scan_plane/cube.png}}
 \begin{figure}[H]
@@ -793,7 +798,8 @@ Figure \ref{fig:nextscanplanerandom} shows the random uncertainty. The random vo
   \caption{Random}\label{fig:nextscanplanerandom}
 \end{figure}
 
-The next scan plane can also be displayed in the 2D view (figure \ref{fig:nextscanplane2d}).
+\newpage
+The next scan plane can also be displayed in 2D. See figure \ref{fig:nextscanplane2d}.
 
 \begin{figure}[H]
   \centering

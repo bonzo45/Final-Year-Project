@@ -146,7 +146,7 @@ Figure \ref{fig:threshold_settings} shows the controls available to the user. Th
 
 'Ignore Zeros' is ticked which means the background, which has value 0.0, is not displayed even if it is within the range selected. The auto-update toggle box decides whether changes to the controls immediately update the visualization.
 
-Figure \ref{fig:threshold_settings_result} illustrates the result.\\\\\\
+Figure \ref{fig:threshold_settings_result} illustrates the result.\\\\\\\\\\
 
 \begin{figure}[H]
   \centering
@@ -219,7 +219,7 @@ This allows the user to pick the surface to map the uncertainty to.
 This decides how the surface is aligned to the uncertainty volume. None assumes that they are already aligned. Simple finds the bounding box of the surface and maps it to the bounding box of the volume. *bodge* is just used in development. Debug allows the registration to be inspected by marking on the uncertainty the registered position of every surface point.
 
 \subsubsection{Invert Normals}
-Inverts the normals stored at each point on the surface. Use when normals point outwards.
+Inverts the normals stored at each point on the surface. Use when normals point outwards.\\\\
 
 \begin{figure}[H]
   \centering
@@ -257,7 +257,7 @@ The user chooses the uncertainty to target by specifying an upper threshold. Thi
 
 As well as being shown visually the center and normal of the next best scan is also shown underneath the 'Go' button.
 
-Figure \ref{fig:nextscanplane} illustrates this process.\\
+Figure \ref{fig:nextscanplane} illustrates this process.
 
 \begin{figure}[H]
   \centering
@@ -283,4 +283,4 @@ Figure \ref{fig:nextscanplane} illustrates this process.\\
   \caption{Next scan plane process.}\label{fig:nextscanplane}
 \end{figure}
 
-Implementation uses the SVD implementation from the VNL numerics library.
+(Implementation uses the SVD implementation from the VNL numerics library)
