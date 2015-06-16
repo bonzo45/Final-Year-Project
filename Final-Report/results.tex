@@ -70,27 +70,22 @@ When asked 'How important is it for you to manually guide the reconstruction pro
 
 When asked 'How likely are you to manually label stack sets to improve the reconstruction?' the responses were more varied. See figure \ref{fig:graph_reconstruction_2}. Most participants were willing to label slice stacks but there was more negativity towards this than before, and the impression received was that they do it begrudgingly.
 
+\begin{figure}[h]
+    \centering
+  \includegraphics[width=0.6\textwidth]{images/evaluation/graph_reconstruction_2.png}
+    \caption{1 is no chance, 10 is very likely.}\label{fig:graph_reconstruction_2}
+\end{figure}
+
 Anecdotally it seems to take around 30 minutes to perform the pre-processing required for a single reconstruction. This involves manually inspecting each slice to gauge the quality, building a mask to specify the area to reconstruct and optionally adding landmarks to each stack.
 
 Currently four landmarks can be used to aid the registration: both eyes and two points on the brain stem. In some cases, where the input data is good, this is not necessary, however if there is a large amount of movement then manual intervention is required.
 
-When asked 'How long would you be willing to spend labelling landmarks for a reconstruction?' nobody was willing to spend more than 30 minutes and the majority would prefer it to take 10 minutes or below. See figure \ref{fig:graph_reconstruction_3}. It's difficult to say whether there may be some degree of "asking for more than you expect to get" going on but the consensus is that the time quickly adds up. It's fine if you have one reconstruction to do but when you come to large user studies with potentially hundreds of scans it simply doesn't scale.
+When asked 'How long would you be willing to spend labelling landmarks for a reconstruction?' nobody was willing to spend more than 30 minutes and the majority would prefer it to take 10 minutes or below. See figure \ref{fig:graph_reconstruction_3}. It's difficult to say whether there may be some degree of "asking for more than you expect to get" going on but the consensus is that the time quickly adds up. It's fine when just one reconstruction needs to be done but when it comes to large user studies with potentially hundreds of scans it simply doesn't scale.
 
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/evaluation/graph_reconstruction_2.png}
-    \caption{1 is no chance, 10 is very likely.}
-    \label{fig:graph_reconstruction_2}
-  \end{subfigure}%
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}[b]{0.5\textwidth}
-    \includegraphics[width=\textwidth]{images/evaluation/graph_reconstruction_3.png}
-    \caption{Time (minutes).}
-    \label{fig:graph_reconstruction_3}
-  \end{subfigure}
-  \caption{}\label{fig:graph_reconstruction23}
+\begin{figure}[h]
+    \centering
+  \includegraphics[width=0.6\textwidth]{images/evaluation/graph_reconstruction_3.png}
+    \caption{Time (minutes).}\label{fig:graph_reconstruction_3}
 \end{figure}
 
 The plugin includes a simple tool that allows 13 landmarks to be specified on each slice stack before reconstruction. This was implemented with the view of trying to estimate how long the landmarking stage takes to perform. Constraints on how long I had to spend with each user on the evaluation, and also the level of familiarity of each user with the developing brain mean that the estimations here are quite rough, but do set the scene.
@@ -105,13 +100,11 @@ The plugin includes a simple tool that allows 13 landmarks to be specified on ea
 
 Taking these results with a pinch of salt it seems that around 10 seconds per landmark is a reasonable estimate, once the user is up to speed. With a large number of stacks per reconstruction and a large number of reconstructions in a study this soon adds up.
 
-Another source of inefficiency comes from the use of a number of different pieces of software in the reconstruction process. Integrating the process into one application should remove the time wasted importing and exporting between different tools.
+Another source of inefficiency comes from the use of a number of different pieces of software in the reconstruction process. A fair chunk of time is wasted importing and exporting files between different tools, which should be solved by integrating the whole pipeline into one program.
 
-One problem that had not been anticipated were ambiguities determining which direction is left and which is right when placing landmarks. This is one of the limitations of DICOM, one of the most common medical image formats in use, and so some way of letting the user mark this, before a mask is created, would be useful.
+One problem that had not been anticipated with the landmarking prototype were ambiguities determining which direction is left and which is right. This ambiguity is a result of one of the limitations of DICOM, one of the most common medical image formats in use. To get around this some way of letting the user mark each side, before the mask is created, needs to be added for consistent landmarks to be set
 
-The researchers still want a way to manually inspect the slice stacks to check their quality, either to establish why a reconstruction failed, or as a preliminary check. One feature that could be implemented to help with this is the ability to view stacks side by side and scroll through them simultaneously.
-
-Another issue raised was that there was ambiguity deciding which part of a landmark to mark. Having an example image for each would clarify both what the user is looking for and also where to mark it.
+Another issue raised was that there was ambiguity deciding which part of a landmark, such as the front/back/center, to mark. Adding an example image for each landmark would help to clarify both what the user is looking for and also where to mark it.
 
 %% ----------------------------------------- %%
 %% ------- UNCERTAINTY VISUALIZATION ------- %%
@@ -119,7 +112,7 @@ Another issue raised was that there was ambiguity deciding which part of a landm
 
 \newpage
 \section{Uncertainty Visualization}\label{results:uncertainty_visualization}
-With these three principles in mind the users were asked three questions for each visualization. The first they were asked was 'How easy was it to understand what the visualization was showing?'. The results for each visualization are shown in figure \ref{fig:eval_visualization_q1}.
+Three questions were put to each user to establish firstly how easy each visualization was to understand, secondly how clearly the uncertainty was displayed and lastly how easy each was to customize. The first question asked 'How easy was it to understand what the visualization was showing?'. The results for each visualization are shown in figure \ref{fig:eval_visualization_q1}.
 
 \begin{figure}[H]
   \centering
@@ -147,13 +140,13 @@ With these three principles in mind the users were asked three questions for eac
 
 The easiest visualization to understand overall was thresholding. From speaking to the researchers this was because they are very familiar with this kind of view, especially the 2D version; a lot of their work involves them examining slice stacks and scrolling through data sets.
 
-Conceptually it is also the easiest visualization to grasp, the uncertainty is simply overlayed on the scan in 2D and you can see it floating around in 3D. For them to use the surface view there needs to be a compelling, unique feature that can't be done with thresholding.
+Conceptually it is also the easiest visualization to grasp, the uncertainty is simply overlayed on the scan in 2D and you can see it floating around in 3D. For them to use the surface view there needs to be a compelling, unique feature that can't be achieved with thresholding.
 
 The sphere was the hardest to understand with some users ranking it as low as 2 or 3 out of 10. The biggest problem people had with the sphere was the lack of a grounding and this sense of disjointness with the raw data put many people off.
 
 Whilst not as easy to understand as thresholding, the surface (built from the reconstruction mask) was better received than the sphere. The surface fixes the main issue that the sphere has by giving a sense of where in the scan you are looking at, which the users seemed to like. However currently the surface used to represent the brain is still fairly rough, and whilst it does resemble a brain it isn't as clear as perhaps it could be.
 
-The second question they were asked was 'How clearly did the visualization highlight the most uncertain region?'. The results are shown in figure \ref{fig:eval_visualization_q2}.
+The second question asked 'How clearly did the visualization highlight the most uncertain region?'. The results are shown in figure \ref{fig:eval_visualization_q2}.
 
 \begin{figure}[H]
   \centering
@@ -241,7 +234,7 @@ The next question asked was 'How clearly did the visualization illustrate the ne
     \caption{1 is not at all clear. 10 is very clear.}\label{fig:eval_next_scan_plane_q2}
 \end{figure}
 
-Most users felt that the visualization was clear, although similarly to the sphere visualization some found it to be a little detached from the scan, especially in 3D. Adding some axes to refer to would give some context to the directions. Another point raised was that on the MRI scanner used by one of the researchers the scan direction was not specified by a vector, but by angles. Adapting the format, or adding the option to display it like this would be a very simple change.
+Most users felt that the visualization was clear although, much like the sphere, some found it to be a little detached from the scan, especially in 3D. Adding some axes to refer to would give some context to the directions. Another point raised was that on the MRI scanner used by one of the researchers the scan direction was not specified by a vector, but by angles. Adapting the format, or adding the option to display it like this would be a very simple but useful change.
 
 Then they were asked 'How easy was the visualization to configure to target different areas of interest?'. The responses are shown in figure \ref{fig:eval_next_scan_plane_q3}.
 
@@ -253,6 +246,6 @@ Then they were asked 'How easy was the visualization to configure to target diff
 
 Again the results are largely positive with most liking the ability to target values that were particularly bad, however more control would be preferred. In particular it would be useful to be able to target specific regions of the brain; for example if they are only interested in the prefrontal cortex it would be beneficial to specifically target, or give more importance to, uncertain points in that region.
 
-Those researchers who were involved with actually performing scans were asked if the visualization was necessary or whether they would be happy for the scanner to automatically set up the next scan without showing it to them. The response was resoundingly in favour of the visualization; having control of the scan is very important for them as it allows them to take into account factors, such as particular scanner limitations, that the technique may not know about.
+Those researchers who were involved with actually performing scans were asked if the visualization was necessary or whether they would be happy for the scanner to automatically set up the next scan without showing it to them. The response was resoundingly in favour of the visualization; having control of the scan is very important for them as it allows them to take into account factors, such as particular scanner limitations, that this technique may not know about.
 
-An additional benefit of this visualization is that it would allow the radiographer to isolate smaller areas that needed further scanning. Instead of acquiring a complete stack which may take 3 minutes, this allows them to focus on a smaller region which could be acquired in less time and only generate data that was genuinely needed. This tightens up the feedback loop allowing more smaller scans to be taken to target problem areas.
+An additional benefit of this visualization is that it would allow the radiographer to isolate smaller areas that needed further scanning. Instead of acquiring a complete stack which may take 3 minutes, this allows them to focus on a smaller region which could be acquired in less time and only generate data that was genuinely needed. This tightens up the feedback loop allowing many, smaller scans to be made to target problem areas.
