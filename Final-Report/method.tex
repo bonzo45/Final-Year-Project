@@ -84,7 +84,7 @@ The simulation is acquired slice by slice and each slice can optionally be corru
 
 \clearpage
 \section{Reconstruction}
-This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. The implementation makes use of the CTK (Common Toolkit) Command Line Module\cite{ctkcmd}, which allows calls to the GPU code to be made from within the plugin. A wrapper for the code has been written, which comforms to the Command Line Module XML Schema, and this provides the module with all the information it requires to parse the parameters and automatically import the results.
+This part of the tool provides an interface to the fast GPU reconstruction code developed in \cite{uncertaintysvd}. The implementation makes use of the CTK (Common Toolkit) Command Line Module\cite{ctkcmd}, which allows calls to the GPU code to be made from within the plugin. A wrapper for the code has been written, which conforms to the Command Line Module XML Schema, and this provides the module with all the information it requires to parse the parameters and automatically import the results.
 
 The optional landmarking functionality allows the registration of each of the slices stacks to be guided.
 
@@ -414,7 +414,7 @@ A solution to this problem is to use a gradient transfer function which allows t
 
 Although tweaking the threshold can remove edge artefact variation 2 was found not to exhibit these problems and so this implementation was used in the evaluation of the prototype.
 
-As well as allowing the user to explicitly specify a range [min, max], it is possible to find the worst $x\%$ of uncertainty. To do this a histogram is built which splits the uncertainty into $n$ buckets. The histogram is then traversed, starting from the first (least certain) bucket, and the occurences are accumulated until the total is greater than $uncertaintyWidth \times uncertaintyHeight \times uncertaintyDepth \times \frac{x}{100}$. When the total exceeds this value the index of the bucket, $i$, is used to compute the range: [0.0, $i \times \frac{1}{n}$]. Then the thresholding is completed as before.
+As well as allowing the user to explicitly specify a range [min, max], it is possible to find the worst $x\%$ of uncertainty. To do this a histogram is built which splits the uncertainty into $n$ buckets. The histogram is then traversed, starting from the first (least certain) bucket, and the occurrences are accumulated until the total is greater than $uncertaintyWidth \times uncertaintyHeight \times uncertaintyDepth \times \frac{x}{100}$. When the total exceeds this value the index of the bucket, $i$, is used to compute the range: [0.0, $i \times \frac{1}{n}$]. Then the thresholding is completed as before.
 
 \newpage
 \subsection*{Results}
