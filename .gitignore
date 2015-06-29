@@ -1,28 +1,5 @@
-# Slicer
-Slicer/
-
-# VTK 6.2
-VTK-Latest/
-
-# ITK Release
-ITK/
-ITK-build/
-
-# GCDM Latest
-gdcm-2.4.4/
-gdcm-2.4.4-build/
-
-# CTK Command Line Examples
-ctk-command-line-modules/
-
-# Bernhard's CUDA code.
-cudarecon/
-
-# Sam's Project
+# Ignore Sam's Project Build Directory
 Sams_Project-build/
-
-# Any build directory (in particular the VTK-Examples)
-build/
 
 # CMake
 CMakeFiles/
@@ -30,13 +7,7 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
-# Executables
-nifti-vtk
-
-moc_*
-ui_*
-
-# Report
+# Reports
 Interim-Report/.*
 Interim-Report/*.aux
 Interim-Report/*.bbl
@@ -45,3 +16,12 @@ Interim-Report/*.log
 Interim-Report/*.out
 Interim-Report/*.pdf
 Interim-Report/*.toc
+
+Final-Report/.*
+Final-Report/*.aux
+Final-Report/*.bbl
+Final-Report/*.blg
+Final-Report/*.log
+Final-Report/*.out
+Final-Report/*.pdf
+Final-Report/*.toc
