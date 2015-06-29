@@ -1,16 +1,16 @@
-# --------------------------------------------------------------------- #
-# ---------------- Welcome to Sam's Final Year Project ---------------- #
-# --------------------------------------------------------------------- #
-# ------- Evaluating uncertainty in motion-corrected fetal MRI. ------- #
-# --------------------------------------------------------------------- #
+# ----
+# ---- Welcome to Sam's Final Year Project
+# ----
+# -- Evaluating uncertainty in motion-corrected fetal MRI.
+# ----
 Hosted at: https://gitlab.doc.ic.ac.uk/sae11/final-year-project
 
 The implementation is an MITK Plugin. This repository contains everything you should need to run it.
 
-# ------------------ #
-# -- INSTALLATION -- #
-# ------------------ #
-Tested on Ubuntu 14.04.
+# --
+# -- INSTALLATION
+# --
+This procedure was tested with a fresh install of Ubuntu 14.04.
 
 You will need to install ALL of these things to successfully build the project.
 Git (sudo apt-get install git)
