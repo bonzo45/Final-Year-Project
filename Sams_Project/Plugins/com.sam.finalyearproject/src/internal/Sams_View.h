@@ -31,10 +31,11 @@ PURPOSE.  See the above copyright notices for more information.
 #include "UncertaintySurfaceMapper.h"
 #include "UncertaintyThresholder.h"
 #include "ColourLegendOverlay.h"
+#include <mitkPointSet.h>
+#include <mitkPointSetDataInteractor.h>
 #include <ctkCmdLineModuleManager.h>
 #include <ctkCmdLineModuleBackend.h>
 #include <ctkCmdLineModuleFrontendFactory.h>
-
 
 /*!
   \brief Sams_View
@@ -50,6 +51,9 @@ class Sams_View : public QmitkAbstractView {
     static const std::string VIEW_ID;
     virtual void CreateQtPartControl(QWidget *parent);
 
+    // Callback for SamsPointSet.
+    void PointSetChanged(mitk::PointSet::Pointer pointSet);
+
   protected slots:
     void Initialize();
 
@@ -62,6 +66,10 @@ class Sams_View : public QmitkAbstractView {
     void ScanSimulationSetDirectionAxial();
     void ScanSimulationSetDirectionCoronal();
     void ScanSimulationSetDirectionSagittal();
+    void ScanSimulationResetRotations();
+    void ScanSimulationRotateX(int angle);
+    void ScanSimulationRotateY(int angle);
+    void ScanSimulationRotateZ(int angle);
     void ScanSimulationPreview();
     void ScanSimulationRemovePreview();
     void ScanSimulationTogglePreview(bool checked);
@@ -71,6 +79,15 @@ class Sams_View : public QmitkAbstractView {
     // ---- RECONSTRUCTION ---- //
     // ------------------------ //
     void ReconstructGUI();
+    void ReconstructInitializeLandmarkList();
+    mitk::DataNode::Pointer GetSliceStack(int index);
+    mitk::Image::Pointer GetMitkSliceStack(int index);
+    void ReconstructLandmarksNumStacksChanged(int numStacks);
+    void ReconstructLandmarksAddStack(unsigned int index);
+    void ReconstructLandmarksRemoveStack(unsigned int index);
+    void LandmarkingStart();
+    void LandmarkSelect();
+    void LandmarkDelete();
     void ClearReconstructionUI();
     void ReconstructGo();
     
@@ -173,12 +190,10 @@ class Sams_View : public QmitkAbstractView {
     void ToggleOptions();
     void ToggleDebug();
 
-    void ShowVisualizeSelect();
-    void ShowVisualizeThreshold();
-    void ShowVisualizeSphere();
-    void ShowVisualizeSurface();
-    void ShowVisualizeNextScanPlane();
-    void HideVisualizeAll();
+    void ShowScan();
+    void ShowReconstruct();
+    void ShowVisualize();
+    void HideAll();
     
     // --------------- //
     // ---- Debug ---- //
@@ -204,12 +219,36 @@ class Sams_View : public QmitkAbstractView {
     mitk::DataNode::Pointer scanSimulationVolume;
     bool scanPreviewEnabled;
 
+    // Direction of scan.
+    vtkVector<float, 3> directionX;
+    vtkVector<float, 3> directionY;
+    vtkVector<float, 3> directionZ;
+
+    // Rotation of scan.
+    int rotationX;
+    int rotationY;
+    int rotationZ;
+
     // ------------------------ //
     // ---- RECONSTRUCTION ---- //
     // ------------------------ //
+    static const bool DEBUGGING_RECONSTRUCTION = false;
+
     ctkCmdLineModuleManager* moduleManager;
     ctkCmdLineModuleBackend* processBackend;
     ctkCmdLineModuleFrontend* frontend;
+
+    std::list<std::string> * landmarkNameList;
+    unsigned int numberOfLandmarks;
+    unsigned int numSliceStacks;
+    std::vector<QComboBox *> * landmarkComboBoxVector;
+    std::map<unsigned int, std::vector<QPushButton *> *> * landmarkIndicatorMap;
+    std::map<unsigned int, mitk::PointSet::Pointer> * landmarkPointSetMap;
+    unsigned int currentLandmarkSliceStack;
+    unsigned int currentLandmark;
+
+    mitk::PointSetDataInteractor::Pointer pointSetInteractor;
+    mitk::DataNode::Pointer pointSetNode;
 
     // ----------------------- //
     // ---- VISUALIZATION ---- //

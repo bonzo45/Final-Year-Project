@@ -30,6 +30,12 @@
 #include <algorithm> // for min/max
 #include <cstdlib>
 
+// Reconstruction Landmarks
+#include <mitkPointSet.h>
+#include <mitkPoint.h>
+#include <mitkInteractionConst.h>
+#include "SamsPointSet.h"
+
 // ------------------------ //
 // ---- Reconstruction ---- //
 // ------------------------ //
@@ -151,11 +157,10 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   // UI
   connect(UI.buttonMinimize4, SIGNAL(clicked()), this, SLOT(ToggleOptions()));
   connect(UI.buttonReset2, SIGNAL(clicked()), this, SLOT(ResetPreprocessingSettings()));
-  connect(UI.buttonVisualizeSelect, SIGNAL(clicked()), this, SLOT(ShowVisualizeSelect()));
-  connect(UI.buttonVisualizeThreshold, SIGNAL(clicked()), this, SLOT(ShowVisualizeThreshold()));
-  connect(UI.buttonVisualizeSphere, SIGNAL(clicked()), this, SLOT(ShowVisualizeSphere()));
-  connect(UI.buttonVisualizeSurface, SIGNAL(clicked()), this, SLOT(ShowVisualizeSurface()));
-  connect(UI.buttonVisualizeNextScanPlane, SIGNAL(clicked()), this, SLOT(ShowVisualizeNextScanPlane()));
+
+  connect(UI.buttonScan, SIGNAL(clicked()), this, SLOT(ShowScan()));
+  connect(UI.buttonReconstruct, SIGNAL(clicked()), this, SLOT(ShowReconstruct()));
+  connect(UI.buttonVisualize, SIGNAL(clicked()), this, SLOT(ShowVisualize()));
 
   // Debug
   connect(UI.buttonToggleDebug, SIGNAL(clicked()), this, SLOT(ToggleDebug()));
@@ -168,6 +173,7 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
 
   // RECONSTRUCTION
   connect(UI.buttonReconstructGUI, SIGNAL(clicked()), this, SLOT(ReconstructGUI()));
+  connect(UI.spinBoxMarkLandmarksNumStacks, SIGNAL(valueChanged(int)), this, SLOT(ReconstructLandmarksNumStacksChanged(int)));
   connect(UI.buttonReconstructGo, SIGNAL(clicked()), this, SLOT(ReconstructGo()));
 
   // SCAN SIMULATION
@@ -183,6 +189,9 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.spinBoxScanDimensionX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.spinBoxScanDimensionY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.spinBoxScanDimensionZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanResolutionX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanResolutionY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
+  connect(UI.spinBoxScanResolutionZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanPointX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanPointY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanPointZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
@@ -195,7 +204,11 @@ void Sams_View::CreateQtPartControl(QWidget *parent) {
   connect(UI.doubleSpinBoxScanZAxisX, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanZAxisY, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
   connect(UI.doubleSpinBoxScanZAxisZ, SIGNAL(valueChanged(double)), this, SLOT(ScanSimulationPreview()));
-
+  
+  connect(UI.dialScanRotationX, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationRotateX(int)));
+  connect(UI.dialScanRotationY, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationRotateY(int)));
+  connect(UI.dialScanRotationZ, SIGNAL(valueChanged(int)), this, SLOT(ScanSimulationRotateZ(int)));
+  
   Initialize();
 }
 
@@ -208,9 +221,6 @@ void Sams_View::Initialize() {
 
   // Hide Options Widget
   UI.widget4Minimizable->setVisible(false);
-
-  // Initialize Drop-Down boxes.
-  UpdateSelectionDropDowns();
 
   // Hide erode options boxes.
   UI.widgetVisualizeSelectErodeOptions->setVisible(false);
@@ -229,10 +239,29 @@ void Sams_View::Initialize() {
   // Hide SVD error
   UI.labelNextScanSVDError->setVisible(false);
   
-  ShowVisualizeSelect();
+  ShowScan();
 
   UI.buttonScanPreview->setChecked(false);
   scanPreviewEnabled = false;
+
+  ReconstructInitializeLandmarkList();
+
+  numSliceStacks = 0;
+  UI.toolBoxMarkLandmarks->removeItem(0);
+  ReconstructLandmarksNumStacksChanged(1);
+
+  // Initialize Drop-Down boxes.
+  UpdateSelectionDropDowns();
+
+  directionX = vtkVector<float, 3>(0.0f);
+  directionY = vtkVector<float, 3>(0.0f);
+  directionZ = vtkVector<float, 3>(0.0f);
+
+  UI.tabWidgetScan->setCurrentIndex(0);
+  UI.tabWidgetReconstruct->setCurrentIndex(0);
+  UI.tabWidgetVisualize->setCurrentIndex(0);
+
+  ScanSimulationResetRotations();
 }
 
 // ------------------------ //
@@ -273,72 +302,111 @@ void Sams_View::ScanSimulationSetPointCenter() {
   * Sets the scan direction to axial.
   */
 void Sams_View::ScanSimulationSetDirectionAxial() {
-  bool previousEnabled = scanPreviewEnabled;
-  scanPreviewEnabled = false;
-
   // X is X
-  UI.doubleSpinBoxScanXAxisX->setValue(1.0);
-  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisZ->setValue(0.0);
+  directionX[0] = 1.0;
+  directionX[1] = 0.0;
+  directionX[2] = 0.0;
 
   // Y is -Z
-  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisZ->setValue(-1.0);
+  directionY[0] = 0.0;
+  directionY[1] = 0.0;
+  directionY[2] = -1.0;
 
   // Z is Y
-  UI.doubleSpinBoxScanZAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanZAxisY->setValue(1.0);
-  scanPreviewEnabled = previousEnabled;
-  UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
+  directionZ[0] = 0.0;
+  directionZ[1] = 1.0;
+  directionZ[2] = 0.0;
+
+  ScanSimulationResetRotations();
+  ScanSimulationPreview();
 }
 
 /**
   * Sets the scan direction to coronal.
   */
 void Sams_View::ScanSimulationSetDirectionCoronal() {
-  bool previousEnabled = scanPreviewEnabled;
-  scanPreviewEnabled = false;
-
   // X is X
-  UI.doubleSpinBoxScanXAxisX->setValue(1.0);
-  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisZ->setValue(0.0);
+  directionX[0] = 1.0;
+  directionX[1] = 0.0;
+  directionX[2] = 0.0;
 
   // Y is Y
-  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisY->setValue(1.0);
-  UI.doubleSpinBoxScanYAxisZ->setValue(0.0);
+  directionY[0] = 0.0;
+  directionY[1] = 1.0;
+  directionY[2] = 0.0;
 
   // Z is Z
-  UI.doubleSpinBoxScanZAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanZAxisY->setValue(0.0);
-  scanPreviewEnabled = previousEnabled;
-  UI.doubleSpinBoxScanZAxisZ->setValue(1.0);
+  directionZ[0] = 0.0;
+  directionZ[1] = 0.0;
+  directionZ[2] = 1.0;
+
+  ScanSimulationResetRotations();
+  ScanSimulationPreview();
 }
 
 /**
   * Sets the scan direction to sagittal.
   */
-void Sams_View::ScanSimulationSetDirectionSagittal() {
-  bool previousEnabled = scanPreviewEnabled;
-  scanPreviewEnabled = false;
-  
+void Sams_View::ScanSimulationSetDirectionSagittal() {  
   // X is -Z
-  UI.doubleSpinBoxScanXAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisY->setValue(0.0);
-  UI.doubleSpinBoxScanXAxisZ->setValue(-1.0);
+  directionX[0] = 0.0;
+  directionX[1] = 0.0;
+  directionX[2] = -1.0;
 
   // Y is Y
-  UI.doubleSpinBoxScanYAxisX->setValue(0.0);
-  UI.doubleSpinBoxScanYAxisY->setValue(1.0);
-  UI.doubleSpinBoxScanYAxisZ->setValue(0.0);
+  directionY[0] = 0.0;
+  directionY[1] = 1.0;
+  directionY[2] = 0.0;
 
   // Z is X
-  UI.doubleSpinBoxScanZAxisX->setValue(1.0);
-  UI.doubleSpinBoxScanZAxisY->setValue(0.0);
-  scanPreviewEnabled = previousEnabled;
-  UI.doubleSpinBoxScanZAxisZ->setValue(0.0);
+  directionZ[0] = 1.0;
+  directionZ[1] = 0.0;
+  directionZ[2] = 0.0;
+
+  ScanSimulationResetRotations();
+  ScanSimulationPreview();
+}
+
+/**
+  * Resets all of the rotations to be 0 degrees.
+  */
+void Sams_View::ScanSimulationResetRotations() {
+  bool wasEnabled = scanPreviewEnabled;
+  scanPreviewEnabled = false;
+
+  rotationX = 0;
+  rotationY = 0;
+  rotationZ = 0;
+  
+  UI.dialScanRotationX->setValue(0);
+  UI.dialScanRotationY->setValue(0);
+  UI.dialScanRotationZ->setValue(0);
+
+  scanPreviewEnabled = wasEnabled;
+}
+
+/**
+  * Rotates the scan around the X-axis.
+  */
+void Sams_View::ScanSimulationRotateX(int angle) {
+  rotationX = angle;
+  ScanSimulationPreview();
+}
+
+/**
+  * Rotates the scan around the Y-axis.
+  */
+void Sams_View::ScanSimulationRotateY(int angle) {
+  rotationY = angle;
+  ScanSimulationPreview();
+}
+
+/**
+  * Rotates the scan around the Z-axis.
+  */
+void Sams_View::ScanSimulationRotateZ(int angle) {
+  rotationZ = angle;
+  ScanSimulationPreview();
 }
 
 /**
@@ -351,32 +419,44 @@ void Sams_View::ScanSimulationPreview() {
     center[1] = UI.doubleSpinBoxScanPointY->value();
     center[2] = UI.doubleSpinBoxScanPointZ->value();
 
-    vtkVector<float, 3> xAxis = vtkVector<float, 3>();
-    xAxis[0] = UI.doubleSpinBoxScanXAxisX->value();
-    xAxis[1] = UI.doubleSpinBoxScanXAxisY->value();
-    xAxis[2] = UI.doubleSpinBoxScanXAxisZ->value();
+    // Update scan direction in UI by combining rotation and direction.
+    vtkVector<float, 3> xAxis = vtkVector<float, 3>(directionX);
+    vtkVector<float, 3> yAxis = vtkVector<float, 3>(directionY);
+    vtkVector<float, 3> zAxis = vtkVector<float, 3>(directionZ);
 
-    vtkVector<float, 3> yAxis = vtkVector<float, 3>();
-    yAxis[0] = UI.doubleSpinBoxScanYAxisX->value();
-    yAxis[1] = UI.doubleSpinBoxScanYAxisY->value();
-    yAxis[2] = UI.doubleSpinBoxScanYAxisZ->value();
+    // TODO: work out the rotations...
+    vtkSmartPointer<vtkTransform> rotation = vtkSmartPointer<vtkTransform>::New();
+    rotation->RotateX(rotationX);
+    rotation->RotateY(rotationY);
+    rotation->RotateZ(rotationZ);
 
-    vtkVector<float, 3> zAxis = vtkVector<float, 3>();
-    zAxis[0] = UI.doubleSpinBoxScanZAxisX->value();
-    zAxis[1] = UI.doubleSpinBoxScanZAxisY->value();
-    zAxis[2] = UI.doubleSpinBoxScanZAxisZ->value();
+    rotation->TransformPoint(&(xAxis[0]), &(xAxis[0]));
+    rotation->TransformPoint(&(yAxis[0]), &(yAxis[0]));
+    rotation->TransformPoint(&(zAxis[0]), &(zAxis[0]));
+
+    UI.doubleSpinBoxScanXAxisX->setValue(xAxis[0]);
+    UI.doubleSpinBoxScanXAxisY->setValue(xAxis[1]);
+    UI.doubleSpinBoxScanXAxisZ->setValue(xAxis[2]);
+
+    UI.doubleSpinBoxScanYAxisX->setValue(yAxis[0]);
+    UI.doubleSpinBoxScanYAxisY->setValue(yAxis[1]);
+    UI.doubleSpinBoxScanYAxisZ->setValue(yAxis[2]);
+
+    UI.doubleSpinBoxScanZAxisX->setValue(zAxis[0]);
+    UI.doubleSpinBoxScanZAxisY->setValue(zAxis[1]);
+    UI.doubleSpinBoxScanZAxisZ->setValue(zAxis[2]);
 
     mitk::Surface::Pointer scanPreview = SurfaceGenerator::generateCuboid(
-        UI.spinBoxScanDimensionY->value(),
-        UI.spinBoxScanDimensionX->value(),
-        UI.spinBoxScanDimensionZ->value() * 2.0,
+        UI.spinBoxScanDimensionX->value() * UI.spinBoxScanResolutionX->value(),
+        UI.spinBoxScanDimensionY->value() * UI.spinBoxScanResolutionY->value(),
+        UI.spinBoxScanDimensionZ->value() * UI.spinBoxScanResolutionZ->value(),
         center,
         xAxis,
         yAxis,
         zAxis
     );
 
-    // Align it with the ground truth volume.
+    // If the the ground truth volume exists then align the preview and volume render the volume.
     if (scanSimulationVolume.IsNotNull()) {
       mitk::SlicedGeometry3D * scanSlicedGeometry = GetMitkScanVolume()->GetSlicedGeometry();
       mitk::Point3D scanOrigin = scanSlicedGeometry->GetOrigin();
@@ -385,6 +465,8 @@ void Sams_View::ScanSimulationPreview() {
       mitk::BaseGeometry * baseBoxGeometry = scanPreview->GetGeometry();
       baseBoxGeometry->SetOrigin(scanOrigin);
       baseBoxGeometry->SetIndexToWorldTransform(scanTransform);
+
+      scanSimulationVolume->SetProperty("volumerendering", mitk::BoolProperty::New(true));
     }
 
     mitk::DataNode::Pointer previewBox = SaveDataNode(SCAN_PREVIEW_NAME.c_str(), scanPreview, true);
@@ -397,6 +479,10 @@ void Sams_View::ScanSimulationPreview() {
   */
 void Sams_View::ScanSimulationRemovePreview() {
   RemoveDataNode(SCAN_PREVIEW_NAME.c_str());
+  
+  if (scanSimulationVolume.IsNotNull()) {
+    scanSimulationVolume->SetProperty("volumerendering", mitk::BoolProperty::New(false));
+  }
 }
 
 /**
@@ -439,7 +525,7 @@ void Sams_View::ScanSimulationSimulateScan() {
   ScanSimulator * simulator = new ScanSimulator();
   simulator->setVolume(GetMitkScanVolume());
   simulator->setScanAxes(xAxis, yAxis, zAxis);
-  simulator->setScanResolution(1.0, 1.0, 2.0);
+  simulator->setScanResolution(UI.spinBoxScanResolutionX->value(), UI.spinBoxScanResolutionY->value(), UI.spinBoxScanResolutionZ->value());
   simulator->setScanSize(UI.spinBoxScanDimensionX->value(), UI.spinBoxScanDimensionY->value(), UI.spinBoxScanDimensionZ->value());
   simulator->setMotionCorruption(UI.checkBoxMotionCorruptionEnabled->isChecked());
   simulator->setMotionCorruptionMaxAngle(UI.spinBoxMotionCorruptionAngle->value());
@@ -448,7 +534,11 @@ void Sams_View::ScanSimulationSimulateScan() {
   mitk::Image::Pointer sliceStack = simulator->scan();
 
   // Store it as a DataNode.
-  mitk::DataNode::Pointer cubeNode = SaveDataNode("Slice Stack", sliceStack, true);
+  std::ostringstream stackName;
+  stackName << UI.lineEditScanName->text().toStdString() << UI.spinBoxScanNameNumber->value();
+  SaveDataNode(stackName.str().c_str(), sliceStack, true);
+
+  UI.spinBoxScanNameNumber->setValue(UI.spinBoxScanNameNumber->value() + 1);
 }
 
 // ------------------------ //
@@ -523,6 +613,452 @@ void Sams_View::ReconstructGUI() {
   // ADD TO UI
   ClearReconstructionUI();
   UI.widgetPutGUIHere->layout()->addWidget(gui);
+}
+
+/**
+  * Creates the list of landmarks used in the optional annotation stage.
+  */
+void Sams_View::ReconstructInitializeLandmarkList() {
+  landmarkNameList = new std::list<std::string>();
+  landmarkNameList->push_back("Skull (frontmost point)");
+  landmarkNameList->push_back("Skull (rearmost point)");
+  landmarkNameList->push_back("Skull (leftmost point)");
+  landmarkNameList->push_back("Skull (rightmost point)");
+  landmarkNameList->push_back("Left Eye -> Pupil");
+  landmarkNameList->push_back("Right Eye -> Pupil");
+  landmarkNameList->push_back("Left Nostril");
+  landmarkNameList->push_back("Right Nostril");
+  landmarkNameList->push_back("Center of Brain Stem");
+  landmarkNameList->push_back("Front Left Ventricle (frontmost point)");
+  landmarkNameList->push_back("Front Right Ventricle (frontmost point)");
+  landmarkNameList->push_back("Back Left Ventricle (frontmost point)");
+  landmarkNameList->push_back("Back Right Ventricle (frontmost point)");
+
+  numberOfLandmarks = landmarkNameList->size();
+
+  landmarkComboBoxVector = new std::vector<QComboBox *>();
+
+  landmarkPointSetMap = new std::map<unsigned int, mitk::PointSet::Pointer>();
+
+  landmarkIndicatorMap = new std::map<unsigned int, std::vector<QPushButton *> * >();
+}
+
+/**
+  * Returns the mitk::DataNode::Pointer for the given slice stack.
+  */
+mitk::DataNode::Pointer Sams_View::GetSliceStack(int index) {
+  // Get the combo box stored in the vector.
+  QComboBox * comboBox = landmarkComboBoxVector->at(index);
+  // Get the name it contains.
+  QString scanName = comboBox->currentText();
+  // Return the corresponding data node.
+  return this->GetDataStorage()->GetNamedNode(scanName.toStdString());
+}
+
+/**
+  * Returns the mitk::Image::Pointer for the given slice stack.
+  */
+mitk::Image::Pointer Sams_View::GetMitkSliceStack(int index) {
+  return Util::MitkImageFromNode(GetSliceStack(index));
+}
+
+/**
+  * Called when the number of stacks being annotated changes.
+  */
+void Sams_View::ReconstructLandmarksNumStacksChanged(int numStacks) {
+  // Cannot set it to less than one.
+  if (numStacks < 1) {
+    UI.spinBoxMarkLandmarksNumStacks->setValue(this->numSliceStacks);
+    return;
+  }
+
+  // If we've added a stack(s).
+  if (this->numSliceStacks < numStacks) {
+    unsigned int stacksToAdd = numStacks - this->numSliceStacks;
+    for (unsigned int i = 0; i < stacksToAdd; i++) {
+      // Add stack.
+      ReconstructLandmarksAddStack(this->numSliceStacks + i);
+    }
+  }
+  // If we've removed a stack(s).
+  else {
+    unsigned int stacksToRemove = this->numSliceStacks - numStacks;
+    for (unsigned int i = 0; i < stacksToRemove; i++) {
+      // Remove stack
+      ReconstructLandmarksRemoveStack((this->numSliceStacks - 1) - i);
+    }
+  }
+
+  this->numSliceStacks = numStacks;
+}
+
+/**
+  * Adds a stack to the annotation toolbox.
+  */
+void Sams_View::ReconstructLandmarksAddStack(unsigned int index) {
+  // Create the widget to put in the toolbox.
+  QWidget * widget = new QWidget();
+  QVBoxLayout * layout = new QVBoxLayout(widget);
+  layout->setContentsMargins(9, 0, 9, 9);
+  
+  // Add a label/combo box/button to pick which volume this stack is.
+  QLabel * titleLable = new QLabel(QString::fromStdString("Pick a stack. Then click 'Start' to begin."));
+  titleLable->setStyleSheet(
+    "font-weight: bold;"
+  );
+  layout->addWidget(titleLable);
+
+  QWidget * comboButtonWidget = new QWidget();
+  QHBoxLayout * comboButtonLayout = new QHBoxLayout(comboButtonWidget);
+  comboButtonLayout->setContentsMargins(0, 0, 0, 0);
+
+  QComboBox * comboBox = new QComboBox();
+  comboButtonLayout->addWidget(comboBox);
+
+  QPushButton * pushButton = new QPushButton();
+  std::ostringstream buttonName;
+  buttonName << "markStack-" << index;
+  pushButton->setObjectName(QString::fromStdString(buttonName.str()));
+  pushButton->setText("Start");
+  pushButton->setStyleSheet(
+    "min-width: 40px;"
+    "max-width: 40px;"
+  );
+  connect(pushButton, SIGNAL(clicked()), this, SLOT(LandmarkingStart()));
+  comboButtonLayout->addWidget(pushButton);
+
+  layout->addWidget(comboButtonWidget);
+
+  // Add the combo box to our list of all combo boxes.
+  std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin();
+  landmarkComboBoxVector->insert(it + index, comboBox);  
+
+  // Go through each landmark and add their name and an indicator.
+  //new std::map<unsigned int, std::vector<QPushButton *> * >()
+  std::vector<QPushButton *> * buttonVector = new std::vector<QPushButton *>();
+  landmarkIndicatorMap->insert(std::pair<unsigned int, std::vector<QPushButton *> *>(index, buttonVector));
+  int landmarkCounter = 0;
+  for (std::list<std::string>::const_iterator iterator = landmarkNameList->begin(); iterator != landmarkNameList->end(); ++iterator) {
+    QWidget * innerWidget = new QWidget();
+    QHBoxLayout * innerLayout = new QHBoxLayout(innerWidget);
+    innerLayout->setContentsMargins(0, 0, 0, 0);
+
+    std::string landmarkName = *iterator;
+    QLabel * label = new QLabel(QString::fromStdString(landmarkName));
+
+    QPushButton * statusButton = new QPushButton();
+    statusButton->setProperty("class", "");
+    //statusButton->setEnabled(false);
+    statusButton->setText("--->");
+    statusButton->setStyleSheet(
+      "QPushButton {"
+        "font-size: 7pt;"
+        "font-weight: bold;"
+        "color: rgb(200, 200, 200);"
+        "background-color: rgb(200, 200, 200);"
+        "border: 2px solid rgb(128, 128, 128);"
+        "max-width: 32px;"
+        "max-height: 8px;"
+        "min-width: 32px;"
+        "min-height: 8px;"
+        "border-radius: 4px;"
+        "border-style: outset;"
+      "}"
+      ""
+      "QPushButton.set {"
+        "border-style: inset;"
+        "color: rgb(0, 128, 0);"
+        "background-color: rgb(0, 128, 0);"
+      "}"
+      ""
+      "QPushButton.selected {"
+        "border-style: inset;"
+        "background-color: rgb(0, 128, 0);"
+        "color: rgb(255, 255, 255);"
+      "}"
+      ""
+      "QPushButton.next {"
+        "border-style: inset;"
+        "color: rgb(128, 0, 128);"
+        "background-color: rgb(128, 0, 128);"
+      "}"
+    );
+    std::ostringstream statusButtonName;
+    statusButtonName << "selectLandmark-" << index << "-" << landmarkCounter;
+    statusButton->setObjectName(QString::fromStdString(statusButtonName.str()));
+    connect(statusButton, SIGNAL(clicked()), this, SLOT(LandmarkSelect()));
+    buttonVector->push_back(statusButton);
+
+    QPushButton * deleteButton = new QPushButton();
+    deleteButton->setProperty("class", "");
+    //deleteButton->setEnabled(false);
+    deleteButton->setStyleSheet(
+      "QPushButton {"
+      "  background-color: rgb(50, 50, 50);"
+      "  border: 2px solid rgb(128, 128, 128);"
+      "  max-width: 8px;"
+      "  max-height: 8px;"
+      "  min-width: 8px;"
+      "  min-height: 8px;"
+      "  border-radius: 4px;"
+      "    border-style: outset;"
+      "}"
+      ""
+      "QPushButton:pressed {"
+      "  border-style: inset;"
+      "  background-color: rgb(0, 0, 0);"
+      "}"
+      ""
+      "QPushButton:disabled {"
+      "  border-style: outset;"
+      "  background-color: rgb(200,200, 200);"
+      "}"
+    );
+    std::ostringstream deleteButtonName;
+    deleteButtonName << "deleteLandmark-" << index << "-" << landmarkCounter;
+    deleteButton->setObjectName(QString::fromStdString(deleteButtonName.str()));
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(LandmarkDelete()));
+
+    innerLayout->addWidget(statusButton);
+    innerLayout->addWidget(label);
+    innerLayout->addWidget(deleteButton);
+
+    layout->addWidget(innerWidget);
+    landmarkCounter++;
+  }
+
+  layout->insertStretch(-1);
+
+  // Add the page to the toolbox.
+  std::ostringstream stackName;
+  stackName << "Slice Stack #" << index + 1;
+  UI.toolBoxMarkLandmarks->insertItem(index, widget, QString::fromStdString(stackName.str()));
+}
+
+/**
+  * Removes a stack to the annotation toolbox.
+  */
+void Sams_View::ReconstructLandmarksRemoveStack(unsigned int index) {
+  // Get the widget.
+  QWidget * widget = UI.toolBoxMarkLandmarks->widget(index);
+  if (widget) {
+    // Remove it from the tool box.
+    UI.toolBoxMarkLandmarks->removeItem(index);
+    // Remove it's comboBox from the list of comboBoxes.
+    std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin();
+    landmarkComboBoxVector->erase(it + index);
+    // Delete it's layout.
+    QLayout *layout = UI.widgetPutGUIHere->layout();
+    if (layout != NULL) {
+      delete layout;
+    }
+    // Delete it's children.
+    qDeleteAll(widget->children());
+    // Delete it.
+    delete widget;
+  }
+}
+
+/**
+  * Called when the landmarking for a particular stack is started/continued.
+  * The stack being landmarked is determined by the name of the button that
+  * called this method.
+  */
+void Sams_View::LandmarkingStart() {
+  // Get the slice stack index that we're landmarking.
+  QString buttonName = sender()->objectName();
+  QStringList pieces = buttonName.split("-");
+  QString indexString = pieces.value(pieces.length() - 1);
+  int index = indexString.toInt();
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Starting Landmarking for " << index << std::endl;
+  }
+  currentLandmarkSliceStack = index;
+
+  mitk::PointSet::Pointer stackPointSet;
+  // See if we have a partially completed PointSet.
+  std::map<unsigned int, mitk::PointSet::Pointer>::const_iterator it = landmarkPointSetMap->find(index);
+  if (it != landmarkPointSetMap->end()) {
+    stackPointSet = it->second;
+  }
+  // If we don't then create one.
+  else {
+    SamsPointSet::Pointer samsPointSet = SamsPointSet::New();
+    samsPointSet->SetSamsView(this);
+    stackPointSet = samsPointSet;
+    landmarkPointSetMap->insert(std::pair<unsigned int, mitk::PointSet::Pointer>(index, stackPointSet));
+  }
+
+  // Show the stack we're going to mark.
+  HideAllDataNodes();
+  ShowDataNode(GetSliceStack(index));
+
+  // Set up interactor
+  pointSetInteractor = mitk::PointSetDataInteractor::New();
+  pointSetInteractor->SetMaxPoints(numberOfLandmarks);
+  pointSetInteractor->LoadStateMachine("PointSet.xml");
+  pointSetInteractor->SetEventConfig("PointSetConfig.xml");
+  pointSetNode = SaveDataNode("Point Set", stackPointSet, true);
+  pointSetInteractor->SetDataNode(pointSetNode);
+
+  PointSetChanged(stackPointSet);
+}
+
+mitk::Geometry3D::Pointer bodge;
+
+void Sams_View::LandmarkSelect() {
+  QString buttonName = sender()->objectName();
+  QStringList pieces = buttonName.split("-");
+  QString sliceStackIndexString = pieces.value(pieces.length() - 2);
+  QString landmarkIndexString = pieces.value(pieces.length() - 1);
+  int sliceStackIndex = sliceStackIndexString.toInt();
+  int landmarkIndex = landmarkIndexString.toInt();
+
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Selecting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+  }
+
+  mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
+
+  if (!pointSet->IndexExists(landmarkIndex)) {
+    if (DEBUGGING_RECONSTRUCTION) {
+      std::cout << "It doesn't exist. Not selecting it." << std::endl;
+    }
+    return;
+  }
+  
+  // Deselect all points.
+  mitk::Point3D * pointToDeselect = new mitk::Point3D(0);
+  for (unsigned int i = 0; i < numberOfLandmarks; i++) {
+    if (pointSet->GetPointIfExists(i, pointToDeselect)) {
+      mitk::PointOperation* deselectOp = new mitk::PointOperation(mitk::OpDESELECTPOINT, *pointToDeselect, i);
+      pointSet->ExecuteOperation(deselectOp);
+    }
+  }
+
+  // Select one.
+  // Create an MITK Operation
+  // With OperationType mitk::OpSELECTPOINT
+  // Index 'landmarkIndex'
+  mitk::Point3D pointToSelect = pointSet->GetPoint(landmarkIndex);
+  mitk::PointOperation* selectOp = new mitk::PointOperation(mitk::OpSELECTPOINT, pointToSelect, landmarkIndex);
+  pointSet->ExecuteOperation(selectOp);
+
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Immediately after selection: " << std::endl;
+  }
+  int selectedPoint = pointSet->SearchSelectedPoint();
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "  - Selected Point: " << selectedPoint << std::endl;
+  }
+
+  this->RequestRenderWindowUpdate();
+
+  PointSetChanged(pointSet);
+
+  // TODO: Center the camera on the selected point in a more robust way.
+  // Get the scan geometry
+  mitk::BaseGeometry * scanGeometry = GetMitkSliceStack(sliceStackIndex)->GetGeometry();
+  
+  bodge = mitk::Geometry3D::New();
+  bodge->Initialize();
+  // // Create the bounds... (bounds of the scan).
+  mitk::BaseGeometry::BoundsArrayType bounds = scanGeometry->GetBounds();
+  int shift = pointToSelect[2] - ((bounds[5] + bounds[4]) / 2);
+  bounds[4] += shift;
+  bounds[5] += shift;
+  bodge->SetBounds(bounds);
+  // // Create the spacing... (spacing of the scan).
+  bodge->SetSpacing(scanGeometry->GetSpacing());
+
+  // Set them.
+  mitk::IRenderWindowPart* renderWindowPart = this->GetRenderWindowPart();
+  mitk::IRenderingManager* renderManager = renderWindowPart->GetRenderingManager();
+  renderManager->InitializeViews(bodge);
+}
+
+void Sams_View::LandmarkDelete() {
+  QString buttonName = sender()->objectName();
+  QStringList pieces = buttonName.split("-");
+  QString sliceStackIndexString = pieces.value(pieces.length() - 2);
+  QString landmarkIndexString = pieces.value(pieces.length() - 1);
+  int sliceStackIndex = sliceStackIndexString.toInt();
+  int landmarkIndex = landmarkIndexString.toInt();
+
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Deleting stack " << sliceStackIndex << " -> landmark " << landmarkIndex << std::endl;
+  }
+
+  mitk::PointSet::Pointer pointSet = landmarkPointSetMap->find(sliceStackIndex)->second;
+  
+  // Create an MITK Operation
+  // With OperationType mitk::OpREMOVE
+  // Index 'landmarkIndex'
+  mitk::Point3D point = pointSet->GetPoint(landmarkIndex);
+  mitk::PointOperation* deleteOp = new mitk::PointOperation(mitk::OpREMOVE, point, landmarkIndex);
+  pointSet->ExecuteOperation(deleteOp);
+
+  this->RequestRenderWindowUpdate();
+}
+
+/**
+  * Called by the current point set being created when it is changed.
+  */
+void Sams_View::PointSetChanged(mitk::PointSet::Pointer pointSet) {
+  bool firstNotSet = true;
+  std::vector<QPushButton *> * buttons = landmarkIndicatorMap->find(currentLandmarkSliceStack)->second;
+  for (unsigned int i = 0; i < numberOfLandmarks; i++) {
+    if (pointSet->IndexExists(i)) {
+      buttons->at(i)->setProperty("class", "set");
+      buttons->at(i)->style()->unpolish(buttons->at(i));
+      buttons->at(i)->style()->polish(buttons->at(i));
+      buttons->at(i)->update();
+      if (DEBUGGING_RECONSTRUCTION) {
+        std::cout << "set";
+      }
+    }
+    else {
+      if (firstNotSet) {
+        firstNotSet = false;
+        buttons->at(i)->setProperty("class", "next");
+        buttons->at(i)->style()->unpolish(buttons->at(i));
+        buttons->at(i)->style()->polish(buttons->at(i));
+        buttons->at(i)->update();
+        if (DEBUGGING_RECONSTRUCTION) {
+          std::cout << "next";      
+        }
+      }
+      else {
+        buttons->at(i)->setProperty("class", "");
+        buttons->at(i)->style()->unpolish(buttons->at(i));
+        buttons->at(i)->style()->polish(buttons->at(i));
+        buttons->at(i)->update();
+        if (DEBUGGING_RECONSTRUCTION) {
+          std::cout << "not set";
+        }
+      }
+    }
+
+    if (DEBUGGING_RECONSTRUCTION) {
+      if (i < numberOfLandmarks - 1) {
+        std::cout << ", ";
+      }
+      else {
+        std::cout << std::endl;
+      }
+    }
+  }
+
+  int selectedPoint = pointSet->SearchSelectedPoint();
+  if (DEBUGGING_RECONSTRUCTION) {
+    std::cout << "Selected Point: " << selectedPoint << std::endl;
+  }
+  if (selectedPoint != -1) {
+    buttons->at(selectedPoint)->setProperty("class", "selected");
+    buttons->at(selectedPoint)->style()->unpolish(buttons->at(selectedPoint));
+    buttons->at(selectedPoint)->style()->polish(buttons->at(selectedPoint));
+    buttons->at(selectedPoint)->update();
+  }
 }
 
 /**
@@ -705,12 +1241,19 @@ void Sams_View::UpdateSelectionDropDowns() {
   QString uncertaintyName = UI.comboBoxUncertainty->currentText();
   QString simulatedScanName = UI.comboBoxSimulateScanVolume->currentText();
   QString surfaceName = UI.comboBoxSurface->currentText();
+  std::list<QString> * landmarkNamesRemembered = new std::list<QString>();
+  for (std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin(); it != landmarkComboBoxVector->end(); it++) {
+    landmarkNamesRemembered->push_back((*it)->currentText());
+  }
 
-  // Clear the dropdowns.
+  // Clear all the dropdowns.
   UI.comboBoxScan->clear();
   UI.comboBoxUncertainty->clear();
   UI.comboBoxSimulateScanVolume->clear();
   UI.comboBoxSurface->clear();
+  for (std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin(); it != landmarkComboBoxVector->end(); it++) {
+    (*it)->clear();
+  }
 
   // Get all the potential images.
   mitk::TNodePredicateDataType<mitk::Image>::Pointer imagePredicate(mitk::TNodePredicateDataType<mitk::Image>::New());
@@ -723,6 +1266,9 @@ void Sams_View::UpdateSelectionDropDowns() {
     UI.comboBoxScan->addItem(name);
     UI.comboBoxUncertainty->addItem(name);
     UI.comboBoxSimulateScanVolume->addItem(name);
+    for (std::vector<QComboBox *>::iterator it = landmarkComboBoxVector->begin(); it != landmarkComboBoxVector->end(); it++) {
+      (*it)->addItem(name);
+    }
     ++image;
   }
 
@@ -764,6 +1310,17 @@ void Sams_View::UpdateSelectionDropDowns() {
   if (surfaceStillThere != -1) {
     UI.comboBoxSurface->setCurrentIndex(surfaceStillThere);
   }
+
+  std::list<QString>::iterator rememberedIt = landmarkNamesRemembered->begin();
+  for (std::vector<QComboBox *>::iterator comboIt = landmarkComboBoxVector->begin(); comboIt != landmarkComboBoxVector->end(); comboIt++) {
+    int sliceStackStillThere = (*comboIt)->findText(*rememberedIt);
+    if (sliceStackStillThere != -1) {
+      (*comboIt)->setCurrentIndex(sliceStackStillThere);
+    }
+    rememberedIt++;
+  }
+
+  delete landmarkNamesRemembered;
 }
 
 /**
@@ -807,7 +1364,8 @@ void Sams_View::ConfirmSelection() {
     // If it's supposed to be a cube.
     else if (QString::compare(uncertaintyName, CUBE_NAME) == 0) {
       name << CUBE_NAME.toStdString(); // "Cube of Uncertainty (" << scanSize[0] << "x" << scanSize[1] << "x" << scanSize[2] << ")";
-      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, 10);
+      float half = std::min(std::min(scanSize[0], scanSize[1]), scanSize[2]) / 2;
+      generatedUncertainty = UncertaintyGenerator::generateCubeUncertainty(scanSize, half);
     }
     // If it's supposed to be a sphere in a quadrant.
     else if (QString::compare(uncertaintyName, QUAD_SPHERE_NAME) == 0) {
@@ -869,8 +1427,6 @@ void Sams_View::ResetPreprocessingSettings() {
   UI.checkBoxInversionEnabled->setChecked(false);
   UI.checkBoxErosionEnabled->setChecked(false);
   UI.spinBoxErodeThickness->setValue(2);
-  UI.spinBoxErodeThreshold->setValue(0.2);
-  UI.spinBoxDilateThickness->setValue(2);
 }
 
 /**
@@ -893,9 +1449,7 @@ void Sams_View::PreprocessNode(mitk::DataNode::Pointer node) {
     NORMALIZED_MAX
   );
   preprocessor->setErodeParams(
-    UI.spinBoxErodeThickness->value(),
-    UI.spinBoxErodeThreshold->value(),
-    UI.spinBoxDilateThickness->value()
+    UI.spinBoxErodeThickness->value()
   );
   mitk::Image::Pointer fullyProcessedMitkImage = preprocessor->preprocessUncertainty(
     UI.checkBoxInversionEnabled->isChecked(),
@@ -1159,11 +1713,30 @@ void Sams_View::ThresholdUncertainty() {
 
   // Save it. (replace if it already exists)
   thresholdedUncertainty = SaveDataNode("Thresholded", thresholdedImage, true, preprocessedUncertainty);
-  thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(true));
+  thresholdedUncertainty->SetProperty("binary", mitk::BoolProperty::New(false));
   thresholdedUncertainty->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0));
   thresholdedUncertainty->SetProperty("volumerendering", mitk::BoolProperty::New(true));
   thresholdedUncertainty->SetProperty("layer", mitk::IntProperty::New(10));
   thresholdedUncertainty->SetProperty("opacity", mitk::FloatProperty::New(0.5));
+
+  // REPORT: Customize Transfer Function
+  double epsilon = 0.001;
+
+  // Opacity Transfer Function
+  mitk::TransferFunction::ControlPoints scalarOpacityPoints;
+  scalarOpacityPoints.push_back(std::make_pair(0.0, 0.0));
+  scalarOpacityPoints.push_back(std::make_pair(1.0, 1.0));
+
+  // Colour Transfer Function
+  vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  colorTransferFunction->AddRGBPoint(0.0, 1.0, 0.0, 0.0);
+  
+  // Combine them.
+  mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+  transferFunction->SetScalarOpacityPoints(scalarOpacityPoints);
+  transferFunction->SetColorTransferFunction(colorTransferFunction);
+
+  thresholdedUncertainty->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(transferFunction));
 
   DisplayThreshold();
 }
@@ -1232,9 +1805,9 @@ void Sams_View::GenerateUncertaintySphere() {
   else if (UI.radioButtonSphereScalingLinear->isChecked()) {
     scaling = UncertaintySurfaceMapper::LINEAR;
   }
-  else if (UI.radioButtonSphereScalingHistogram->isChecked()) {
-    scaling = UncertaintySurfaceMapper::HISTOGRAM;
-  }
+  // else if (UI.radioButtonSphereScalingHistogram->isChecked()) {
+  //   scaling = UncertaintySurfaceMapper::HISTOGRAM;
+  // }
 
   // ---- Colour Options ---- //
   UncertaintySurfaceMapper::COLOUR colour;
@@ -1295,9 +1868,9 @@ void Sams_View::SurfaceMapping() {
   else if (UI.radioButtonScalingLinear->isChecked()) {
     scaling = UncertaintySurfaceMapper::LINEAR;
   }
-  else if (UI.radioButtonScalingHistogram->isChecked()) {
-    scaling = UncertaintySurfaceMapper::HISTOGRAM;
-  }
+  // else if (UI.radioButtonScalingHistogram->isChecked()) {
+  //   scaling = UncertaintySurfaceMapper::HISTOGRAM;
+  // }
 
   // ---- Colour Options ---- //
   UncertaintySurfaceMapper::COLOUR colour;
@@ -1408,6 +1981,7 @@ void Sams_View::SurfaceMapping(
 void Sams_View::NextScanPlaneShowThresholded() {
   thresholdingEnabled = false;
   SetLowerThreshold(0.0);
+  UI.checkBoxIgnoreZeros->setChecked(UI.checkBoxNextScanPlaneIgnoreZeros->isChecked());
   thresholdingEnabled = true;
   SetUpperThreshold(UI.spinBoxNextScanPlaneSVDThreshold->value());
 
@@ -1658,64 +2232,66 @@ void Sams_View::ToggleDebug() {
 }
 
 /**
-  * Shows the 'Visualize -> Select' UI.
+  * Shows the 'Scan' UI.
   */
-void Sams_View::ShowVisualizeSelect() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSelect->setVisible(true);
-  UI.buttonVisualizeSelect->setChecked(true);
+void Sams_View::ShowScan() {
+  HideAll();
+  UI.widgetSCAN->setVisible(true); 
+  UI.buttonScan->setChecked(true);
+  UI.labelScanButton->setProperty("class", "selected");
+  UI.labelScanButton->style()->unpolish(UI.labelScanButton);
+  UI.labelScanButton->style()->polish(UI.labelScanButton);
+  UI.labelScanButton->update();
 }
 
 /**
-  * Shows the 'Visualize -> Threshold' UI.
+  * Shows the 'Reconstruct' UI.
   */
-void Sams_View::ShowVisualizeThreshold() {
-  HideVisualizeAll();
-  UI.widgetVisualizeThreshold->setVisible(true);
-  UI.buttonVisualizeThreshold->setChecked(true);
+void Sams_View::ShowReconstruct() {
+  HideAll();
+  UI.widgetRECONSTRUCT->setVisible(true); 
+  UI.buttonReconstruct->setChecked(true);
+  UI.labelReconstructButton->setProperty("class", "selected");
+  UI.labelReconstructButton->style()->unpolish(UI.labelReconstructButton);
+  UI.labelReconstructButton->style()->polish(UI.labelReconstructButton);
+  UI.labelReconstructButton->update();
 }
 
 /**
-  * Shows the 'Visualize -> Uncertainty Sphere' UI.
+  * Shows the 'Visualize' UI.
   */
-void Sams_View::ShowVisualizeSphere() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSphere->setVisible(true); 
-  UI.buttonVisualizeSphere->setChecked(true);  
+void Sams_View::ShowVisualize() {
+  HideAll();
+  UI.widgetVISUALIZE->setVisible(true); 
+  UI.buttonVisualize->setChecked(true); 
+  UI.labelVisualizeButton->setProperty("class", "selected");
+  UI.labelVisualizeButton->style()->unpolish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->style()->polish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->update();
 }
 
 /**
-  * Shows the 'Visualize -> Uncertainty Surface' UI.
+  * Hides all the UIs.
   */
-void Sams_View::ShowVisualizeSurface() {
-  HideVisualizeAll();
-  UI.widgetVisualizeSurface->setVisible(true); 
-  UI.buttonVisualizeSurface->setChecked(true);  
-}
-
-/**
-  * Shows the 'Visualize -> Next Scan Plane' UI.
-  */
-void Sams_View::ShowVisualizeNextScanPlane() {
-  HideVisualizeAll();
-  UI.widgetVisualizeNextScanPlane->setVisible(true); 
-  UI.buttonVisualizeNextScanPlane->setChecked(true);  
-}
-
-/**
-  * Hides all of the Visualize UIs.
-  */
-void Sams_View::HideVisualizeAll() {
-  UI.widgetVisualizeSelect->setVisible(false);
-  UI.widgetVisualizeThreshold->setVisible(false);
-  UI.widgetVisualizeSphere->setVisible(false);
-  UI.widgetVisualizeSurface->setVisible(false);
-  UI.widgetVisualizeNextScanPlane->setVisible(false);
-  UI.buttonVisualizeSelect->setChecked(false);
-  UI.buttonVisualizeThreshold->setChecked(false);
-  UI.buttonVisualizeSphere->setChecked(false);
-  UI.buttonVisualizeSurface->setChecked(false);
-  UI.buttonVisualizeNextScanPlane->setChecked(false);
+void Sams_View::HideAll() {  
+  UI.widgetSCAN->setVisible(false); 
+  UI.buttonScan->setChecked(false);  
+  UI.widgetRECONSTRUCT->setVisible(false); 
+  UI.buttonReconstruct->setChecked(false); 
+  UI.widgetVISUALIZE->setVisible(false); 
+  UI.buttonVisualize->setChecked(false);
+  UI.labelScanButton->setProperty("class", "");
+  UI.labelScanButton->style()->unpolish(UI.labelScanButton);
+  UI.labelScanButton->style()->polish(UI.labelScanButton);
+  UI.labelScanButton->update();
+  UI.labelReconstructButton->setProperty("class", "");
+  UI.labelReconstructButton->style()->unpolish(UI.labelReconstructButton);
+  UI.labelReconstructButton->style()->polish(UI.labelReconstructButton);
+  UI.labelReconstructButton->update();
+  UI.labelVisualizeButton->setProperty("class", "");
+  UI.labelVisualizeButton->style()->unpolish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->style()->polish(UI.labelVisualizeButton);
+  UI.labelVisualizeButton->update();
 }
 
 // --------------- //
@@ -1764,43 +2340,28 @@ void Sams_View::GenerateQuadrantSphereUncertainty() {
   * A convenient method (attached to button 1 in the debug menu) to test out functionality.
   */
 void Sams_View::debug1() {
-  mitk::DataNode::Pointer surfaceNode = this->GetDataStorage()->GetNamedNode(UI.comboBoxSurface->currentText().toStdString());
-  mitk::Surface::Pointer mitkSurface = dynamic_cast<mitk::Surface*>(surfaceNode->GetData());
-  mitk::BaseGeometry * surfaceBaseGeometry = mitkSurface->GetGeometry();
-  //surfaceBaseGeometry->SetOrigin(uncertaintyOrigin);
-
-  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  // Col 1
-  matrix->SetElement(0, 0, -1);
-  matrix->SetElement(1, 0, 0);
-  matrix->SetElement(2, 0, 0);
-  matrix->SetElement(3, 0, 0);
-  // Col 2
-  matrix->SetElement(0, 1, 0);
-  matrix->SetElement(1, 1, -1);
-  matrix->SetElement(2, 1, 0);
-  matrix->SetElement(3, 1, 0);
-  // Col 3
-  matrix->SetElement(0, 2, 0);
-  matrix->SetElement(1, 2, 0);
-  matrix->SetElement(2, 2, 1);
-  matrix->SetElement(3, 2, 0);
-  // Col 4
-  matrix->SetElement(0, 3, 0);
-  matrix->SetElement(1, 3, 0);
-  matrix->SetElement(2, 3, 0);
-  matrix->SetElement(3, 3, 1);
-
-  surfaceBaseGeometry->SetIndexToWorldTransformByVtkMatrix(matrix);
-  this->RequestRenderWindowUpdate();
+  VolumeRenderThreshold(true);
 }
+
+mitk::PointSetDataInteractor::Pointer m_CurrentInteractor;
+mitk::PointSet::Pointer m_TestPointSet;
+mitk::DataNode::Pointer m_TestPointSetNode;
 
 /**
   * A convenient method (attached to button 2 in the debug menu) to test out functionality.
   */
 void Sams_View::debug2() {
+  // Set up interactor
+  m_CurrentInteractor = mitk::PointSetDataInteractor::New();
+  m_CurrentInteractor->LoadStateMachine("PointSet.xml");
+  m_CurrentInteractor->SetEventConfig("PointSetConfig.xml");
+  //Create new PointSet which will receive the interaction input
+  m_TestPointSet = SamsPointSet::New();
+  // Add the point set to the mitk::DataNode *before* the DataNode is added to the mitk::PointSetDataInteractor
+  m_TestPointSetNode = SaveDataNode("Point Set", m_TestPointSet, true);
+  // finally add the mitk::DataNode (which already is added to the mitk::DataStorage) to the mitk::PointSetDataInteractor
+  m_CurrentInteractor->SetDataNode(m_TestPointSetNode);
 }
-
 
 // ------------------- //
 // ---- Inherited ---- //
@@ -1863,7 +2424,8 @@ void Sams_View::VolumeRenderThreshold(bool checked) {
     // Gradient Opacity Transfer Function (to ignore sharp edges)
     mitk::TransferFunction::ControlPoints gradientOpacityPoints;
     gradientOpacityPoints.push_back(std::make_pair(0.0, 1.0));
-    gradientOpacityPoints.push_back(std::make_pair(UI.double1->value(), 0.0));
+    gradientOpacityPoints.push_back(std::make_pair(UI.double1->value(), 1.0));
+    gradientOpacityPoints.push_back(std::make_pair(UI.double1->value() + epsilon, 0.0));
 
     // Colour Transfer Function
     vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();

@@ -1,0 +1,52 @@
+// ------------ Evaluation Notes ------------ //
+
+// ---- GENERAL ---- //
+Acquisition researchers often do scans. Reconstruction researhers don't normally.
+
+// ---- Visualization ---- // (All FUTURE)
+It is as important to show the uncertain regions as it is to explain why they are uncertain.
+  - Alignment broken? Show the alices on the reconstruction. BTK (Baby Toolkit can apparently do this.)
+  - Too dark? Show areas that were thresholded as a separate overlay.
+
+These visualizations have been designed to work primarily with stationary areas (e.g. Brain).
+  - Can they be extended to show uncertainty over time (e.g. Heart). 
+
+Maybe have a show original stack that caused this uncertainty button?
+  - How would that work?
+
+// ---- Thresholding ---- //
+
+FUTURE
+Currently it's binary. It's either in the range, or it's not. Can we extend that? Perhaps looking into Hue, Saturation and Value as a way to display the scan could work.
+  - Hue (essentially the colour) determined by the scan.
+  - Saturation (how deep the colour is) determined by the scan.
+  - Value (essentially how light it is) determined by the uncertainty.
+
+It's a great idea but it doesn't work for areas that are black in the image as they'll be black anyway regardless of the uncertainty.
+
+// ---- Sphere ---- //
+
+FUTURE
+It was also suggested that perhaps the sphere is slightly unnecessarily abstract and that if it could be stretched and manipulated to create an ellipsoid it would better fit different organs available. For example the brain is slightly longer than it is wide and so stretching the sphere may better represent this shape
+me.
+
+// ---- Surface ---- //
+FUTURE
+The next step in the development of this visualization will be to incorporate any landmarks that were used in the reconstruction to guide the registration of such a general model.
+
+In particular, when discussing the reconstruction of fetal brain images, because the brain changes so much of the course of the pregnancy a different model will be needed for each milestone. Creating these volumes from a project such as (fetal evolution atlas paper) should be investigated.
+
+Other limitations of the projection algorithm were discussed. For example the implementation currently assumes that the volume being sampled is convex in shape. Whilst this assumption is valid for a large number of organs it may be unacceptable when dealing with fine detail, like folding in the brain.
+
+Think of a fantastic example...
+
+// ---- Next Scan Plane ---- //
+
+FUTURE
+It should be noted that this visualization is essentially theoretical until the reconstruction process can be optimized enough to run in real time. The feedback from this part is therefore based on the assumption that this can be done. 
+
+This isn't the only hurdle that needs to be overcome, however as it became clear from conversations that the radiographers are already under massive time pressures. The time available to do a scan is usually no more than 45-60 minutes including time to set up, guide the patient and perform all the scans. Each stack takes approximately 3 minutes to acquire. With this in mind it may be necessary to have an additional person present to guide the reconstruction process which may or may not be viable.
+
+// ---- Scan Simulation ---- //
+
+// ---- Reconstruction ---- //

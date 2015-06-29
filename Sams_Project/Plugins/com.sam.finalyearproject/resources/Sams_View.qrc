@@ -4,7 +4,12 @@
     <file>circle.xpm</file>
     <file>slices.xpm</file>
     <file>cursor.xpm</file>
+    <file>cursor-skinny.xpm</file>
     <file>thresholding.xpm</file>
     <file>surface.xpm</file>
+    <file>landmarks.xpm</file>
+    <file>reconstruct.xpm</file>
+    <file>scan.xpm</file>
+    <file>visualize.xpm</file>
  </qresource>
- </RCC> 
+ </RCC>

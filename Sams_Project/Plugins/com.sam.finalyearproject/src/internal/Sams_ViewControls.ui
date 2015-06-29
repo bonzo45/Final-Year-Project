@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>494</width>
-    <height>700</height>
+    <width>435</width>
+    <height>1662</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -29,247 +29,447 @@
    <string notr="true">background-color: rgb(235, 235, 235);
 color: rgb(20, 20, 20);
 font-family: Quicksand;
-font-size: 16pt;
-font-weight: bold;</string>
+font-size: 12pt;</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_15">
-   <property name="margin">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QToolBox" name="toolBoxMain">
-     <property name="font">
-      <font>
-       <family>Quicksand</family>
-       <pointsize>16</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
+    <widget class="QWidget" name="widget_20" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_43">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QToolButton" name="buttonScan">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>64</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Select Files</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resources/Sams_View.qrc">
+          <normaloff>:/Sams_View/scan.xpm</normaloff>:/Sams_View/scan.xpm</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="buttonReconstruct">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>64</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Thresholding</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resources/Sams_View.qrc">
+          <normaloff>:/Sams_View/reconstruct.xpm</normaloff>:/Sams_View/reconstruct.xpm</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>96</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="buttonVisualize">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>64</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Uncertainty Sphere</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../resources/Sams_View.qrc">
+          <normaloff>:/Sams_View/visualize.xpm</normaloff>:/Sams_View/visualize.xpm</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>48</width>
+          <height>48</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_21" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="styleSheet">
-      <string notr="true"/>
+      <string notr="true">QLabel.selected {
+	font-weight: bold;
+}</string>
      </property>
-     <property name="currentIndex">
-      <number>2</number>
-     </property>
-     <property name="tabSpacing">
-      <number>6</number>
-     </property>
-     <widget class="QWidget" name="pageScan">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>494</width>
-        <height>580</height>
-       </rect>
+     <layout class="QHBoxLayout" name="horizontalLayout_45">
+      <property name="margin">
+       <number>0</number>
       </property>
-      <property name="styleSheet">
-       <string notr="true">font-size: 11pt;
-font-weight: normal;</string>
+      <item>
+       <widget class="QLabel" name="labelScanButton">
+        <property name="text">
+         <string>SCAN</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelReconstructButton">
+        <property name="styleSheet">
+         <string notr="true">.selected {
+	font-weight: bold;
+}</string>
+        </property>
+        <property name="text">
+         <string>RECONSTRUCT</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelVisualizeButton">
+        <property name="text">
+         <string>VISUALIZE</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widgetSCAN" native="true">
+     <property name="styleSheet">
+      <string notr="true">font-size: 11pt;
+font-weight: normal;
+
+QWidget {
+	background-color: rgb(210, 210, 210);
+	border-radius: 4px;
+}</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_26">
+      <property name="margin">
+       <number>0</number>
       </property>
-      <attribute name="label">
-       <string> SCAN</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_22">
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QWidget" name="widgetSCAN" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_26">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+      <item>
+       <widget class="QLabel" name="labelScanDescription">
+        <property name="styleSheet">
+         <string notr="true">font-size: 9pt;</string>
+        </property>
+        <property name="text">
+         <string>Naively simulates an MRI scan using a volume that is considered to be the ground truth. Slice stacks can then be reconstructed to create a super-resolution image.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidgetScan">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <widget class="QWidget" name="Select">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/cursor.xpm</normaloff>:/Sams_View/cursor.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Select</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="labelScanDescription">
+           <widget class="QWidget" name="widgetScanSelect" native="true">
             <property name="styleSheet">
-             <string notr="true">font-size: 9pt;</string>
+             <string notr="true"/>
             </property>
-            <property name="text">
-             <string>Naively simulates an MRI scan using a volume that is considered to be the ground truth. Slice stacks can then be reconstructed to create a super-resolution image.</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::AutoText</enum>
-            </property>
-            <property name="scaledContents">
-             <bool>false</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_13">
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="labelScanSelectDescription">
+               <property name="styleSheet">
+                <string notr="true">font-size: 9pt;</string>
+               </property>
+               <property name="text">
+                <string>Pick the volume to use as the 'ground truth'.</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widgetScanSelectComboWrapper" native="true">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>70</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_19">
+                <property name="margin">
+                 <number>9</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="labelScanSelectName">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font-weight: bold;</string>
+                  </property>
+                  <property name="text">
+                   <string>SCAN:</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboBoxSimulateScanVolume">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">background-color: none;</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacerScanSelect">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="Scan">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/scan.xpm</normaloff>:/Sams_View/scan.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Scan</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_10">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QToolBox" name="toolBoxScan">
-            <property name="currentIndex">
-             <number>1</number>
+           <widget class="QWidget" name="widgetScanScan" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <widget class="QWidget" name="pageScanSelect">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>174</width>
-               <height>130</height>
-              </rect>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_14">
+             <property name="topMargin">
+              <number>9</number>
              </property>
-             <attribute name="label">
-              <string>Select Volume</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QWidget" name="widgetScanSelect" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_13">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QLabel" name="labelScanSelectDescription">
-                   <property name="styleSheet">
-                    <string notr="true">font-size: 9pt;</string>
-                   </property>
-                   <property name="text">
-                    <string>Pick the volume to use as the 'ground truth'.</string>
-                   </property>
-                   <property name="textFormat">
-                    <enum>Qt::AutoText</enum>
-                   </property>
-                   <property name="scaledContents">
-                    <bool>false</bool>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>true</bool>
-                   </property>
-                   <property name="textInteractionFlags">
-                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QWidget" name="widgetScanSelectComboWrapper" native="true">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>70</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_19">
-                    <property name="margin">
-                     <number>9</number>
-                    </property>
-                    <item>
-                     <widget class="QLabel" name="labelScanSelectName">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">font-weight: bold;</string>
-                      </property>
-                      <property name="text">
-                       <string>SCAN:</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QComboBox" name="comboBoxSimulateScanVolume">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>30</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>16777215</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacerScanSelect">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="pageScanConfigure">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>463</width>
-               <height>603</height>
-              </rect>
+             <property name="bottomMargin">
+              <number>0</number>
              </property>
-             <attribute name="label">
-              <string>Configure</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QWidget" name="widgetScanConfigure" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_14">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
+             <item>
+              <widget class="QScrollArea" name="scrollArea">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <property name="widgetResizable">
+                <bool>true</bool>
+               </property>
+               <widget class="QWidget" name="scrollAreaWidgetContents_2">
+                <property name="geometry">
+                 <rect>
+                  <x>0</x>
+                  <y>0</y>
+                  <width>382</width>
+                  <height>801</height>
+                 </rect>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_24">
+                 <property name="margin">
                   <number>0</number>
                  </property>
                  <item>
@@ -278,7 +478,7 @@ font-weight: normal;</string>
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>Adjust the scan settings and press scan to generate a slice stack.</string>
+                    <string>Adjust the settings, then press scan to generate a slice stack.</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -353,13 +553,32 @@ margin-top: 4px;</string>
                       <property name="font">
                        <font>
                         <family>Quicksand</family>
-                        <pointsize>8</pointsize>
+                        <pointsize>11</pointsize>
                         <weight>50</weight>
                         <bold>false</bold>
                        </font>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">font-size: 8pt;</string>
+                       <string notr="true">QPushButton {
+	background-color: rgb(128, 0, 128);
+	color: rgb(225, 225, 225);
+	border: 2px solid rgb(128, 128, 128);
+	max-width: 160px;
+	max-height: 26px;
+	min-width: 160px;
+	min-height: 26px;
+	border-radius: 13px;
+    border-style: outset;
+}
+
+QPushButton:checked {
+	border-style: inset;
+	color: rgb(200, 200, 200);
+	background-color: rgb(100, 0, 100);
+}
+
+
+</string>
                       </property>
                       <property name="text">
                        <string>Preview Scan</string>
@@ -532,6 +751,190 @@ margin-top: 4px;</string>
                   </widget>
                  </item>
                  <item>
+                  <widget class="QLabel" name="labelSCAN_13">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>140</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font-weight: bold;</string>
+                   </property>
+                   <property name="text">
+                    <string>SCAN RESOLUTION:</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelReconstructionDescription_11">
+                   <property name="styleSheet">
+                    <string notr="true">font-size: 9pt;</string>
+                   </property>
+                   <property name="text">
+                    <string>The in-plane and slice resolution. (x, y, z)</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::AutoText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget1Scan_11" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_39">
+                    <property name="margin">
+                     <number>9</number>
+                    </property>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanResolutionX">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanResolutionY">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanResolutionZ">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>2</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="labelReconstructionDescription_12">
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
+                      </property>
+                      <property name="text">
+                       <string>(pixels)</string>
+                      </property>
+                      <property name="textFormat">
+                       <enum>Qt::AutoText</enum>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>false</bool>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
+                      <property name="textInteractionFlags">
+                       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_19">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="labelSCAN_9">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -568,7 +971,7 @@ margin-top: 4px;</string>
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>The center of the scan.</string>
+                    <string>The center of the scan. (x, y, z)</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -666,6 +1069,31 @@ margin-top: 4px;</string>
                      </widget>
                     </item>
                     <item>
+                     <widget class="QLabel" name="labelReconstructionDescription_13">
+                      <property name="styleSheet">
+                       <string notr="true">font-size: 9pt;</string>
+                      </property>
+                      <property name="text">
+                       <string>(pixels)</string>
+                      </property>
+                      <property name="textFormat">
+                       <enum>Qt::AutoText</enum>
+                      </property>
+                      <property name="scaledContents">
+                       <bool>false</bool>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
+                      <property name="textInteractionFlags">
+                       <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_5">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -750,7 +1178,7 @@ QPushButton:pressed {
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>The direction to scan in.</string>
+                    <string>The direction to scan in. Specified by x, y and z axes.</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -894,6 +1322,28 @@ margin-left: 5px;</string>
                       </property>
                       <property name="maximum">
                        <double>100000.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDial" name="dialScanRotationX">
+                      <property name="maximumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="minimum">
+                       <number>-180</number>
+                      </property>
+                      <property name="maximum">
+                       <number>180</number>
+                      </property>
+                      <property name="value">
+                       <number>0</number>
+                      </property>
+                      <property name="sliderPosition">
+                       <number>0</number>
                       </property>
                      </widget>
                     </item>
@@ -1143,6 +1593,28 @@ margin-left: 5px;</string>
                      </widget>
                     </item>
                     <item>
+                     <widget class="QDial" name="dialScanRotationY">
+                      <property name="maximumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="minimum">
+                       <number>-180</number>
+                      </property>
+                      <property name="maximum">
+                       <number>180</number>
+                      </property>
+                      <property name="value">
+                       <number>0</number>
+                      </property>
+                      <property name="sliderPosition">
+                       <number>0</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_7">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -1287,6 +1759,28 @@ margin-left: 5px;</string>
                      </widget>
                     </item>
                     <item>
+                     <widget class="QDial" name="dialScanRotationZ">
+                      <property name="maximumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                      <property name="minimum">
+                       <number>-180</number>
+                      </property>
+                      <property name="maximum">
+                       <number>180</number>
+                      </property>
+                      <property name="value">
+                       <number>0</number>
+                      </property>
+                      <property name="sliderPosition">
+                       <number>0</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_8">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -1368,7 +1862,7 @@ margin-left: 5px;</string>
                     <string notr="true">font-size: 9pt;</string>
                    </property>
                    <property name="text">
-                    <string>Simple movement simulation. Randomly rotates each slice up to the maximum angle specified</string>
+                    <string>Simple movement simulation. Randomly rotates each slice up to the maximum angle specified.</string>
                    </property>
                    <property name="textFormat">
                     <enum>Qt::AutoText</enum>
@@ -1427,7 +1921,7 @@ margin-left: 5px;</string>
                        <double>360.000000000000000</double>
                       </property>
                       <property name="value">
-                       <double>15.000000000000000</double>
+                       <double>5.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1458,6 +1952,113 @@ margin-left: 5px;</string>
                     </item>
                     <item>
                      <spacer name="horizontalSpacer_9">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_12">
+                   <property name="styleSheet">
+                    <string notr="true">font-weight: bold;</string>
+                   </property>
+                   <property name="text">
+                    <string>OUTPUT NAME:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="labelReconstructionDescription_14">
+                   <property name="styleSheet">
+                    <string notr="true">font-size: 9pt;</string>
+                   </property>
+                   <property name="text">
+                    <string>What should the simulated scan be called?</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::AutoText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="textInteractionFlags">
+                    <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget1Scan_12" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_36">
+                    <property name="margin">
+                     <number>9</number>
+                    </property>
+                    <item>
+                     <widget class="QLineEdit" name="lineEditScanName">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Slice-Stack-</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="spinBoxScanNameNumber">
+                      <property name="maximumSize">
+                       <size>
+                        <width>60</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>1000</number>
+                      </property>
+                      <property name="value">
+                       <number>1</number>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_20">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
                       </property>
@@ -1529,403 +2130,459 @@ QPushButton:pressed {
                    </layout>
                   </widget>
                  </item>
-                 <item>
-                  <spacer name="verticalSpacerScanConfigure">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                 </layout>
+                <zorder>widget_6</zorder>
+                <zorder>labelReconstructionDescription_11</zorder>
+                <zorder>widget1Scan_5</zorder>
+                <zorder>widget1Scan_11</zorder>
+                <zorder>labelSCAN_4</zorder>
+                <zorder>labelReconstructionDescription_9</zorder>
+                <zorder>labelReconstructionDescription_6</zorder>
+                <zorder>labelReconstructionDescription_5</zorder>
+                <zorder>labelSCAN_13</zorder>
+                <zorder>label_12</zorder>
+                <zorder>widget1Scan_3</zorder>
+                <zorder>widget1Scan_7</zorder>
+                <zorder>widget</zorder>
+                <zorder>labelSCAN_9</zorder>
+                <zorder>labelReconstructionDescription_7</zorder>
+                <zorder>widget1Scan_6</zorder>
+                <zorder>labelReconstructionDescription_14</zorder>
+                <zorder>widget1Scan_12</zorder>
+                <zorder>widget1Scan_4</zorder>
+                <zorder>widget1Scan_8</zorder>
+                <zorder>labelScanConfigureDescription</zorder>
+                <zorder>widget_3</zorder>
                </widget>
-              </item>
-             </layout>
-            </widget>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="pageReconstruct">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>494</width>
-        <height>580</height>
-       </rect>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widgetRECONSTRUCT" native="true">
+     <property name="styleSheet">
+      <string notr="true">font-size: 11pt;
+font-weight: normal;
+
+QWidget {
+background-color: rgb(210, 210, 210);
+border-radius: 4px;
+}</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_25">
+      <property name="margin">
+       <number>0</number>
       </property>
-      <property name="styleSheet">
-       <string notr="true">font-size: 11pt;
-font-weight: normal;</string>
-      </property>
-      <attribute name="label">
-       <string> RECONSTRUCT</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_23">
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QWidget" name="widgetRECONSTRUCT" native="true">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_25">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
+      <item>
+       <widget class="QLabel" name="labelReconstructDescription">
+        <property name="styleSheet">
+         <string notr="true">font-size: 9pt;</string>
+        </property>
+        <property name="text">
+         <string>Performs GPU-accelerated construction of a super-resolution image from many slice stacks. Reconstruction code by Bernhard Kainz.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidgetReconstruct">
+        <property name="currentIndex">
+         <number>2</number>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+        <widget class="QWidget" name="Select">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/cursor.xpm</normaloff>:/Sams_View/cursor.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Select</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <property name="margin">
            <number>0</number>
           </property>
           <item>
-           <widget class="QLabel" name="labelReconstructDescription">
+           <widget class="QWidget" name="widgetReconstructSelect" native="true">
             <property name="styleSheet">
-             <string notr="true">font-size: 9pt;</string>
+             <string notr="true"/>
             </property>
-            <property name="text">
-             <string>Performs GPU-accelerated construction of a super-resolution image from many slice stacks. Reconstruction code by Bernhard Kainz.</string>
-            </property>
-            <property name="textFormat">
-             <enum>Qt::AutoText</enum>
-            </property>
-            <property name="scaledContents">
-             <bool>false</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLabel" name="labelReconstructDescription_2">
+               <property name="styleSheet">
+                <string notr="true">font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>How many slice stacks do you have?</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_4" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <spacer name="horizontalSpacer_21">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QSpinBox" name="spinBoxMarkLandmarksNumStacks">
+                  <property name="maximumSize">
+                   <size>
+                    <width>55</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="buttonSymbols">
+                   <enum>QAbstractSpinBox::UpDownArrows</enum>
+                  </property>
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>999</number>
+                  </property>
+                  <property name="value">
+                   <number>1</number>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelReconstructExecutableDescription">
+               <property name="styleSheet">
+                <string notr="true">font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>Where is &quot;reconstruction_GPU2_wrapper&quot;?</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widgetReconstructExecutableWrapper" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>70</height>
+                </size>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <item>
+                 <widget class="QPlainTextEdit" name="textEditReconstructionExecutablePath">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">font-size: 9pt;</string>
+                  </property>
+                  <property name="verticalScrollBarPolicy">
+                   <enum>Qt::ScrollBarAsNeeded</enum>
+                  </property>
+                  <property name="horizontalScrollBarPolicy">
+                   <enum>Qt::ScrollBarAsNeeded</enum>
+                  </property>
+                  <property name="lineWrapMode">
+                   <enum>QPlainTextEdit::NoWrap</enum>
+                  </property>
+                  <property name="plainText">
+                   <string>/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module</string>
+                  </property>
+                  <property name="backgroundVisible">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="buttonReconstructGUI">
+                  <property name="minimumSize">
+                   <size>
+                    <width>40</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                  <property name="icon">
+                   <iconset theme="system-search">
+                    <normaloff>../../../../../../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../../../../../../.designer/backup</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelReconstructExecutableSuccess">
+               <property name="font">
+                <font>
+                 <family>Quicksand</family>
+                 <pointsize>9</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 9pt;
+color: rgb(0, 150, 0);</string>
+               </property>
+               <property name="text">
+                <string>---- Success! ----</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelReconstructExecutableError">
+               <property name="font">
+                <font>
+                 <family>Quicksand</family>
+                 <pointsize>9</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 9pt;
+color: rgb(200, 0, 0);</string>
+               </property>
+               <property name="text">
+                <string>---- Sorry, that path doesn't appear to be valid. ----</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::AutoText</enum>
+               </property>
+               <property name="scaledContents">
+                <bool>false</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacerReconstructExecutable">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="Landmarks">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/landmarks.xpm</normaloff>:/Sams_View/landmarks.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Mark Landmarks</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QToolBox" name="toolBoxReconstruct">
-            <property name="currentIndex">
-             <number>0</number>
+           <widget class="QWidget" name="widgetReconstructLandmarks" native="true">
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
-            <widget class="QWidget" name="pageReconstructExecutable">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>476</width>
-               <height>448</height>
-              </rect>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="topMargin">
+              <number>9</number>
              </property>
-             <attribute name="label">
-              <string>Link Executable</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QLabel" name="labelReconstructExecutableDescription">
-                <property name="styleSheet">
-                 <string notr="true">font-size: 9pt;
-font-weight: bold;</string>
+             <item>
+              <widget class="QToolBox" name="toolBoxMarkLandmarks">
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <widget class="QWidget" name="SliceStack1">
+                <property name="geometry">
+                 <rect>
+                  <x>0</x>
+                  <y>0</y>
+                  <width>100</width>
+                  <height>30</height>
+                 </rect>
                 </property>
-                <property name="text">
-                 <string>Where is the executable &quot;reconstruction_GPU2_wrapper&quot;?</string>
-                </property>
-                <property name="textFormat">
-                 <enum>Qt::AutoText</enum>
-                </property>
-                <property name="scaledContents">
-                 <bool>false</bool>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-                <property name="textInteractionFlags">
-                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                </property>
+                <attribute name="label">
+                 <string>Slice Stack #1</string>
+                </attribute>
                </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="labelReconstructExecutableError">
-                <property name="font">
-                 <font>
-                  <family>Quicksand</family>
-                  <pointsize>9</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">font-size: 9pt;
-color: rgb(200, 0, 0);</string>
-                </property>
-                <property name="text">
-                 <string>---- Sorry, that path doesn't appear to be valid. ----</string>
-                </property>
-                <property name="textFormat">
-                 <enum>Qt::AutoText</enum>
-                </property>
-                <property name="scaledContents">
-                 <bool>false</bool>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-                <property name="textInteractionFlags">
-                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="labelReconstructExecutableSuccess">
-                <property name="font">
-                 <font>
-                  <family>Quicksand</family>
-                  <pointsize>9</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">font-size: 9pt;
-color: rgb(0, 150, 0);</string>
-                </property>
-                <property name="text">
-                 <string>---- Success! ----</string>
-                </property>
-                <property name="textFormat">
-                 <enum>Qt::AutoText</enum>
-                </property>
-                <property name="scaledContents">
-                 <bool>false</bool>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-                <property name="textInteractionFlags">
-                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QWidget" name="widgetReconstructExecutableWrapper" native="true">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>70</height>
-                 </size>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_18">
-                 <item>
-                  <widget class="QPlainTextEdit" name="textEditReconstructionExecutablePath">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">font-size: 9pt;</string>
-                   </property>
-                   <property name="verticalScrollBarPolicy">
-                    <enum>Qt::ScrollBarAsNeeded</enum>
-                   </property>
-                   <property name="horizontalScrollBarPolicy">
-                    <enum>Qt::ScrollBarAsNeeded</enum>
-                   </property>
-                   <property name="lineWrapMode">
-                    <enum>QPlainTextEdit::NoWrap</enum>
-                   </property>
-                   <property name="plainText">
-                    <string>/home/sam/cs4/final-year-project/ctk-command-line-modules/template/template_command_line_module</string>
-                   </property>
-                   <property name="backgroundVisible">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QToolButton" name="buttonReconstructGUI">
-                   <property name="text">
-                    <string>...</string>
-                   </property>
-                   <property name="icon">
-                    <iconset theme="system-search">
-                     <normaloff>../../../../../../../../../../../../.designer/backup</normaloff>../../../../../../../../../../../../.designer/backup</iconset>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacerReconstructExecutable">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="pageReconstructLandmarks">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>171</width>
-               <height>72</height>
-              </rect>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="Reconstruct">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/slices.xpm</normaloff>:/Sams_View/slices.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Reconstruct</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_15">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widgetReconstructReconstruct" native="true">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_16">
+             <property name="topMargin">
+              <number>9</number>
              </property>
-             <attribute name="label">
-              <string>Mark Landmarks (optional)</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_15">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QWidget" name="widgetReconstructLandmarks" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <item>
-                  <widget class="QWidget" name="widgetReconstructLandmarksScanWrapper" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_9">
-                    <item>
-                     <widget class="QComboBox" name="comboBox"/>
-                    </item>
-                    <item>
-                     <widget class="QSpinBox" name="spinBox">
-                      <property name="maximumSize">
-                       <size>
-                        <width>55</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                      <property name="buttonSymbols">
-                       <enum>QAbstractSpinBox::NoButtons</enum>
-                      </property>
-                      <property name="minimum">
-                       <number>1</number>
-                      </property>
-                      <property name="maximum">
-                       <number>999</number>
-                      </property>
-                      <property name="value">
-                       <number>1</number>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacer_2">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="pageReconstructReconstruct">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>476</width>
-               <height>448</height>
-              </rect>
+             <property name="bottomMargin">
+              <number>0</number>
              </property>
-             <attribute name="label">
-              <string>Reconstruct</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item>
-               <widget class="QWidget" name="widgetReconstructReconstruct" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_16">
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QWidget" name="widgetPutGUIHere" native="true">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>50</height>
-                    </size>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">ctkCollapsibleGroupBox {
+             <item>
+              <widget class="QWidget" name="widgetPutGUIHere" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">ctkCollapsibleGroupBox {
 	font-size: 11pt;
 	font-weight: bold;
 }</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QWidget" name="widgetReconstructButton" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_23">
-                    <property name="topMargin">
-                     <number>9</number>
-                    </property>
-                    <item>
-                     <widget class="QPushButton" name="buttonReconstructGo">
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton {
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widgetReconstructButton" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_23">
+                <property name="topMargin">
+                 <number>9</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="buttonReconstructGo">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
 	background-color: rgb(0, 128, 0);
 	color: rgb(225, 225, 225);
 	font-size: 26pt;
@@ -1946,107 +2603,77 @@ QPushButton:pressed {
 
 
 </string>
-                      </property>
-                      <property name="text">
-                       <string>Reconstruct</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacerReconstructReconstruct">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
+                  </property>
+                  <property name="text">
+                   <string>Reconstruct</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacerReconstructReconstruct">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="pageVisualize">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>-1633</y>
-        <width>481</width>
-        <height>2213</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-size: 11pt;</string>
-      </property>
-      <attribute name="label">
-       <string> VISUALIZE</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_24">
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QWidget" name="widgetVISUALIZE" native="true">
-         <property name="styleSheet">
-          <string notr="true">font-size: 11pt;
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widgetVISUALIZE" native="true">
+     <property name="styleSheet">
+      <string notr="true">font-size: 11pt;
 font-weight: normal;</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_21">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="widget_9" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="margin">
+          <number>0</number>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_21">
-          <property name="leftMargin">
-           <number>9</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>9</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget_9" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="labelVisualizeDescription">
-               <property name="styleSheet">
-                <string notr="true">font-size: 9pt;</string>
-               </property>
-               <property name="text">
-                <string>Select the scan and uncertaity in select files, then visualize.</string>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="buttonToggleDebug">
-               <property name="maximumSize">
-                <size>
-                 <width>24</width>
-                 <height>24</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">QPushButton {
+         <item>
+          <widget class="QLabel" name="labelVisualizeDescription">
+           <property name="styleSheet">
+            <string notr="true">font-size: 9pt;</string>
+           </property>
+           <property name="text">
+            <string>Select the scan and uncertainty, then visualize.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonToggleDebug">
+           <property name="maximumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton {
 	max-height: 20px;
 	min-height: 20px;
     border: 2px solid rgb(85, 85, 85);
@@ -2059,22 +2686,22 @@ QPushButton:pressed {
 	border-style: inset;
 	background-color: rgb(220, 220, 220)
 }</string>
-               </property>
-               <property name="text">
-                <string>*</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="buttonMinimize4">
-               <property name="maximumSize">
-                <size>
-                 <width>50</width>
-                 <height>24</height>
-                </size>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">QPushButton {
+           </property>
+           <property name="text">
+            <string>*</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="buttonMinimize4">
+           <property name="maximumSize">
+            <size>
+             <width>50</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton {
 	max-height: 20px;
 	min-height: 20px;
     border: 2px solid rgb(85, 85, 85);
@@ -2087,408 +2714,313 @@ QPushButton:pressed {
 	border-style: inset;
 	background-color: rgb(220, 220, 220)
 }</string>
+           </property>
+           <property name="text">
+            <string>options</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widgetDebug" native="true">
+        <property name="styleSheet">
+         <string notr="true">font-size: 8pt;</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_28">
+         <item>
+          <widget class="Line" name="line_7">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_11" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLabel" name="labelDebug">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">font-weight: bold;</string>
+              </property>
+              <property name="text">
+               <string>Debug:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_10" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <property name="spacing">
+                <number>0</number>
                </property>
-               <property name="text">
-                <string>options</string>
+               <property name="margin">
+                <number>0</number>
                </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widgetDebug" native="true">
-            <property name="styleSheet">
-             <string notr="true">font-size: 8pt;</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_28">
-             <item>
-              <widget class="Line" name="line_7">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget_11" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
-                 <widget class="QLabel" name="labelDebug">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">font-weight: bold;</string>
-                  </property>
-                  <property name="text">
-                   <string>Debug:</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QWidget" name="widget_10" native="true">
-                  <layout class="QHBoxLayout" name="horizontalLayout_6">
-                   <property name="spacing">
-                    <number>0</number>
-                   </property>
-                   <property name="margin">
-                    <number>0</number>
-                   </property>
-                   <item>
-                    <widget class="QPushButton" name="buttonDebugSphere">
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>S</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="buttonDebugRandom">
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>R</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="buttonDebugQuadSphere">
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>Q</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="buttonDebugCube">
-                     <property name="maximumSize">
-                      <size>
-                       <width>20</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>C</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="double1">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="value">
-                   <double>0.030000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QSpinBox" name="int1">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="buttonSymbols">
-                   <enum>QAbstractSpinBox::NoButtons</enum>
-                  </property>
-                  <property name="maximum">
-                   <number>9999</number>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="buttonDebug1">
-                  <property name="maximumSize">
-                   <size>
-                    <width>30</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="buttonDebug2">
-                  <property name="maximumSize">
-                   <size>
-                    <width>30</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>2</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="Line" name="line_8">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget4Minimizable" native="true">
-            <property name="font">
-             <font>
-              <family>Quicksand</family>
-              <pointsize>8</pointsize>
-              <weight>50</weight>
-              <bold>false</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font-size:8pt;</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_29">
-             <property name="topMargin">
-              <number>9</number>
-             </property>
-             <item>
-              <widget class="Line" name="line_6">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="labelDebug_2">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">font-weight: bold;</string>
-               </property>
-               <property name="text">
-                <string>Options:</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget_17" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_12">
-                <item>
-                 <widget class="QCheckBox" name="checkBoxCrosshairs">
-                  <property name="text">
-                   <string>Crosshairs</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                  <property name="tristate">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="checkBoxLegend">
-                  <property name="text">
-                   <string>Legend</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="buttonResetViews">
-                  <property name="text">
-                   <string>Reset Views</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="Line" name="line_5">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_19" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_25">
-             <item>
-              <widget class="QToolButton" name="buttonVisualizeSelect">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Select Files</string>
-               </property>
-               <property name="text">
-                <string>S</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../../resources/Sams_View.qrc">
-                 <normaloff>:/Sams_View/cursor.xpm</normaloff>:/Sams_View/cursor.xpm</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="buttonVisualizeThreshold">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Thresholding</string>
-               </property>
-               <property name="text">
-                <string>T</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../../resources/Sams_View.qrc">
-                 <normaloff>:/Sams_View/thresholding.xpm</normaloff>:/Sams_View/thresholding.xpm</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="buttonVisualizeSphere">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Uncertainty Sphere</string>
-               </property>
-               <property name="text">
-                <string>USp</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../../resources/Sams_View.qrc">
-                 <normaloff>:/Sams_View/circle.xpm</normaloff>:/Sams_View/circle.xpm</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="buttonVisualizeSurface">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Uncertainty Surface</string>
-               </property>
-               <property name="text">
-                <string>USu</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../../resources/Sams_View.qrc">
-                 <normaloff>:/Sams_View/surface.xpm</normaloff>:/Sams_View/surface.xpm</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="buttonVisualizeNextScanPlane">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Next Scan Plane</string>
-               </property>
-               <property name="text">
-                <string>N</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../../resources/Sams_View.qrc">
-                 <normaloff>:/Sams_View/slices.xpm</normaloff>:/Sams_View/slices.xpm</iconset>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
+               <item>
+                <widget class="QPushButton" name="buttonDebugSphere">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>S</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonDebugRandom">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>R</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonDebugQuadSphere">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Q</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonDebugCube">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>C</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="double1">
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::NoButtons</enum>
+              </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="singleStep">
+               <double>0.005000000000000</double>
+              </property>
+              <property name="value">
+               <double>0.030000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="int1">
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::NoButtons</enum>
+              </property>
+              <property name="maximum">
+               <number>9999</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDebug1">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDebug2">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_8">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget4Minimizable" native="true">
+        <property name="font">
+         <font>
+          <family>Quicksand</family>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-size:8pt;</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_29">
+         <property name="topMargin">
+          <number>9</number>
+         </property>
+         <item>
+          <widget class="Line" name="line_6">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelDebug_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>Options:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_17" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QCheckBox" name="checkBoxCrosshairs">
+              <property name="text">
+               <string>Crosshairs</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <property name="tristate">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBoxLegend">
+              <property name="text">
+               <string>Legend</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonResetViews">
+              <property name="text">
+               <string>Reset Views</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="tabWidgetVisualize">
+        <property name="styleSheet">
+         <string notr="true">font-size: 8pt;</string>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>22</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="elideMode">
+         <enum>Qt::ElideNone</enum>
+        </property>
+        <widget class="QWidget" name="Select">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/cursor.xpm</normaloff>:/Sams_View/cursor.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Pick</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_17">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QWidget" name="widgetVisualizeSelect" native="true">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
-             <property name="leftMargin">
-              <number>9</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>9</number>
-             </property>
-             <property name="bottomMargin">
+             <property name="margin">
               <number>9</number>
              </property>
              <item>
@@ -2790,7 +3322,7 @@ QPushButton:pressed {
                 <item>
                  <widget class="QLabel" name="label_5">
                   <property name="text">
-                   <string>erode:</string>
+                   <string>number of pixels:</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2809,7 +3341,7 @@ QPushButton:pressed {
                    <number>1</number>
                   </property>
                   <property name="value">
-                   <number>2</number>
+                   <number>4</number>
                   </property>
                  </widget>
                 </item>
@@ -2825,71 +3357,6 @@ QPushButton:pressed {
                    </size>
                   </property>
                  </spacer>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_8">
-                  <property name="text">
-                   <string>sensitivity:</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="spinBoxErodeThreshold">
-                  <property name="maximumSize">
-                   <size>
-                    <width>60</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="maximum">
-                   <double>1.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.010000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.200000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_4">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_9">
-                  <property name="text">
-                   <string>dilate:</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QSpinBox" name="spinBoxDilateThickness">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="value">
-                   <number>2</number>
-                  </property>
-                 </widget>
                 </item>
                </layout>
               </widget>
@@ -2964,11 +3431,28 @@ QPushButton:pressed {
             </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="Threshold">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/thresholding.xpm</normaloff>:/Sams_View/thresholding.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Threshold</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_18">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QWidget" name="widgetVisualizeThreshold" native="true">
+            <property name="styleSheet">
+             <string notr="true">font-size: 11pt;</string>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <property name="topMargin">
-              <number>0</number>
+              <number>9</number>
              </property>
              <item>
               <widget class="QLabel" name="label2aDescription">
@@ -3599,7 +4083,6 @@ QPushButton:checked {
 	background-color: rgb(255, 0, 0);
 }
 
-
 </string>
                   </property>
                   <property name="text">
@@ -3645,11 +4128,28 @@ QPushButton:checked {
             </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="Sphere">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/circle.xpm</normaloff>:/Sams_View/circle.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Sphere</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_20">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QWidget" name="widgetVisualizeSphere" native="true">
+            <property name="styleSheet">
+             <string notr="true">font-size: 11pt;</string>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout">
              <property name="topMargin">
-              <number>0</number>
+              <number>9</number>
              </property>
              <item>
               <widget class="QLabel" name="label2bDescription">
@@ -3761,10 +4261,10 @@ QPushButton:checked {
                    <number>10000</number>
                   </property>
                   <property name="singleStep">
-                   <number>100</number>
+                   <number>50</number>
                   </property>
                   <property name="value">
-                   <number>200</number>
+                   <number>100</number>
                   </property>
                  </widget>
                 </item>
@@ -3777,10 +4277,10 @@ QPushButton:checked {
                    <number>5000</number>
                   </property>
                   <property name="singleStep">
-                   <number>100</number>
+                   <number>50</number>
                   </property>
                   <property name="value">
-                   <number>100</number>
+                   <number>50</number>
                   </property>
                  </widget>
                 </item>
@@ -3792,13 +4292,11 @@ QPushButton:checked {
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
                   <property name="text">
                    <string>Lock</string>
-                  </property>
-                  <property name="icon">
-                   <iconset theme="chain">
-                    <normaloff/>
-                   </iconset>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
@@ -3835,14 +4333,14 @@ QPushButton:checked {
                   <item>
                    <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorMin">
                     <property name="text">
-                     <string>min</string>
+                     <string>worst</string>
                     </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QRadioButton" name="radioButtonSphereSampleAccumulatorMax">
                     <property name="text">
-                     <string>max</string>
+                     <string>best</string>
                     </property>
                    </widget>
                   </item>
@@ -3865,7 +4363,7 @@ QPushButton:checked {
                       <family>Quicksand</family>
                       <pointsize>11</pointsize>
                       <weight>50</weight>
-                      <italic>true</italic>
+                      <italic>false</italic>
                       <bold>false</bold>
                      </font>
                     </property>
@@ -3890,16 +4388,16 @@ QPushButton:checked {
                <item row="0" column="0">
                 <widget class="QGroupBox" name="groupBoxSphereSamplingDistance">
                  <property name="title">
-                  <string>Sampling</string>
+                  <string>Distance</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_39">
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceFull">
+                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceHalf">
                     <property name="text">
-                     <string>full</string>
+                     <string>half</string>
                     </property>
                     <property name="checked">
                      <bool>true</bool>
@@ -3907,9 +4405,12 @@ QPushButton:checked {
                    </widget>
                   </item>
                   <item>
-                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceHalf">
+                   <widget class="QRadioButton" name="radioButtonSphereSamplingDistanceFull">
                     <property name="text">
-                     <string>half</string>
+                     <string>full</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -3931,7 +4432,7 @@ QPushButton:checked {
                      <string>none</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -3940,12 +4441,8 @@ QPushButton:checked {
                     <property name="text">
                      <string>linear</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonSphereScalingHistogram">
-                    <property name="text">
-                     <string>histogram eqn</string>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -4011,11 +4508,28 @@ QPushButton:checked {
             </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="Surface">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/surface.xpm</normaloff>:/Sams_View/surface.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Surface</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_22">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QWidget" name="widgetVisualizeSurface" native="true">
+            <property name="styleSheet">
+             <string notr="true">font-size: 11pt;</string>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_19">
              <property name="topMargin">
-              <number>0</number>
+              <number>9</number>
              </property>
              <item>
               <widget class="QLabel" name="label_15">
@@ -4100,22 +4614,12 @@ QPushButton:checked {
                <item row="0" column="0">
                 <widget class="QGroupBox" name="groupBox_9">
                  <property name="title">
-                  <string>Sampling</string>
+                  <string>Distance</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_35">
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonSamplingFull">
-                    <property name="text">
-                     <string>full</string>
-                    </property>
-                    <property name="checked">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
                   <item>
                    <widget class="QRadioButton" name="radioButtonSamplingHalf">
                     <property name="text">
@@ -4123,6 +4627,16 @@ QPushButton:checked {
                     </property>
                     <property name="checked">
                      <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButtonSamplingFull">
+                    <property name="text">
+                     <string>full</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4145,7 +4659,7 @@ QPushButton:checked {
                       <family>Quicksand</family>
                       <pointsize>11</pointsize>
                       <weight>50</weight>
-                      <italic>true</italic>
+                      <italic>false</italic>
                       <bold>false</bold>
                      </font>
                     </property>
@@ -4182,7 +4696,7 @@ QPushButton:checked {
                      <string>none</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4191,12 +4705,8 @@ QPushButton:checked {
                     <property name="text">
                      <string>linear</string>
                     </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButtonScalingHistogram">
-                    <property name="text">
-                     <string>histogram eqn</string>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -4225,14 +4735,14 @@ QPushButton:checked {
                   <item>
                    <widget class="QRadioButton" name="radioButtonSurfaceSampleMinimum">
                     <property name="text">
-                     <string>min</string>
+                     <string>worst</string>
                     </property>
                    </widget>
                   </item>
                   <item>
                    <widget class="QRadioButton" name="radioButtonSurfaceSampleMaximum">
                     <property name="text">
-                     <string>max</string>
+                     <string>best</string>
                     </property>
                    </widget>
                   </item>
@@ -4267,7 +4777,7 @@ QPushButton:checked {
                      <string>simple</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -4275,6 +4785,9 @@ QPushButton:checked {
                    <widget class="QRadioButton" name="radioButtonSurfaceRegistrationBodge">
                     <property name="text">
                      <string>*bodge*</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -4368,11 +4881,28 @@ QPushButton:pressed {
             </layout>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="NextScanPlane">
+         <attribute name="icon">
+          <iconset resource="../../resources/Sams_View.qrc">
+           <normaloff>:/Sams_View/slices.xpm</normaloff>:/Sams_View/slices.xpm</iconset>
+         </attribute>
+         <attribute name="title">
+          <string>Next</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_23">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QWidget" name="widgetVisualizeNextScanPlane" native="true">
+            <property name="styleSheet">
+             <string notr="true">font-size: 11pt;</string>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_27">
              <property name="topMargin">
-              <number>0</number>
+              <number>9</number>
              </property>
              <item>
               <widget class="QLabel" name="label">
@@ -4849,20 +5379,11 @@ margin-left: 5px;</string>
             </layout>
            </widget>
           </item>
-          <item>
-           <widget class="QWidget" name="widget1Title" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_13">
-             <property name="margin">
-              <number>0</number>
-             </property>
-            </layout>
-           </widget>
-          </item>
          </layout>
         </widget>
-       </item>
-      </layout>
-     </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

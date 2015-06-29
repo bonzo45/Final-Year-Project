@@ -7,21 +7,18 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
-# Reports
-Interim-Report/.*
-Interim-Report/*.aux
-Interim-Report/*.bbl
-Interim-Report/*.blg
-Interim-Report/*.log
-Interim-Report/*.out
-Interim-Report/*.pdf
-Interim-Report/*.toc
-
-Final-Report/.*
-Final-Report/*.aux
-Final-Report/*.bbl
-Final-Report/*.blg
-Final-Report/*.log
-Final-Report/*.out
-Final-Report/*.pdf
-Final-Report/*.toc
+# Report
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.toc
+*.enc
+*.gz
+*.fd
+*.tfm
+*.ttf
+*.swp
+*.gummi

@@ -16,6 +16,7 @@ set(SRC_CPP_FILES
   QmitkCmdLineModuleGui.cpp
   QmitkDataStorageComboBoxWithSelectNone.cpp
   QmitkUiLoader.cpp
+  SamsPointSet.cpp
 )
 
 set(INTERNAL_CPP_FILES

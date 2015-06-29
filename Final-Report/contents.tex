@@ -1,0 +1,48 @@
+% This should list the main chapters and (sub)sections of your report. 
+% Choose self-explanatory chapter and section titles and use double spacing for clarity.
+% If possible you should include page numbers indicating where each chapter/section begins.
+% Try to avoid too many levels of subheading - three is sufficient.
+
+%*******************************************************
+% Table of Contents
+%*******************************************************
+\pdfbookmark[1]{\contentsname}{tableofcontents}
+
+% \setcounter{tocdepth}{2} % <-- 2 includes up to subsections in the ToC
+% \setcounter{secnumdepth}{3} % <-- 3 numbers up to subsubsections
+
+\tableofcontents 
+
+%*******************************************************
+% List of Figures and of the Tables
+%*******************************************************
+\iffalse
+%*******************************************************
+% List of Figures
+%*******************************************************    
+\pdfbookmark[1]{\listfigurename}{lof}
+\listoffigures
+
+%*******************************************************
+% List of Tables
+%*******************************************************
+\pdfbookmark[1]{\listtablename}{lot}
+\listoftables
+  
+%*******************************************************
+% List of Listings
+%******************************************************* 
+\pdfbookmark[1]{\lstlistlistingname}{lol}
+\lstlistoflistings 
+   
+%*******************************************************
+% Acronyms
+%*******************************************************
+\pdfbookmark[1]{Acronyms}{acronyms}
+\chapter*{Acronyms}
+\begin{acronym}[UML]
+    \acro{DRY}{Don't Repeat Yourself}
+    \acro{API}{Application Programming Interface}
+    \acro{UML}{Unified Modeling Language}
+\end{acronym} 
+\fi

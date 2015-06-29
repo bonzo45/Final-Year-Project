@@ -179,7 +179,9 @@ void UncertaintySurfaceMapper::map() {
   volumeCenter[1] = ((uncertaintyWidth - 1) / 2.0);
   volumeCenter[2] = ((uncertaintyDepth - 1) / 2.0);
 
-  std::cout << "Volume Center: (" << volumeCenter[0] << ", " << volumeCenter[1] << ", " << volumeCenter[2] << ")" << std::endl;
+  if (DEBUGGING) {
+    std::cout << "Volume Center: (" << volumeCenter[0] << ", " << volumeCenter[1] << ", " << volumeCenter[2] << ")" << std::endl;
+  }
 
   // Create planes to represent each face of the cuboid representing the uncertainty.
   mitk::PlaneGeometry::Pointer plane[3];
@@ -257,7 +259,7 @@ void UncertaintySurfaceMapper::map() {
         mitk::Point3D uncertaintyIndex;
         this->uncertainty->GetGeometry()->WorldToIndex(surfaceWorld, uncertaintyIndex);
 
-        position[0] = uncertaintyIndex[0];
+        position[0] = uncertaintyIndex[0] + 0.2;
         position[1] = uncertaintyIndex[1];
         position[2] = uncertaintyIndex[2];
       }
@@ -310,17 +312,19 @@ void UncertaintySurfaceMapper::map() {
             }
             break;
           }
-          else {
+          else if (DEBUGGING) {
             std::cout << " - Intersection Point " << i << ":(" << intersectionPoint[0] << ", " << intersectionPoint[1] << ", " << intersectionPoint[2] << ")" << std::endl;
           }
         }
-        if (position[0] == -1 && position[1] == -1 && position[2] == -1) {
+        if (DEBUGGING) {
+          if (position[0] == -1 && position[1] == -1 && position[2] == -1) {
           std::cout << "Yep... no planes..." << std::endl;
           std::cout << " - Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << std::endl;
         }
-        if (direction[0] == 0.0) {
-          std::cout << "Right. X is zero." << std::endl;
-          std::cout << " - Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << std::endl; 
+          if (direction[0] == 0.0) {
+            std::cout << "Right. X is zero." << std::endl;
+            std::cout << " - Direction (" << direction[0] << ", " << direction[1] << ", " << direction[2] << ")" << std::endl; 
+          }
         }
       }
       break;

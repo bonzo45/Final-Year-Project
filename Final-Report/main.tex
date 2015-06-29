@@ -1,0 +1,176 @@
+% book example for classicthesis.sty
+\documentclass[
+  % Replace twoside with oneside if you are printing your thesis on a single side
+  % of the paper, or for viewing on screen.
+  english,
+  oneside,
+  11pt, a4paper,
+  footinclude=true,
+  headinclude=true,
+  cleardoublepage=empty,
+  hidelinks
+]{scrbook}
+
+% Classic Thesis
+\usepackage[linedheaders,parts,pdfspacing]{classicthesis}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{acronym}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage{geometry}
+\geometry{margin=1in}
+\linespread{1.3}
+
+% Don't indent new paragraphs. New line instead.
+\usepackage[parfill]{parskip}
+
+% Make references and citations clickable.
+\usepackage{hyperref}
+
+% ----------------- %
+% ---- STYLING ---- %
+% ----------------- %
+
+% Contents Page
+\usepackage{tocstyle} 
+\newtocstyle[classic][]{newstyle}{%
+  \settocfeature[0]{entryhook}{\bfseries}%
+  \settocfeature[0]{entryvskip}{1.4em plus 20pt}%
+}
+\usetocstyle{newstyle}
+
+% Headings
+\usepackage{titlesec}
+\usepackage{indentfirst}
+\newlength{\normalparindent}
+\AtBeginDocument{\setlength{\normalparindent}{\parindent}}
+
+% ---- Chapter ---- %
+\titleformat{\chapter}[display]
+   	% Format
+   	{\huge}
+   	% Label
+   	{}
+   	%Separation
+   	{-40pt}
+   	% Before
+    {
+    	\titlerule\vspace*{0.4\baselineskip}
+    	\ifnum\thechapter=0 \hspace*{0.5em} \else \thechapter. \fi
+    	\spacedallcaps
+    }
+    % After
+    [\normalcolor\normalsize\vspace*{.8\baselineskip}\titlerule]
+\titlespacing\chapter{0pt}{0pt}{10pt}[0pt]
+  
+% ---- Section ---- %
+\titleformat{\section}[display]
+   	% Format
+   	{\large\bfseries}
+   	% Label
+   	{}
+   	%Separation
+   	{-2em}
+   	% Before
+    {
+    	\thesection \hspace*{0.25em} - \spacedallcaps
+    }
+    % After
+    []
+\titlespacing\section{0pt}{0pt}{0pt}
+
+% ---- Subsection ---- %
+\titleformat{\subsection}[display]
+   	% Format
+   	{\large\bfseries}
+   	% Label
+   	{}
+   	%Separation
+   	{-2em}
+   	% Before
+    {
+    	\hspace*{1em} \spacedallcaps
+    }
+    % After
+    []
+\titlespacing\subsection{0pt}{0pt}{0pt}
+
+% ---- Subsubsection ---- %
+\titleformat{\subsubsection}[display]
+   	% Format
+   	{\small\bfseries}
+   	% Label
+   	{}
+   	%Separation
+   	{-2em}
+   	% Before
+    {
+    	\hspace*{1em} \spacedallcaps
+    }
+    % After
+    []
+\titlespacing\subsubsection{0pt}{0pt}{0pt}
+
+% Shiny Pictures
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+
+% Font
+\usepackage{fontspec}
+\setmainfont{Quicksand}
+
+% Date
+\usepackage{babel}
+\usepackage[]{datetime}
+\usepackage{textcase}
+
+% Vertically aligning figures.
+\newsavebox\mybox
+
+% Frame around images.
+\include{xcolor}
+
+% Section References
+\newcommand\sectionreference[1]{\begin{flushleft}\small\textit{#1}\end{flushleft}}
+
+\include{ragged2e}
+
+\begin{document}
+
+\makeatletter
+\patchcmd{\l@subsection}{#1}{\MakeTextUppercase{#1}}{}{}
+\makeatother
+
+\input{title}
+
+\input{abstract}
+
+\input{acknowledgements}
+
+\input{contents}
+
+\input{introduction}
+
+\input{background}
+
+\input{method}
+
+\input{implementation}
+
+\input{evaluation}
+
+\input{results}
+
+\input{future}
+
+\begingroup
+\sloppy
+\raggedright
+\bibliography{bibliography}
+\bibliographystyle{plain}
+\endgroup
+    
+\end{document}
