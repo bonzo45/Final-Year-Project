@@ -1,9 +1,56 @@
-# Welcome to Sam's Final Year Project.
-## "Evaluating uncertainty in motion-corrected fetal MRI."
+# --------------------------------------------------------------------- #
+# ---------------- Welcome to Sam's Final Year Project ---------------- #
+# --------------------------------------------------------------------- #
+# ------- Evaluating uncertainty in motion-corrected fetal MRI. ------- #
+# --------------------------------------------------------------------- #
+Hosted at: https://gitlab.doc.ic.ac.uk/sae11/final-year-project
 
 The implementation is an MITK Plugin. This repository contains everything you should need to run it.
 
-### Installation Instructions
+# ------------------ #
+# -- INSTALLATION -- #
+# ------------------ #
+Tested on Ubuntu 14.04.
 
+You will need to install ALL of these things to successfully build the project.
+Git (sudo apt-get install git)
+G++ (sudo apt-get install g++)
+CMake 3.2 or above (See http://www.cmake.org/ -> Download Source -> make -> make install)
+CMake Curses GUI (sudo apt-get install cmake-curses-gui)
+Qt 4 Designer (necessary to develop UI, not necessary to run -> Download from Ubuntu Software Center)
+Qt (sudo apt-get install qt4-dev-tools libqt4-dev libqt4-core libqt4-gui)
+Assorted Libraries:
+sudo apt-get install libxt-dev
+sudo apt-get install libtiff4-dev
+sudo apt-get install libwrap0-dev
 
-The project is hosted at https://gitlab.doc.ic.ac.uk/sae11/final-year-project
+1) Clone the repository.
+git clone git@gitlab.doc.ic.ac.uk:sae11/final-year-project.git
+
+2) Create a build directory.
+mkdir Sams_Project-build
+
+Main directory should look like:
+- Data
+- Evaluation
+- Final-Report
+- Interim-Report
+- README
+- Sams_Project
+- Sams_Project-build
+
+3) Configure CMAKE.
+cd Sams_Project-build
+ccmake ../Sams_Project/
+Press 't' to toggle advanced options.
+Set GIT_TAG to v2014.10.0
+Configure (c)
+Generate (g)
+
+4) Build.
+make (in Sams_Project-build)
+
+5) Run.
+Run Sams_App in Sams_Project-build/Sams_Project-build/bin/
+
+If the build fails ensure you have everything installed listed above.
