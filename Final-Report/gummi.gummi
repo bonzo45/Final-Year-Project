@@ -1,0 +1,6 @@
+version=0.6.0
+typesetter=pdflatex
+steps=texpdf
+root=/home/sam/cs4/final-year-project/Final-Report/main.tex
+
+file=/home/sam/cs4/final-year-project/Final-Report/title.tex

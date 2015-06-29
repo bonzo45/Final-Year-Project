@@ -1,0 +1,16 @@
+\BOOKMARK [1][-]{tableofcontents.1}{Contents}{}% 1
+\BOOKMARK [0][-]{chapter.1}{Introduction}{}% 2
+\BOOKMARK [0][-]{chapter.2}{Background}{}% 3
+\BOOKMARK [1][-]{section.2.1}{Medical Imaging}{chapter.2}% 4
+\BOOKMARK [2][-]{subsection.2.1.1}{MRI \(Magnetic Resonance Imaging\)howmriworks}{section.2.1}% 5
+\BOOKMARK [2][-]{subsection.2.1.2}{Fetal MRIfetalmri}{section.2.1}% 6
+\BOOKMARK [2][-]{subsection.2.1.3}{Super Resolutionsuperresolution1superresolution2}{section.2.1}% 7
+\BOOKMARK [2][-]{subsection.2.1.4}{Singular Value Decomposition and Principal Component Analysis}{section.2.1}% 8
+\BOOKMARK [2][-]{subsection.2.1.5}{RANSAC}{section.2.1}% 9
+\BOOKMARK [2][-]{subsection.2.1.6}{Direct Volume Renderingnvidia:volumerendering}{section.2.1}% 10
+\BOOKMARK [2][-]{subsection.2.1.7}{Surface Extraction}{section.2.1}% 11
+\BOOKMARK [2][-]{subsection.2.1.8}{Uncertainty Visualisationuncertaintyoverview}{section.2.1}% 12
+\BOOKMARK [0][-]{chapter.3}{Body}{}% 13
+\BOOKMARK [0][-]{chapter.4}{evaluation}{}% 14
+\BOOKMARK [0][-]{chapter.5}{Conclusions and Future Work}{}% 15
+\BOOKMARK [0][-]{chapter.6}{Bibliography}{}% 16

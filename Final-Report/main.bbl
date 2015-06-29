@@ -1,0 +1,140 @@
+\begin{thebibliography}{10}
+
+\bibitem{marching_squares:image}
+Ben Anderson.
+\newblock An implementation of the marching cubes[1] algorithm.
+\newblock http://www.cs.carleton.edu/cs\_comps/0405/shape/marching\_cubes.html.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{heatmap}
+The~Walking Bostonian.
+\newblock Mbta service heat map.
+\newblock
+  http://walkingbostonian.blogspot.co.uk/2012/02/mbta-service-heat-map.html.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{uncertaintyoverview}
+Ken Brodlie, Rodolfo~Allendes Osorio, and Adriano Lopes.
+\newblock A review of uncertainty in data visualization.
+\newblock Technical report, University of Leeds and University of Talca and
+  Universidade Nova de Lisboa,
+  http://www.comp.leeds.ac.uk/kwb/publication\_repository/2012/uncert.pdf,
+  2012.
+
+\bibitem{bshr:mallard}
+The British~Society for the History~of Radiology.
+\newblock {John Mallard}.
+\newblock {http://www.bshr.org.uk/mallard.html}.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{infinityhistory}
+Infinity~Imaging Lab.
+\newblock {A history of medical imaging}.
+\newblock
+  {http://www.infinityugent.be/research-development/a-history-of-medical-imaging}.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{fmri}
+Magnetic-Resonance.org.
+\newblock {Functional Imaging}.
+\newblock {http://www.magnetic-resonance.org/ch/11-03.html}.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{ransac:image}
+Msm.
+\newblock Fitted line.
+\newblock http://commons.wikimedia.org/wiki/File:Fitted\_line.svg.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{rontgen}
+NobelPrize.org.
+\newblock Wilhelm conrad r{\"o}ntgen - biographical.
+\newblock
+  http://www.nobelprize.org/nobel\_prizes/physics/laureates/1901/rontgen-bio.html.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{xraydeath}
+Nukes.org.
+\newblock {First American X-Ray Fatality}.
+\newblock {http://www.nukes.org/MAp/dally.html}.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{nvidia:volumerendering}
+Nvidia.
+\newblock Chapter 39. volume rendering techniques.
+\newblock http://http.developer.nvidia.com/GPUGems/gpugems\_ch39.html.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{labelling}
+S.~Oeltze-Jafra and B.~Preim.
+\newblock Survey of labeling techniques in medical visualizations.
+\newblock Technical report, University of Magdeburg,
+  http://www.vismd.de/lib/exe/fetch.php?media=files:labelling:oeltze\_2014\_vcbm.pdf,
+  2014.
+
+\bibitem{pregnancyimagingguidelines}
+American~Congress of~Obstetricians and Gynecologists.
+\newblock {Guidelines for Diagnostic Imaging During Pregnancy}.
+\newblock
+  {http://www.acog.org/Resources-And-Publications/Committee-Opinions/Committee-on-Obstetric-Practice/Guidelines-for-Diagnostic-Imaging-During-Pregnancy}.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{superresolution2}
+Sung~Cheol Park, Min~Kyu Park, and Moon~Gi Kang.
+\newblock Super-resolution image reconstruction: A technical overview.
+\newblock Technical report, IEEE,
+  http://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=1203207\&tag=1, 2003.
+
+\bibitem{superresolution1}
+Eric~Van Reeth, Ivan W.~K. Tham, Cher~Heng Tan, and Chueh~Loo Poh.
+\newblock Super-resolution in magnetic resonance imaging: A review.
+\newblock Technical report, Nanyang Technological University, National
+  University Cancer Institute, Tan Tock Seng Hospital,
+  http://onlinelibrary.wiley.com/doi/10.1002/cmr.a.21249/abstract, 2012.
+
+\bibitem{fetalmri}
+Sahar~N. Saleem.
+\newblock Fetal mri: An approach to practice: A review.
+\newblock Technical report, Kasr Al Ainy Faculty of Medicine,
+  http://www.sciencedirect.com/science/article/pii/S2090123213000805, 2013.
+
+\bibitem{surfacevsvolumerendering}
+Ramin Shahidi.
+\newblock Surface rendering versus volume rendering in medical imaging:
+  Techniques and applications.
+\newblock Technical report, Stanford University Medical Center,
+  http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=568151, 1996.
+\newblock Last Accessed: 30/01/15.
+
+\bibitem{shannonnyquist}
+Claude~E. Shannon.
+\newblock Communication in the presence of noise.
+\newblock Technical report, IEEE,
+  http://web.stanford.edu/class/ee104/shannonpaper.pdf, 1998.
+\newblock Last Accessed: 30/01/2015.
+
+\bibitem{wienerfilter}
+Rice University.
+\newblock {Wiener Filtering}.
+\newblock
+  {http://www.owlnet.rice.edu/~elec539/Projects99/BACH/proj2/wiener.html}.
+\newblock {Last Accessed: 30/01/15}.
+
+\bibitem{attractiveflicker}
+Manuela Waldner, Mathieu~Le Muzic, Matthias Bernhard, Werner Purgathofer, and
+  Ivan Viola.
+\newblock Attractive flicker - guiding attention in dynamic narrative
+  visualizations.
+\newblock Technical report, Vienna University of Technology and VRVis Research
+  Center,
+  http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=6876019\&contentType=Early+Access+Articles,
+  2014.
+
+\bibitem{howmriworks}
+How~Equipment Works.com.
+\newblock {Magnetic Resonance Imaging: Basic principles of how it works}.
+\newblock
+  {http://www.howequipmentworks.com/physics/medical\_imaging/mri/magnetic\_resonance\_imaging.html}.
+\newblock {Last Accessed: 30/01/15}.
+
+\end{thebibliography}
