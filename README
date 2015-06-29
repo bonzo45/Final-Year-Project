@@ -1,8 +1,8 @@
-# ----
-# ---- Welcome to Sam's Final Year Project
-# ----
+# --
+# -- WELCOME TO SAM'S FINAL YEAR PROJECT
 # -- Evaluating uncertainty in motion-corrected fetal MRI.
-# ----
+# --
+
 Hosted at: https://gitlab.doc.ic.ac.uk/sae11/final-year-project
 
 The implementation is an MITK Plugin. This repository contains everything you should need to run it.
