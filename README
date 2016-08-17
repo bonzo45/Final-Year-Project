@@ -3,7 +3,7 @@
 # -- Evaluating uncertainty in motion-corrected fetal MRI.
 # --
 The implementation is an MITK Plugin. This repository contains everything you should need to run it.
-Hosted at: https://gitlab.doc.ic.ac.uk/sae11/final-year-project
+Hosted at: https://github.com/bonzo45/Final-Year-Project
 
 # --
 # -- INSTALLATION
@@ -23,7 +23,7 @@ sudo apt-get install libtiff4-dev
 sudo apt-get install libwrap0-dev
 
 1) Clone the repository.
-git clone git@gitlab.doc.ic.ac.uk:sae11/final-year-project.git
+git clone git@github.com:bonzo45/Final-Year-Project.git
 
 2) Create a build directory.
 mkdir Sams_Project-build
